@@ -1,16 +1,18 @@
 ---
+import Terminal from '@/components/home/terminal/Terminal.astro';
 import AvailabilityNote from '@/components/ui/AvailabilityNote.astro';
 import ButtonLink from '@/components/ui/ButtonLink.astro';
 import { yearsSince } from '@/data/dates';
 import { profile } from '@/data/profile';
-import type { Locale } from '@/i18n/locales';
+import type { Locale, Localized } from '@/i18n/locales';
 import { pathFor } from '@/i18n/routes';
 
 interface Props {
   locale: Locale;
+  alternates: Localized;
 }
 
-const { locale } = Astro.props;
+const { locale, alternates } = Astro.props;
 const years = yearsSince(profile.developerSince);
 
 const copy = {
@@ -29,21 +31,43 @@ const copy = {
     secondary: 'See projects',
   },
 }[locale];
+
+// Words are wrapped individually for the load sequence; spaces stay real text nodes.
+const titleWords = copy.title.split(' ');
 ---
 
 <section class="hero" aria-labelledby="hero-title">
-  <div class="container hero-inner">
-    <p class="intro">{copy.intro}</p>
-    <h1 id="hero-title" class="title">
-      {copy.title}
-    </h1>
-    <p class="lead">{copy.lead}</p>
-    <AvailabilityNote locale={locale} />
-    <div class="actions">
-      <ButtonLink href={pathFor('contact', locale)}>{copy.primary}</ButtonLink>
-      <ButtonLink href={pathFor('projects', locale)} variant="secondary">
-        {copy.secondary}
-      </ButtonLink>
+  <div class="container hero-grid">
+    <div class="copy">
+      <p class="intro enter" style="--delay: 0ms">
+        {copy.intro}
+      </p>
+      <h1 id="hero-title" class="title">
+        {titleWords.map((word, index) => (
+          <>
+            <span class="word" style={`--delay: ${80 + index * 55}ms`}>
+              {word}
+            </span>
+            {index < titleWords.length - 1 && ' '}
+          </>
+        ))}
+      </h1>
+      <p class="lead enter" style="--delay: 420ms">
+        {copy.lead}
+      </p>
+      <div class="enter" style="--delay: 520ms">
+        <AvailabilityNote locale={locale} />
+      </div>
+      <div class="actions enter" style="--delay: 600ms">
+        <ButtonLink href={pathFor('contact', locale)}>{copy.primary}</ButtonLink>
+        <ButtonLink href={pathFor('projects', locale)} variant="secondary">
+          {copy.secondary}
+        </ButtonLink>
+      </div>
+    </div>
+
+    <div class="console enter" style="--delay: 700ms">
+      <Terminal locale={locale} alternates={alternates} />
     </div>
   </div>
 </section>
@@ -52,7 +76,7 @@ const copy = {
   .hero {
     position: relative;
     isolation: isolate;
-    padding-block: clamp(4rem, 2rem + 9vw, 10rem) var(--space-8);
+    padding-block: clamp(3.5rem, 2rem + 7vw, 8rem) var(--space-8);
     overflow: hidden;
   }
 
@@ -70,19 +94,31 @@ const copy = {
     opacity: 0.55;
   }
 
-  .hero-inner {
+  .hero-grid {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+
+  @media (min-width: 68rem) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: var(--space-7);
+    }
+  }
+
+  .copy {
     display: grid;
     gap: var(--space-5);
   }
 
   .intro {
     color: var(--color-fg-muted);
-    font-size: var(--step-0);
   }
 
   .title {
     max-width: 15ch;
-    font-size: var(--step-5);
+    font-size: min(var(--step-5), 4.75rem);
     line-height: var(--leading-tight);
     letter-spacing: -0.035em;
     font-weight: 650;
@@ -92,13 +128,38 @@ const copy = {
     max-width: 52ch;
     font-size: var(--step-1);
     line-height: 1.5;
-    color: var(--color-fg);
   }
 
   .actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3);
-    margin-block-start: var(--space-3);
+    margin-block-start: var(--space-2);
+  }
+
+  /*
+   * The page's one orchestrated moment: the headline rises word by word, then the rest follows.
+   * Pure CSS, so it starts with first paint and never waits for JavaScript.
+   */
+  .word {
+    display: inline-block;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .word,
+    .enter {
+      animation: rise 700ms var(--ease-out) var(--delay, 0ms) both;
+    }
+
+    .word {
+      animation-duration: 800ms;
+    }
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.45em);
+    }
   }
 </style>

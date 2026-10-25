@@ -7,7 +7,8 @@ export default getViteConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/env.d.ts'],
+      // Browser-only DOM glue is covered by the Playwright end-to-end tests, not unit tests.
+      exclude: ['src/**/*.test.ts', 'src/env.d.ts', 'src/scripts/**', 'src/**/*-client.ts'],
       thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
     },
   },
