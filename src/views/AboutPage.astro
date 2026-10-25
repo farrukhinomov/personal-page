@@ -1,0 +1,120 @@
+---
+import ExperienceTrace from '@/components/about/ExperienceTrace.astro';
+import AvailabilityNote from '@/components/ui/AvailabilityNote.astro';
+import PageHeader from '@/components/ui/PageHeader.astro';
+import { experience } from '@/data/experience';
+import { profile } from '@/data/profile';
+import type { Locale } from '@/i18n/locales';
+import { alternatesFor } from '@/i18n/routes';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const copy = {
+  de: {
+    title: 'Über mich',
+    description: `Werdegang, Sprachen und Schwerpunkte von ${profile.name}, Senior Full-Stack-Entwickler in Saarbrücken.`,
+    experience: 'Werdegang',
+    languages: 'Sprachen',
+    awards: 'Auszeichnungen',
+  },
+  en: {
+    title: 'About',
+    description: `Experience, languages and focus of ${profile.name}, senior full-stack developer in Saarbrücken, Germany.`,
+    experience: 'Experience',
+    languages: 'Languages',
+    awards: 'Awards',
+  },
+}[locale];
+---
+
+<BaseLayout
+  locale={locale}
+  route="about"
+  alternates={alternatesFor('about')}
+  title={copy.title}
+  description={copy.description}
+>
+  <PageHeader title={profile.headline[locale]} lead={profile.summary[locale]} />
+
+  <div class="container">
+    <AvailabilityNote locale={locale} />
+  </div>
+
+  <section class="block" aria-labelledby="experience-title">
+    <div class="container">
+      <h2 id="experience-title">{copy.experience}</h2>
+      <ExperienceTrace locale={locale} entries={experience} />
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="languages-title">
+    <div class="container facts">
+      <div>
+        <h2 id="languages-title">{copy.languages}</h2>
+        <dl class="fact-list">
+          {profile.languages.map((language) => (
+            <div>
+              <dt>{language.name[locale]}</dt>
+              <dd>{language.level[locale]}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+      <div>
+        <h2>{copy.awards}</h2>
+        <dl class="fact-list">
+          {profile.awards.map((award) => (
+            <div>
+              <dt>{award.title[locale]}</dt>
+              <dd>{award.year}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .block {
+    padding-block-start: var(--space-8);
+  }
+
+  h2 {
+    margin-block-end: var(--space-6);
+    font-size: var(--step-3);
+  }
+
+  .facts {
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  @media (min-width: 60rem) {
+    .facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .fact-list > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-block: var(--space-3);
+    border-block-end: 1px solid var(--color-line);
+  }
+
+  dt {
+    font-weight: 500;
+  }
+
+  dd {
+    color: var(--color-fg-muted);
+    text-align: end;
+  }
+</style>

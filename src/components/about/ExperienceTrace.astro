@@ -1,0 +1,221 @@
+---
+import { formatDuration } from '@/data/dates';
+import { describePeriod } from '@/data/describe';
+import type { ExperienceEntry } from '@/data/schema';
+import { buildTimeline } from '@/data/timeline';
+import type { Locale } from '@/i18n/locales';
+
+interface Props {
+  locale: Locale;
+  entries: readonly ExperienceEntry[];
+}
+
+const { locale, entries } = Astro.props;
+const { spans, ticks } = buildTimeline(entries);
+
+const copy = {
+  de: { details: 'Details', education: 'Ausbildung' },
+  en: { details: 'Details', education: 'Education' },
+}[locale];
+---
+
+<div class="trace">
+  <div class="axis" aria-hidden="true">
+    {ticks.map((tick) => (
+      <span class="tick" style={`--offset: ${tick.offset}%`}>
+        {tick.year}
+      </span>
+    ))}
+  </div>
+
+  <ol class="spans">
+    {spans.map(({ entry, offset, width, months }) => (
+      <li class:list={['span', `span--${entry.kind}`, { 'span--current': entry.end === null }]}>
+        <div class="label">
+          <h3 class="organization">{entry.organization}</h3>
+          <p class="role">
+            {entry.kind === 'education' && <span class="visually-hidden">{copy.education}: </span>}
+            {entry.role[locale]}
+          </p>
+          <p class="period">{describePeriod(entry, locale)}</p>
+          <p class="period">{entry.location[locale]}</p>
+        </div>
+
+        <div class="track" aria-hidden="true">
+          <span class="bar" style={`--offset: ${offset}%; --width: ${width}%`}>
+            <span class="duration">{formatDuration(months, locale)}</span>
+          </span>
+        </div>
+
+        <div class="detail">
+          <p>{entry.summary[locale]}</p>
+          {entry.highlights.length > 0 && (
+            <ul class="highlights">
+              {entry.highlights.map((item) => (
+                <li>{item[locale]}</li>
+              ))}
+            </ul>
+          )}
+          {entry.stack.length > 0 && <p class="stack">{entry.stack.join(', ')}</p>}
+        </div>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .trace {
+    --label-width: 17rem;
+    --track-gap: var(--space-6);
+  }
+
+  .axis {
+    position: relative;
+    height: 1.5rem;
+    margin-inline-start: calc(var(--label-width) + var(--track-gap));
+    border-block-end: 1px solid var(--color-line);
+  }
+
+  .tick {
+    position: absolute;
+    inset-inline-start: var(--offset);
+    inset-block-end: var(--space-2);
+    color: var(--color-fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    transform: translateX(-50%);
+  }
+
+  /* Only every other year is labelled when space is tight. */
+  @media (max-width: 75rem) {
+    .tick:nth-child(even) {
+      visibility: hidden;
+    }
+  }
+
+  .spans {
+    padding: 0;
+    list-style: none;
+  }
+
+  .span {
+    display: grid;
+    grid-template-columns: var(--label-width) minmax(0, 1fr);
+    column-gap: var(--track-gap);
+    padding-block: var(--space-5);
+    border-block-end: 1px solid var(--color-line);
+  }
+
+  /* The label spans both rows, so the detail follows the bar directly. */
+  .label {
+    grid-row: span 2;
+  }
+
+  .organization {
+    font-size: var(--step-0);
+  }
+
+  .role {
+    color: var(--color-fg);
+    font-size: var(--step--1);
+  }
+
+  .period {
+    margin-block-start: var(--space-1);
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+
+  .period + .period {
+    margin-block-start: 0;
+  }
+
+  .track {
+    position: relative;
+    align-self: start;
+    height: 1.75rem;
+    margin-block-start: 0.15rem;
+    /* A hairline marks the full time range behind every bar. */
+    background: linear-gradient(var(--color-line), var(--color-line)) center / 100% 1px no-repeat;
+  }
+
+  .bar {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: var(--offset);
+    width: var(--width);
+    min-width: 3.25rem;
+    display: flex;
+    align-items: center;
+    padding-inline: var(--space-2);
+    border-radius: 0.3rem;
+    background: color-mix(in srgb, var(--color-signal) 22%, var(--color-surface));
+    border: 1px solid color-mix(in srgb, var(--color-signal) 45%, transparent);
+    overflow: hidden;
+  }
+
+  .span--current .bar {
+    background: var(--color-signal);
+    border-color: var(--color-signal);
+    color: var(--color-signal-contrast);
+  }
+
+  .span--education .bar {
+    background: transparent;
+    border-style: dashed;
+    border-color: var(--color-line-strong);
+  }
+
+  .duration {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .detail {
+    grid-column: 2;
+    max-width: var(--measure);
+    margin-block-start: var(--space-4);
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+
+  .highlights {
+    display: grid;
+    gap: var(--space-2);
+    margin-block-start: var(--space-3);
+    padding-inline-start: 1.1em;
+    color: var(--color-fg);
+  }
+
+  .highlights li::marker {
+    color: var(--color-signal);
+  }
+
+  .stack {
+    margin-block-start: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 47.99rem) {
+    .axis {
+      display: none;
+    }
+
+    .span {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-3);
+    }
+
+    .label {
+      grid-row: auto;
+    }
+
+    .detail {
+      grid-column: 1;
+      margin-block-start: 0;
+    }
+  }
+</style>
