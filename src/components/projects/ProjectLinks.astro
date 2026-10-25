@@ -1,0 +1,72 @@
+---
+import Icon from '@/components/ui/Icon.astro';
+import type { Project } from '@/data/schema';
+import type { Locale } from '@/i18n/locales';
+
+interface Props {
+  locale: Locale;
+  project: Project;
+}
+
+const { locale, project } = Astro.props;
+
+const copy = {
+  de: { source: 'Quellcode', onRequest: 'Quellcode auf Anfrage', live: 'Live ansehen' },
+  en: { source: 'Source code', onRequest: 'Source on request', live: 'View live' },
+}[locale];
+---
+
+<ul class="project-links">
+  <li>
+    {project.visibility === 'public' ? (
+      <a href={`https://github.com/${project.repository}`} rel="noopener">
+        <Icon name="github" />
+        {copy.source}
+      </a>
+    ) : (
+      <span class="private">
+        <Icon name="lock" />
+        {copy.onRequest}
+      </span>
+    )}
+  </li>
+  {project.homepage && (
+    <li>
+      <a href={project.homepage} rel="noopener">
+        <Icon name="arrow-up-right" />
+        {copy.live}
+      </a>
+    </li>
+  )}
+</ul>
+
+<style>
+  .project-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    padding: 0;
+    list-style: none;
+    font-size: var(--step--1);
+    font-weight: 500;
+  }
+
+  a,
+  .private {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--color-signal);
+  }
+
+  .private {
+    color: var(--color-fg-muted);
+  }
+</style>

@@ -1,0 +1,60 @@
+---
+/**
+ * Stroke icons that redraw themselves when their link or button is hovered or focused.
+ * Every path has pathLength="1", so one CSS dash animation fits all of them.
+ */
+import { ICON_PATHS, type IconName } from './icons';
+
+interface Props {
+  name: IconName;
+  size?: number;
+}
+
+const { name, size = 18 } = Astro.props;
+---
+
+<svg
+  class="icon"
+  viewBox="0 0 24 24"
+  width={size}
+  height={size}
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+>
+  {ICON_PATHS[name].map((d) => (
+    <path d={d} pathLength="1" />
+  ))}
+</svg>
+
+<style>
+  .icon {
+    flex: none;
+  }
+
+  .icon path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(:is(a, button):is(:hover, :focus-visible)) > .icon path,
+    :global(:is(a, button):is(:hover, :focus-visible)) .icon path {
+      animation: draw 520ms var(--ease-out) both;
+    }
+
+    :global(:is(a, button):is(:hover, :focus-visible)) .icon path:nth-child(2) {
+      animation-delay: 90ms;
+    }
+  }
+
+  @keyframes draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+</style>

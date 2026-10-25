@@ -19,7 +19,9 @@ const copy = {
   <section class="current" aria-labelledby="current-title">
     <div class="container layout">
       <header class="heading">
-        <h2 id="current-title">{copy.title}</h2>
+        <h2 id="current-title" data-reveal="lines">
+          {copy.title}
+        </h2>
         <p class="where">
           {current.role[locale]} {copy.at} {current.organization}
         </p>

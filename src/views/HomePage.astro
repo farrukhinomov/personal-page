@@ -23,13 +23,15 @@ const copy = {
 ---
 
 <BaseLayout locale={locale} route="home" alternates={alternatesFor('home')}>
-  <Hero locale={locale} />
+  <Hero locale={locale} alternates={alternatesFor('home')} />
   <CurrentWork locale={locale} />
 
   <section class="featured" aria-labelledby="featured-title">
     <div class="container">
       <div class="featured-head">
-        <h2 id="featured-title">{copy.projects}</h2>
+        <h2 id="featured-title" data-reveal="lines">
+          {copy.projects}
+        </h2>
         <ButtonLink href={pathFor('projects', locale)} variant="secondary">
           {copy.all}
         </ButtonLink>

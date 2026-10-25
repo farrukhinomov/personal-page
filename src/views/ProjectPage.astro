@@ -1,0 +1,140 @@
+---
+import ProjectLinks from '@/components/projects/ProjectLinks.astro';
+import Icon from '@/components/ui/Icon.astro';
+import PageHeader from '@/components/ui/PageHeader.astro';
+import type { Project } from '@/data/schema';
+import type { Locale } from '@/i18n/locales';
+import { alternatesForChild, pathFor } from '@/i18n/routes';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+interface Props {
+  locale: Locale;
+  project: Project;
+}
+
+const { locale, project } = Astro.props;
+
+const copy = {
+  de: { back: 'Alle Projekte', year: 'Jahr', stack: 'Technologien', links: 'Links' },
+  en: { back: 'All projects', year: 'Year', stack: 'Technologies', links: 'Links' },
+}[locale];
+---
+
+<BaseLayout
+  locale={locale}
+  route="projects"
+  alternates={alternatesForChild('projects', project.slug)}
+  title={project.name}
+  description={project.tagline[locale]}
+>
+  <div class="container back">
+    <a href={pathFor('projects', locale)}>
+      <Icon name="arrow-left" size={16} />
+      {copy.back}
+    </a>
+  </div>
+
+  <PageHeader title={project.name} lead={project.tagline[locale]} />
+
+  <div class="container layout">
+    <p class="description" data-reveal="fade">
+      {project.description[locale]}
+    </p>
+
+    <dl class="facts">
+      <div>
+        <dt>{copy.year}</dt>
+        <dd>{project.year}</dd>
+      </div>
+      <div>
+        <dt>{copy.stack}</dt>
+        <dd>
+          <ul class="stack">
+            {project.stack.map((tech) => (
+              <li>{tech}</li>
+            ))}
+          </ul>
+        </dd>
+      </div>
+      <div>
+        <dt>{copy.links}</dt>
+        <dd>
+          <ProjectLinks locale={locale} project={project} />
+        </dd>
+      </div>
+    </dl>
+  </div>
+</BaseLayout>
+
+<style>
+  .back {
+    padding-block-start: var(--space-6);
+  }
+
+  .back a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+    text-decoration: none;
+  }
+
+  .back a:hover {
+    color: var(--color-fg);
+  }
+
+  .back + :global(.page-header) {
+    padding-block-start: var(--space-6);
+  }
+
+  .layout {
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  @media (min-width: 60rem) {
+    .layout {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+      align-items: start;
+    }
+  }
+
+  .description {
+    max-width: var(--measure);
+    font-size: var(--step-1);
+    line-height: 1.55;
+  }
+
+  .facts {
+    display: grid;
+    border-block-start: 1px solid var(--color-line);
+  }
+
+  .facts > div {
+    display: grid;
+    gap: var(--space-2);
+    padding-block: var(--space-4);
+    border-block-end: 1px solid var(--color-line);
+  }
+
+  dt {
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
+  }
+
+  .stack li {
+    padding: 0.1rem var(--space-2);
+    border: 1px solid var(--color-line);
+    border-radius: 0.3rem;
+    font-size: var(--step--1);
+  }
+</style>
