@@ -1,0 +1,81 @@
+/*
+ * Design tokens.
+ * The base palette is a deep slate blue taken from the CV, not neutral black.
+ * Two accents carry meaning: signal (cyan) = interactive, status (amber) = live state.
+ */
+
+:root {
+  color-scheme: dark;
+
+  --color-bg: #0e161d;
+  --color-surface: #132029;
+  --color-surface-raised: #182a35;
+  --color-line: #243744;
+  --color-line-strong: #34505f;
+  --color-fg: #e4ecf0;
+  --color-fg-muted: #93a7b3;
+  --color-signal: #5cd6e5;
+  --color-signal-contrast: #062126;
+  --color-status: #f0b54a;
+  --color-focus: #8be6f0;
+  --color-selection: rgb(92 214 229 / 0.28);
+
+  /* Type: 1.25 modular scale, fluid between 360px and 1280px viewports. */
+  --step--1: clamp(0.84rem, 0.82rem + 0.1vw, 0.9rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --step-1: clamp(1.25rem, 1.18rem + 0.33vw, 1.4rem);
+  --step-2: clamp(1.56rem, 1.43rem + 0.6vw, 1.95rem);
+  --step-3: clamp(1.95rem, 1.72rem + 1.05vw, 2.75rem);
+  --step-4: clamp(2.44rem, 2.03rem + 1.8vw, 3.9rem);
+  --step-5: clamp(3.05rem, 2.35rem + 3.1vw, 5.6rem);
+
+  --leading-tight: 1.05;
+  --leading-snug: 1.25;
+  --leading-body: 1.6;
+
+  /* Space: one scale for padding, gaps and section rhythm. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: clamp(4rem, 3rem + 4vw, 7rem);
+
+  --measure: 66ch;
+  --container: 76rem;
+  --gutter: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
+  --header-height: 4rem;
+
+  --radius-control: 0.5rem;
+  --radius-panel: 0.875rem;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 140ms;
+  --duration-base: 240ms;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --color-bg: #f2f5f7;
+  --color-surface: #ffffff;
+  --color-surface-raised: #e8eef2;
+  --color-line: #d3dde3;
+  --color-line-strong: #a9bac5;
+  --color-fg: #0f1e28;
+  --color-fg-muted: #4b6170;
+  --color-signal: #08707f;
+  --color-signal-contrast: #ffffff;
+  --color-status: #8f5d00;
+  --color-focus: #08707f;
+  --color-selection: rgb(8 112 127 / 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+  }
+}

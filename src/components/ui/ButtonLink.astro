@@ -1,0 +1,60 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'a'> {
+  href: string;
+  variant?: 'primary' | 'secondary';
+}
+
+const { variant = 'primary', class: className, ...attrs } = Astro.props;
+---
+
+<a class:list={['button', `button--${variant}`, className]} {...attrs}>
+  <slot />
+</a>
+
+<style>
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 2.875rem;
+    padding: var(--space-2) var(--space-5);
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+    font-weight: 600;
+    font-size: var(--step--1);
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out);
+  }
+
+  .button:active {
+    transform: translateY(1px) scale(0.98);
+  }
+
+  .button--primary {
+    background: var(--color-signal);
+    color: var(--color-signal-contrast);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-signal) 0%, transparent);
+  }
+
+  .button--primary:hover {
+    box-shadow: 0 0.5rem 1.75rem -0.5rem color-mix(in srgb, var(--color-signal) 55%, transparent);
+  }
+
+  .button--secondary {
+    border-color: var(--color-line-strong);
+    color: var(--color-fg);
+  }
+
+  .button--secondary:hover {
+    border-color: var(--color-fg-muted);
+    background: var(--color-surface);
+  }
+</style>

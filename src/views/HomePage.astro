@@ -1,0 +1,62 @@
+---
+import ContactBand from '@/components/home/ContactBand.astro';
+import CurrentWork from '@/components/home/CurrentWork.astro';
+import Hero from '@/components/home/Hero.astro';
+import ProjectList from '@/components/projects/ProjectList.astro';
+import ButtonLink from '@/components/ui/ButtonLink.astro';
+import { projects } from '@/data/projects';
+import type { Locale } from '@/i18n/locales';
+import { alternatesFor, pathFor } from '@/i18n/routes';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const featured = projects.filter((project) => project.featured);
+
+const copy = {
+  de: { projects: 'Ausgewählte Projekte', all: 'Alle Projekte' },
+  en: { projects: 'Selected projects', all: 'All projects' },
+}[locale];
+---
+
+<BaseLayout locale={locale} route="home" alternates={alternatesFor('home')}>
+  <Hero locale={locale} />
+  <CurrentWork locale={locale} />
+
+  <section class="featured" aria-labelledby="featured-title">
+    <div class="container">
+      <div class="featured-head">
+        <h2 id="featured-title">{copy.projects}</h2>
+        <ButtonLink href={pathFor('projects', locale)} variant="secondary">
+          {copy.all}
+        </ButtonLink>
+      </div>
+      <ProjectList locale={locale} projects={featured} />
+    </div>
+  </section>
+
+  <ContactBand locale={locale} />
+</BaseLayout>
+
+<style>
+  .featured {
+    padding-block: var(--space-8) 0;
+    border-block-start: 1px solid var(--color-line);
+  }
+
+  .featured-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-block-end: var(--space-6);
+  }
+
+  h2 {
+    font-size: var(--step-3);
+  }
+</style>

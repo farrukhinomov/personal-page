@@ -1,0 +1,272 @@
+---
+import { profile } from '@/data/profile';
+import type { Locale, Localized } from '@/i18n/locales';
+import { pathFor, type RouteKey } from '@/i18n/routes';
+import { useTranslations } from '@/i18n/ui';
+import LanguageSwitch from './LanguageSwitch.astro';
+import ThemeToggle from './ThemeToggle.astro';
+
+interface Props {
+  locale: Locale;
+  route: RouteKey | undefined;
+  alternates: Localized;
+}
+
+const { locale, route, alternates } = Astro.props;
+const t = useTranslations(locale);
+
+const navItems = [
+  { route: 'about', label: t('nav.about') },
+  { route: 'projects', label: t('nav.projects') },
+  { route: 'contact', label: t('nav.contact') },
+] as const satisfies readonly { route: RouteKey; label: string }[];
+---
+
+<header class="site-header" data-menu="closed">
+  <div class="container bar">
+    <a
+      class="brand"
+      href={pathFor('home', locale)}
+      aria-current={route === 'home' ? 'page' : undefined}
+    >
+      {profile.name}
+    </a>
+
+    <nav class="nav" aria-label={t('a11y.mainNav')}>
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="site-menu"
+        data-label-open={t('a11y.menuOpen')}
+        data-label-close={t('a11y.menuClose')}
+        aria-label={t('a11y.menuOpen')}
+      >
+        <span class="menu-icon" aria-hidden="true"></span>
+      </button>
+      <ul class="menu" id="site-menu">
+        {navItems.map((item) => (
+          <li>
+            <a
+              href={pathFor(item.route, locale)}
+              aria-current={route === item.route ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="tools">
+      <LanguageSwitch locale={locale} alternates={alternates} />
+      <ThemeToggle locale={locale} />
+    </div>
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('.site-header');
+  const toggle = header?.querySelector<HTMLButtonElement>('.menu-toggle');
+
+  function setMenu(open: boolean) {
+    if (!header || !toggle) return;
+    header.dataset.menu = open ? 'open' : 'closed';
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute(
+      'aria-label',
+      (open ? toggle.dataset.labelClose : toggle.dataset.labelOpen) ?? '',
+    );
+  }
+
+  toggle?.addEventListener('click', () => setMenu(header?.dataset.menu !== 'open'));
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && header?.dataset.menu === 'open') {
+      setMenu(false);
+      toggle?.focus();
+    }
+  });
+
+  // The menu is only collapsible on small screens; reset it when the layout changes.
+  window.matchMedia('(min-width: 48rem)').addEventListener('change', () => setMenu(false));
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 50;
+    border-block-end: 1px solid var(--color-line);
+    background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+    backdrop-filter: blur(14px) saturate(140%);
+    view-transition-name: site-header;
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: var(--header-height);
+  }
+
+  .brand {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .nav {
+    margin-inline-start: auto;
+  }
+
+  .menu {
+    display: flex;
+    gap: var(--space-1);
+    padding: 0;
+    list-style: none;
+  }
+
+  .menu a {
+    position: relative;
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-control);
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .menu a:hover {
+    color: var(--color-fg);
+    background: var(--color-surface);
+  }
+
+  /* The current page is marked by a signal-coloured underline, not just colour. */
+  .menu a[aria-current='page'] {
+    color: var(--color-fg);
+  }
+
+  .menu a[aria-current='page']::after {
+    content: '';
+    position: absolute;
+    inset-inline: var(--space-3);
+    inset-block-end: 0.2rem;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--color-signal);
+  }
+
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
+  /* Without JavaScript the menu stays a plain, always visible list. */
+  @media (max-width: 47.99rem) {
+    .bar {
+      flex-wrap: wrap;
+    }
+  }
+
+  /*
+   * Small screens with JavaScript collapse the menu behind a toggle.
+   * DOM order and visual order match (brand, toggle, tools) for keyboard users.
+   */
+  @media (max-width: 47.99rem) {
+    :global(html[data-js]) .bar {
+      flex-wrap: nowrap;
+    }
+
+    :global(html[data-js]) .menu-toggle {
+      display: grid;
+      place-items: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-control);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    /* Two bars that turn into a cross when the menu is open. */
+    .menu-icon,
+    .menu-icon::before {
+      display: block;
+      width: 1.1rem;
+      height: 2px;
+      border-radius: 1px;
+      background: currentColor;
+      transition: transform var(--duration-base) var(--ease-out);
+    }
+
+    .menu-icon {
+      transform: translateY(-3px);
+    }
+
+    .menu-icon::before {
+      content: '';
+      transform: translateY(6px);
+    }
+
+    [data-menu='open'] .menu-icon {
+      transform: rotate(45deg);
+    }
+
+    [data-menu='open'] .menu-icon::before {
+      transform: rotate(-90deg);
+    }
+
+    :global(html[data-js]) .menu {
+      position: absolute;
+      inset-inline: 0;
+      inset-block-start: 100%;
+      flex-direction: column;
+      gap: 0;
+      padding: var(--space-3) var(--gutter) var(--space-5);
+      border-block-end: 1px solid var(--color-line);
+      background: var(--color-bg);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-0.5rem);
+      transition:
+        opacity var(--duration-base) var(--ease-out),
+        transform var(--duration-base) var(--ease-out),
+        visibility 0s linear var(--duration-base);
+    }
+
+    :global(html[data-js]) [data-menu='open'] .menu {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      transition-delay: 0s;
+    }
+
+    :global(html[data-js]) .menu a {
+      padding: var(--space-3) 0;
+      font-size: var(--step-1);
+    }
+
+    :global(html[data-js]) .menu a:hover {
+      background: transparent;
+    }
+
+    :global(html[data-js]) .menu a[aria-current='page']::after {
+      inset-inline: auto;
+      inset-inline-start: -0.75rem;
+      inset-block: 30%;
+      width: 2px;
+      height: auto;
+    }
+  }
+</style>

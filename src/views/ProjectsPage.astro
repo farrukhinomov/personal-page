@@ -1,0 +1,38 @@
+---
+import ProjectList from '@/components/projects/ProjectList.astro';
+import PageHeader from '@/components/ui/PageHeader.astro';
+import { projects } from '@/data/projects';
+import type { Locale } from '@/i18n/locales';
+import { alternatesFor } from '@/i18n/routes';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const copy = {
+  de: {
+    title: 'Projekte',
+    lead: 'Eigene Projekte neben dem Beruf – von Compliance-Software bis zum Werkzeug für den Entwickleralltag.',
+  },
+  en: {
+    title: 'Projects',
+    lead: 'Projects I build alongside my job – from compliance software to tools for everyday development.',
+  },
+}[locale];
+---
+
+<BaseLayout
+  locale={locale}
+  route="projects"
+  alternates={alternatesFor('projects')}
+  title={copy.title}
+  description={copy.lead}
+>
+  <PageHeader title={copy.title} lead={copy.lead} />
+  <div class="container">
+    <ProjectList locale={locale} projects={projects} headingLevel="h2" />
+  </div>
+</BaseLayout>

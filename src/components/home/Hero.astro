@@ -1,0 +1,104 @@
+---
+import AvailabilityNote from '@/components/ui/AvailabilityNote.astro';
+import ButtonLink from '@/components/ui/ButtonLink.astro';
+import { yearsSince } from '@/data/dates';
+import { profile } from '@/data/profile';
+import type { Locale } from '@/i18n/locales';
+import { pathFor } from '@/i18n/routes';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const years = yearsSince(profile.developerSince);
+
+const copy = {
+  de: {
+    intro: `${profile.name}, Senior Full-Stack-Entwickler in Saarbrücken`,
+    title: 'Business-Software, die im Alltag zuverlässig läuft.',
+    lead: `Seit ${years} Jahren baue ich mit C# und .NET Systeme für Unternehmen – von der Architektur bis zum Betrieb beim Kunden. Im Frontend arbeite ich mit React und TypeScript.`,
+    primary: 'Kontakt aufnehmen',
+    secondary: 'Projekte ansehen',
+  },
+  en: {
+    intro: `${profile.name}, senior full-stack developer in Saarbrücken, Germany`,
+    title: 'Business software that holds up in daily use.',
+    lead: `For ${years} years I have been building systems for companies with C# and .NET – from the architecture to running them at the customer. On the frontend I work with React and TypeScript.`,
+    primary: 'Get in touch',
+    secondary: 'See projects',
+  },
+}[locale];
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="container hero-inner">
+    <p class="intro">{copy.intro}</p>
+    <h1 id="hero-title" class="title">
+      {copy.title}
+    </h1>
+    <p class="lead">{copy.lead}</p>
+    <AvailabilityNote locale={locale} />
+    <div class="actions">
+      <ButtonLink href={pathFor('contact', locale)}>{copy.primary}</ButtonLink>
+      <ButtonLink href={pathFor('projects', locale)} variant="secondary">
+        {copy.secondary}
+      </ButtonLink>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    padding-block: clamp(4rem, 2rem + 9vw, 10rem) var(--space-8);
+    overflow: hidden;
+  }
+
+  /* An engineering grid that fades out: texture, not decoration with meaning. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(to right, var(--color-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+    background-size: 3.5rem 3.5rem;
+    mask-image: radial-gradient(ellipse 70% 60% at 30% 35%, #000 10%, transparent 75%);
+    opacity: 0.55;
+  }
+
+  .hero-inner {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .intro {
+    color: var(--color-fg-muted);
+    font-size: var(--step-0);
+  }
+
+  .title {
+    max-width: 15ch;
+    font-size: var(--step-5);
+    line-height: var(--leading-tight);
+    letter-spacing: -0.035em;
+    font-weight: 650;
+  }
+
+  .lead {
+    max-width: 52ch;
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--color-fg);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-3);
+  }
+</style>

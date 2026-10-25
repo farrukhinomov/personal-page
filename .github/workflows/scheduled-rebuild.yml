@@ -1,0 +1,25 @@
+# The site is static, so dates computed at build time (years of experience,
+# the current Experience span, the copyright year) only change on a rebuild.
+# This triggers a Vercel production rebuild on the 1st of every month.
+name: Scheduled rebuild
+
+on:
+  schedule:
+    - cron: '0 4 1 * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel deploy hook
+        env:
+          DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$DEPLOY_HOOK" ]; then
+            echo "::error::Secret VERCEL_DEPLOY_HOOK is not set (Vercel → Project → Settings → Git → Deploy Hooks)."
+            exit 1
+          fi
+          curl --fail --silent --show-error -X POST "$DEPLOY_HOOK"
