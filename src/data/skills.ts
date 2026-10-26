@@ -1,43 +1,57 @@
 import { skillsSchema } from './schema';
 
 /**
- * Skills, grouped. Technology names are not translated; ways of working are.
- * `tags` groups render as chips, `list` groups as plain lines.
+ * Skills, grouped by where they come from: paid work, own projects, or how Farrukh works.
+ * Technology names are not translated; everything else is.
+ * A skill moves to `professional` only once it has been used in a job.
  */
 export const skills = skillsSchema.parse([
   {
-    id: 'backend',
-    name: { de: 'Backend', en: 'Backend' },
+    id: 'professional',
+    name: { de: 'Berufserfahrung', en: 'Professional experience' },
     kind: 'tags',
     items: [
       'C#',
       '.NET',
       'ASP.NET Core',
-      'Python',
-      'Django',
-      'Django REST Framework (DRF)',
-      'FastAPI',
+      'Blazor',
       'REST APIs',
+      'EF Core',
+      'Dapper',
+      'ORM',
+      'SQL Server',
+      'PostgreSQL',
       'Hangfire',
+      {
+        de: 'Integrationen (OAuth2, Microsoft 365, Google)',
+        en: 'Integrations (OAuth2, Microsoft 365, Google)',
+      },
+      { de: 'Automatisierte Tests', en: 'Automated testing' },
+      'TeamCity',
+      'GitLab CI',
+      'Docker',
+      'Prometheus',
+      'Grafana',
+      'OpenTelemetry',
     ],
   },
   {
-    id: 'frontend',
-    name: { de: 'Frontend', en: 'Frontend' },
+    id: 'own-projects',
+    name: { de: 'Eigenprojekte – im Ausbau', en: 'Own projects – in progress' },
+    note: { de: 'Aus FlowPro und KRITIS GRC', en: 'From FlowPro and KRITIS GRC' },
     kind: 'tags',
-    items: ['React', 'TypeScript', 'JavaScript', 'ES6', 'Ant Design', 'Blazor'],
-  },
-  {
-    id: 'data',
-    name: { de: 'Daten', en: 'Data' },
-    kind: 'tags',
-    items: ['PostgreSQL', 'SQL Server', 'ORM', 'EF Core', 'Dapper'],
-  },
-  {
-    id: 'operations',
-    name: { de: 'Betrieb', en: 'Operations' },
-    kind: 'tags',
-    items: ['Docker', 'Traefik', 'TeamCity', 'GitLab CI', 'Prometheus', 'Grafana', 'OpenTelemetry'],
+    items: [
+      'React',
+      'TypeScript',
+      'JavaScript',
+      'ES6',
+      'Ant Design',
+      'Vitest',
+      'Playwright',
+      'Python',
+      'Django',
+      'FastAPI',
+    ],
   },
   {
     id: 'ways-of-working',

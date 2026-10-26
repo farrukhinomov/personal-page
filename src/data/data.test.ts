@@ -68,7 +68,8 @@ describe('skills', () => {
       'Knowledge sharing',
     ];
     for (const skill of wanted) expect(labels('en')).toContain(skill);
-    expect(labels('en').some((label) => label.startsWith('Django REST Framework'))).toBe(true);
+    // DRF comes back once there is an implemented API to point to.
+    expect(labels('en').some((label) => label.includes('REST Framework'))).toBe(false);
     expect(labels('en').some((label) => label.includes('Product Management and UX'))).toBe(true);
   });
 
@@ -76,6 +77,19 @@ describe('skills', () => {
     expect(labels('de')).toContain('Wissensaustausch');
     expect(labels('de')).toContain('PostgreSQL');
     expect(labels('de')).not.toContain('Knowledge sharing');
+  });
+
+  it('separates professional experience from own-project skills', () => {
+    const group = (id: string) =>
+      skills.find((g) => g.id === id)?.items.map((item) => skillLabel(item, 'en')) ?? [];
+    expect(group('professional')).toEqual(
+      expect.arrayContaining(['C#', '.NET', 'SQL Server', 'OpenTelemetry']),
+    );
+    // Not used in a job yet: FlowPro and KRITIS GRC are own projects.
+    for (const skill of ['React', 'TypeScript', 'Ant Design', 'Python', 'Django', 'FastAPI']) {
+      expect(group('professional')).not.toContain(skill);
+      expect(group('own-projects')).toContain(skill);
+    }
   });
 
   it('has no duplicate skills', () => {
