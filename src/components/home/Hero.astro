@@ -1,6 +1,7 @@
 ---
 import ButtonLink from '@/components/ui/ButtonLink.astro';
 import Icon from '@/components/ui/Icon.astro';
+import { cvPath } from '@/cv/paths';
 import { yearsSince } from '@/data/dates';
 import { profile } from '@/data/profile';
 import { projects } from '@/data/projects';
@@ -26,6 +27,7 @@ const copy = {
     experience: `${years}+ Jahre Berufserfahrung in der Softwareentwicklung`,
     flagship: (name: string) => `${name} ansehen`,
     source: 'GitHub / Architektur',
+    cv: 'Lebenslauf herunterladen (PDF)',
   },
   en: {
     intro: `${profile.name}, Saarbrücken, Germany`,
@@ -35,6 +37,7 @@ const copy = {
     experience: `${years}+ years of professional software development`,
     flagship: (name: string) => `View ${name}`,
     source: 'GitHub / architecture',
+    cv: 'Download CV (PDF)',
   },
 }[locale];
 
@@ -72,6 +75,9 @@ const titleWords = pageMeta('home', locale).title.split(' ');
       <div class="actions enter" style="--delay: 560ms">
         <ButtonLink href={childPathFor('projects', locale, flagship.slug)}>
           {copy.flagship(flagship.name)}
+        </ButtonLink>
+        <ButtonLink href={cvPath(locale)} variant="secondary" download>
+          {copy.cv}
         </ButtonLink>
         {flagship.visibility === 'public' && (
           <ButtonLink

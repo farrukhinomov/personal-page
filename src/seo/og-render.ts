@@ -1,7 +1,6 @@
-import { readFile } from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import { Resvg } from '@resvg/resvg-js';
 import satori from 'satori';
+import { loadGeist } from '@/lib/fonts';
 import { OG_IMAGE_SIZE } from './og';
 
 /**
@@ -26,21 +25,15 @@ export interface OgCard {
   subtitle?: string | undefined;
 }
 
-const require = createRequire(import.meta.url);
-let fontsPromise: Promise<{ name: string; data: Buffer; weight: 400 | 600 }[]> | undefined;
-
-/** Satori needs raw font files (not woff2); loaded once per build. */
-function loadFonts() {
-  fontsPromise ??= Promise.all(
+/** Satori needs raw font files (not woff2). */
+async function loadFonts() {
+  return Promise.all(
     ([400, 600] as const).map(async (weight) => ({
       name: 'Geist',
       weight,
-      data: await readFile(
-        require.resolve(`@fontsource/geist/files/geist-latin-${weight}-normal.woff`),
-      ),
+      data: await loadGeist(weight),
     })),
   );
-  return fontsPromise;
 }
 
 /** Minimal element factory, so this file needs no JSX runtime. */
