@@ -30,3 +30,6 @@ _docs/
 
 # local tool config
 .claude/
+
+# crash dumps
+*.stackdump

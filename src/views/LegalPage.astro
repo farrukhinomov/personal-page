@@ -1,0 +1,62 @@
+---
+import { getEntry, render } from 'astro:content';
+import PageHeader from '@/components/ui/PageHeader.astro';
+import { formatDate } from '@/data/dates';
+import type { Locale } from '@/i18n/locales';
+import { alternatesFor, type RouteKey } from '@/i18n/routes';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { ogImagePath } from '@/seo/og';
+import '@/styles/prose.css';
+
+interface Props {
+  locale: Locale;
+  /** Which legal text to show; matches the folder in `src/content/legal`. */
+  page: Extract<RouteKey, 'imprint' | 'privacy'>;
+}
+
+const { locale, page } = Astro.props;
+
+const entry = await getEntry('legal', `${page}/${locale}`);
+if (!entry) throw new Error(`Missing legal text: src/content/legal/${page}/${locale}.mdx`);
+const { Content } = await render(entry);
+
+const copy = {
+  de: { updated: 'Stand' },
+  en: { updated: 'Last updated' },
+}[locale];
+---
+
+<BaseLayout
+  locale={locale}
+  alternates={alternatesFor(page)}
+  title={entry.data.title}
+  description={entry.data.description}
+  ogImage={ogImagePath(locale, page)}
+>
+  <PageHeader title={entry.data.title} />
+  <div class="container">
+    <div class="prose legal">
+      <Content />
+      <p class="updated">
+        {copy.updated}: {formatDate(entry.data.updated, locale)}
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* Legal text reads like a document: no decorative colour on headings or links. */
+  .legal :global(address) {
+    font-style: normal;
+  }
+
+  .legal :global(a) {
+    color: inherit;
+    text-decoration-color: var(--color-signal);
+  }
+
+  .updated {
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+</style>

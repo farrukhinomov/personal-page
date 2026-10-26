@@ -20,6 +20,8 @@ const NAV_KEY = {
   projects: 'nav.projects',
   blog: 'nav.blog',
   contact: 'nav.contact',
+  imprint: 'nav.imprint',
+  privacy: 'nav.privacy',
 } as const satisfies Record<RouteKey, Parameters<ReturnType<typeof useTranslations>>[0]>;
 
 export interface OgPost {
