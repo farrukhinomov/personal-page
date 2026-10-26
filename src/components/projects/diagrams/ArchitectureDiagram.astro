@@ -1,0 +1,277 @@
+---
+import type { Locale } from '@/i18n/locales';
+import { edgeLine, NODE_SIZE, type ArchitectureDiagram } from './architecture';
+
+interface Props {
+  locale: Locale;
+  diagram: ArchitectureDiagram;
+  /** Unique per page, used for SVG ids. */
+  id: string;
+}
+
+const { locale, diagram, id } = Astro.props;
+const nodeById = new Map(diagram.nodes.map((node) => [node.id, node]));
+const label = (nodeId: string) => nodeById.get(nodeId)?.label[locale] ?? nodeId;
+
+const edges = diagram.edges.flatMap((edge) => {
+  const from = nodeById.get(edge.from);
+  const to = nodeById.get(edge.to);
+  return from && to ? [{ ...edge, ...edgeLine(from, to) }] : [];
+});
+
+const copy = {
+  de: {
+    live: 'funktioniert heute',
+    skeleton: 'Grundgerüst vorhanden',
+    planned: 'geplant',
+    liveFlow: 'Funktioniert heute',
+    plannedFlow: 'Geplant',
+    legend: 'Legende',
+  },
+  en: {
+    live: 'works today',
+    skeleton: 'skeleton exists',
+    planned: 'planned',
+    liveFlow: 'Works today',
+    plannedFlow: 'Planned',
+    legend: 'Legend',
+  },
+}[locale];
+
+// The same facts as text: for screen readers, and for anyone on a narrow screen.
+const describe = (status: 'live' | 'planned') =>
+  diagram.edges
+    .filter((edge) => edge.status === status)
+    .map((edge) => `${label(edge.from)} → ${label(edge.to)}`);
+---
+
+<figure class="diagram">
+  <div class="canvas">
+    <svg
+      viewBox={`0 0 ${diagram.width} ${diagram.height}`}
+      role="img"
+      aria-labelledby={`${id}-title`}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <title id={`${id}-title`}>{diagram.title[locale]}</title>
+      <defs>
+        {(['live', 'planned'] as const).map((status) => (
+          <marker
+            id={`${id}-arrow-${status}`}
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto-start-reverse"
+          >
+            <path d="M0 0 10 5 0 10z" class={`arrow arrow--${status}`} />
+          </marker>
+        ))}
+      </defs>
+
+      {edges.map((edge) => (
+        <g class={`edge edge--${edge.status}`}>
+          <line
+            x1={edge.start.x}
+            y1={edge.start.y}
+            x2={edge.end.x}
+            y2={edge.end.y}
+            marker-end={`url(#${id}-arrow-${edge.status})`}
+          />
+          {edge.label && (
+            <text
+              x={(edge.start.x + edge.end.x) / 2}
+              y={(edge.start.y + edge.end.y) / 2 - 8}
+              text-anchor="middle"
+              class="edge-label"
+            >
+              {edge.label[locale]}
+            </text>
+          )}
+        </g>
+      ))}
+
+      {diagram.nodes.map((node) => (
+        <g class={`node node--${node.status}`}>
+          <rect x={node.x} y={node.y} width={NODE_SIZE.width} height={NODE_SIZE.height} rx="10" />
+          <text x={node.x + 14} y={node.y + 27} class="node-label">
+            {node.label[locale]}
+          </text>
+          <text x={node.x + 14} y={node.y + 47} class="node-detail">
+            {node.detail[locale]}
+          </text>
+        </g>
+      ))}
+    </svg>
+  </div>
+
+  <figcaption>
+    <ul class="legend" aria-label={copy.legend}>
+      <li>
+        <span class="swatch swatch--live" aria-hidden="true"></span>
+        {copy.live}
+      </li>
+      <li>
+        <span class="swatch swatch--skeleton" aria-hidden="true"></span>
+        {copy.skeleton}
+      </li>
+      <li>
+        <span class="swatch swatch--planned" aria-hidden="true"></span>
+        {copy.planned}
+      </li>
+    </ul>
+    <dl class="flows">
+      <div>
+        <dt>{copy.liveFlow}</dt>
+        <dd>{describe('live').join(', ')}</dd>
+      </div>
+      <div>
+        <dt>{copy.plannedFlow}</dt>
+        <dd>{describe('planned').join(', ')}</dd>
+      </div>
+    </dl>
+  </figcaption>
+</figure>
+
+<style>
+  .diagram {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  /* Phones scroll the drawing sideways instead of shrinking its text below legibility. */
+  .canvas {
+    overflow-x: auto;
+    padding: var(--space-4);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface);
+  }
+
+  svg {
+    width: 100%;
+    min-width: 40rem;
+    height: auto;
+    font-family: var(--font-sans);
+  }
+
+  .node rect {
+    fill: var(--color-bg);
+    stroke-width: 1.5;
+  }
+
+  .node--live rect {
+    stroke: var(--color-signal);
+    stroke-width: 2;
+  }
+
+  .node--skeleton rect {
+    stroke: var(--color-fg-muted);
+  }
+
+  .node--planned rect {
+    stroke: var(--color-line-strong);
+    stroke-dasharray: 6 5;
+  }
+
+  .node-label {
+    fill: var(--color-fg);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .node-detail {
+    fill: var(--color-fg-muted);
+    font-size: 12px;
+  }
+
+  .node--planned .node-label {
+    fill: var(--color-fg-muted);
+  }
+
+  .edge line {
+    stroke-width: 2;
+  }
+
+  .edge--live line {
+    stroke: var(--color-signal);
+  }
+
+  .edge--planned line {
+    stroke: var(--color-line-strong);
+    stroke-dasharray: 6 5;
+  }
+
+  .arrow--live {
+    fill: var(--color-signal);
+  }
+
+  .arrow--planned {
+    fill: var(--color-line-strong);
+  }
+
+  .edge-label {
+    fill: var(--color-fg-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  figcaption {
+    display: grid;
+    gap: var(--space-3);
+    font-size: var(--step--1);
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    padding: 0;
+    list-style: none;
+    color: var(--color-fg-muted);
+  }
+
+  .legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .swatch {
+    width: 1.5rem;
+    height: 0;
+    border-top: 2px solid;
+  }
+
+  .swatch--live {
+    border-color: var(--color-signal);
+  }
+
+  .swatch--skeleton {
+    border-color: var(--color-fg-muted);
+  }
+
+  .swatch--planned {
+    border-top-style: dashed;
+    border-color: var(--color-line-strong);
+  }
+
+  .flows > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-2);
+  }
+
+  .flows dt {
+    font-weight: 600;
+  }
+
+  .flows dt::after {
+    content: ':';
+  }
+
+  .flows dd {
+    color: var(--color-fg-muted);
+  }
+</style>

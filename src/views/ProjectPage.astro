@@ -1,7 +1,10 @@
 ---
+import ArchitectureDiagram from '@/components/projects/diagrams/ArchitectureDiagram.astro';
+import { DIAGRAMS } from '@/components/projects/diagrams/architecture';
 import ProjectLinks from '@/components/projects/ProjectLinks.astro';
 import Icon from '@/components/ui/Icon.astro';
 import PageHeader from '@/components/ui/PageHeader.astro';
+import { formatDate } from '@/data/dates';
 import type { Project } from '@/data/schema';
 import type { Locale } from '@/i18n/locales';
 import { alternatesForChild, pathFor } from '@/i18n/routes';
@@ -16,16 +19,37 @@ interface Props {
 const { locale, project } = Astro.props;
 
 const copy = {
-  de: { back: 'Alle Projekte', year: 'Jahr', stack: 'Technologien', links: 'Links' },
-  en: { back: 'All projects', year: 'Year', stack: 'Technologies', links: 'Links' },
+  de: {
+    back: 'Alle Projekte',
+    year: 'Jahr',
+    stack: 'Technologien',
+    links: 'Links',
+    updated: 'Stand',
+    architecture: 'Systemüberblick',
+    demo: 'Demo',
+  },
+  en: {
+    back: 'All projects',
+    year: 'Year',
+    stack: 'Technologies',
+    links: 'Links',
+    updated: 'Last updated',
+    architecture: 'System overview',
+    demo: 'Demo',
+  },
 }[locale];
+
+// "KRITIS GRC — GRC-SaaS-Prototyp": the kind is part of the title, so nobody mistakes a
+// prototype for a finished product.
+const title = project.kind ? `${project.name} — ${project.kind[locale]}` : project.name;
+const diagram = DIAGRAMS[project.slug];
 ---
 
 <BaseLayout
   locale={locale}
   route="projects"
   alternates={alternatesForChild('projects', project.slug)}
-  title={project.name}
+  title={title}
   description={project.tagline[locale]}
   ogImage={ogImagePath(locale, 'projects', project.slug)}
 >
@@ -36,7 +60,7 @@ const copy = {
     </a>
   </div>
 
-  <PageHeader title={project.name} lead={project.tagline[locale]} />
+  <PageHeader title={project.name} suffix={project.kind?.[locale]} lead={project.tagline[locale]} />
 
   <div class="container layout">
     <p class="description" data-reveal="fade">
@@ -66,9 +90,112 @@ const copy = {
       </div>
     </dl>
   </div>
+
+  {project.sections && (
+    <div class="container block">
+      <div class="sections">
+        {project.sections.map((section) => (
+          <section class="section">
+            <h2>{section.heading[locale]}</h2>
+            <ul>
+              {section.items.map((item) => (
+                <li>{item[locale]}</li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+      {project.sectionsUpdated && (
+        <p class="updated">
+          {copy.updated}: {formatDate(new Date(project.sectionsUpdated), locale)}
+        </p>
+      )}
+    </div>
+  )}
+
+  {diagram && (
+    <section class="container block" aria-labelledby="architecture-title">
+      <h2 id="architecture-title" class="block-title">
+        {copy.architecture}
+      </h2>
+      <ArchitectureDiagram locale={locale} diagram={diagram} id={`${project.slug}-architecture`} />
+    </section>
+  )}
+
+  {project.demoVideo && (
+    <section class="container block" aria-labelledby="demo-title">
+      <h2 id="demo-title" class="block-title">
+        {copy.demo}
+      </h2>
+      <figure class="demo">
+        <video controls preload="metadata" src={project.demoVideo.src} />
+        <figcaption>{project.demoVideo.caption[locale]}</figcaption>
+      </figure>
+    </section>
+  )}
 </BaseLayout>
 
 <style>
+  .block {
+    padding-block-start: var(--space-8);
+  }
+
+  .block-title {
+    margin-block-end: var(--space-5);
+    font-size: var(--step-2);
+  }
+
+  .sections {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  @media (min-width: 48rem) {
+    .sections {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .section {
+    padding: var(--space-5);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+  }
+
+  .section h2 {
+    font-size: var(--step-1);
+  }
+
+  .section ul {
+    display: grid;
+    gap: var(--space-2);
+    margin-block-start: var(--space-3);
+    padding-inline-start: 1.1em;
+  }
+
+  .section li::marker {
+    color: var(--color-signal);
+  }
+
+  .updated {
+    margin-block-start: var(--space-4);
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+
+  .demo video {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+  }
+
+  .demo figcaption {
+    margin-block-start: var(--space-3);
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+
   .back {
     padding-block-start: var(--space-6);
   }
