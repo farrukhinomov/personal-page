@@ -90,6 +90,9 @@ const canonical = new URL(alternates[locale], Astro.site);
     -->
     <script is:inline>
       document.documentElement.dataset.js = '';
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.dataset.motion = '';
+      }
       try {
         if (localStorage.getItem('theme') === 'light') {
           document.documentElement.dataset.theme = 'light';
@@ -110,6 +113,9 @@ const canonical = new URL(alternates[locale], Astro.site);
       <slot />
     </main>
     <SiteFooter locale={locale} />
+    <script>
+      import '@/scripts/motion';
+    </script>
   </body>
 </html>
 

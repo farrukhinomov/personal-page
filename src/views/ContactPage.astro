@@ -1,5 +1,7 @@
 ---
 import AvailabilityNote from '@/components/ui/AvailabilityNote.astro';
+import Icon from '@/components/ui/Icon.astro';
+import type { IconName } from '@/components/ui/icons';
 import PageHeader from '@/components/ui/PageHeader.astro';
 import { profile } from '@/data/profile';
 import type { Locale } from '@/i18n/locales';
@@ -35,20 +37,28 @@ const copy = {
   },
 }[locale];
 
-const channels = [
+const channels: { label: string; hint: string; href: string; value: string; icon: IconName }[] = [
   {
     label: copy.email,
     hint: copy.emailHint,
     href: `mailto:${profile.email}`,
     value: profile.email,
+    icon: 'mail',
   },
   {
     label: copy.linkedin,
     hint: copy.linkedinHint,
     href: profile.links.linkedin,
     value: 'in/farrukhinomov',
+    icon: 'linkedin',
   },
-  { label: copy.github, hint: copy.githubHint, href: profile.links.github, value: 'farrukhinomov' },
+  {
+    label: copy.github,
+    hint: copy.githubHint,
+    href: profile.links.github,
+    value: 'farrukhinomov',
+    icon: 'github',
+  },
 ];
 ---
 
@@ -70,7 +80,10 @@ const channels = [
             href={channel.href}
             rel={channel.href.startsWith('http') ? 'me noopener' : undefined}
           >
-            <span class="label">{channel.label}</span>
+            <span class="label">
+              <Icon name={channel.icon} size={20} />
+              {channel.label}
+            </span>
             <span class="value">{channel.value}</span>
             <span class="hint">{channel.hint}</span>
           </a>
@@ -115,6 +128,9 @@ const channels = [
   }
 
   .label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
     color: var(--color-fg-muted);
     font-size: var(--step--1);
   }

@@ -1,6 +1,8 @@
 ---
 import type { Project } from '@/data/schema';
 import type { Locale } from '@/i18n/locales';
+import { childPathFor } from '@/i18n/routes';
+import ProjectLinks from './ProjectLinks.astro';
 
 interface Props {
   locale: Locale;
@@ -12,29 +14,23 @@ interface Props {
 const { locale, projects, headingLevel: Heading = 'h3' } = Astro.props;
 
 const copy = {
-  de: {
-    source: 'Quellcode',
-    onRequest: 'Quellcode auf Anfrage',
-    live: 'Live ansehen',
-    stack: 'Technologien',
-  },
-  en: {
-    source: 'Source code',
-    onRequest: 'Source on request',
-    live: 'View live',
-    stack: 'Technologies',
-  },
+  de: { stack: 'Technologien' },
+  en: { stack: 'Technologies' },
 }[locale];
 ---
 
-<ol class="project-list">
+<ol class="project-list" data-reveal="fade">
   {projects.map((project) => (
     <li class="project">
       <div class="meta">
         <span class="year">{project.year}</span>
       </div>
       <div class="body">
-        <Heading class="name">{project.name}</Heading>
+        <Heading class="name">
+          <a class="detail-link" href={childPathFor('projects', locale, project.slug)}>
+            {project.name}
+          </a>
+        </Heading>
         <p class="tagline">{project.tagline[locale]}</p>
         <ul class="stack" aria-label={copy.stack}>
           {project.stack.map((tech) => (
@@ -43,18 +39,7 @@ const copy = {
         </ul>
       </div>
       <div class="links">
-        {project.visibility === 'public' ? (
-          <a href={`https://github.com/${project.repository}`} rel="noopener">
-            {copy.source}
-          </a>
-        ) : (
-          <span class="private">{copy.onRequest}</span>
-        )}
-        {project.homepage && (
-          <a href={project.homepage} rel="noopener">
-            {copy.live}
-          </a>
-        )}
+        <ProjectLinks locale={locale} project={project} />
       </div>
     </li>
   ))}
@@ -134,22 +119,30 @@ const copy = {
     font-size: var(--step--1);
   }
 
-  .links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-5);
-    font-size: var(--step--1);
-    font-weight: 500;
-  }
-
   @media (min-width: 48rem) {
-    .links {
+    .links :global(.project-links) {
       flex-direction: column;
       align-items: flex-end;
     }
   }
 
-  .private {
-    color: var(--color-fg-muted);
+  /* The name link covers the whole row; the other links sit above it and stay clickable. */
+  .detail-link {
+    text-decoration: none;
+  }
+
+  .detail-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .links {
+    position: relative;
+    z-index: 1;
+  }
+
+  .project:hover .detail-link {
+    color: var(--color-signal);
   }
 </style>
