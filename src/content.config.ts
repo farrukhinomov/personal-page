@@ -25,4 +25,18 @@ const blog = defineCollection({
     }),
 });
 
-export const collections = { blog };
+/**
+ * Legal pages: `src/content/legal/<imprint|privacy>/<locale>.mdx`.
+ * German is the binding text; English is a courtesy translation.
+ */
+const legal = defineCollection({
+  loader: glob({ pattern: '*/{de,en}.mdx', base: './src/content/legal' }),
+  schema: z.object({
+    title: z.string().trim().min(1),
+    description: z.string().trim().min(20).max(200),
+    /** Date the text was last reviewed. */
+    updated: z.coerce.date(),
+  }),
+});
+
+export const collections = { blog, legal };

@@ -58,6 +58,27 @@ const PAGES: Record<RouteKey, Localized<PageMeta>> = {
         'Notes on architecture, .NET, operations and tooling – from work on real business software.',
     },
   },
+  imprint: {
+    de: {
+      title: 'Impressum',
+      description: 'Anbieterkennzeichnung nach § 5 DDG für inomov.online.',
+    },
+    en: {
+      title: 'Imprint',
+      description: 'Legal notice under § 5 DDG (German Digital Services Act) for inomov.online.',
+    },
+  },
+  privacy: {
+    de: {
+      title: 'Datenschutzerklärung',
+      description:
+        'Welche Daten beim Besuch von inomov.online verarbeitet werden und welche Rechte Sie haben.',
+    },
+    en: {
+      title: 'Privacy policy',
+      description: 'Which data is processed when you visit inomov.online and what rights you have.',
+    },
+  },
   contact: {
     de: {
       title: 'Kontakt',

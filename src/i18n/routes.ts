@@ -10,6 +10,8 @@ export const ROUTES = {
   projects: { de: '/projekte', en: '/en/projects' },
   blog: { de: '/blog', en: '/en/blog' },
   contact: { de: '/kontakt', en: '/en/contact' },
+  imprint: { de: '/impressum', en: '/en/imprint' },
+  privacy: { de: '/datenschutz', en: '/en/privacy' },
 } as const satisfies Record<string, Localized>;
 
 export type RouteKey = keyof typeof ROUTES;
