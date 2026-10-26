@@ -1,15 +1,21 @@
 ---
 interface Props {
   title: string;
+  /** Shown after the title and never broken across lines, e.g. "GRC-SaaS-Prototyp". */
+  suffix?: string | undefined;
   lead?: string;
 }
 
-const { title, lead } = Astro.props;
+const { title, suffix, lead } = Astro.props;
 ---
 
 <header class="page-header">
   <div class="container">
-    <h1>{title}</h1>
+    <h1>
+      {title}
+      {suffix && ' '}
+      {suffix && <span class="suffix">— {suffix}</span>}
+    </h1>
     {lead && <p class="lead">{lead}</p>}
   </div>
 </header>
@@ -24,6 +30,10 @@ const { title, lead } = Astro.props;
     font-size: var(--step-4);
     line-height: var(--leading-tight);
     letter-spacing: -0.03em;
+  }
+
+  .suffix {
+    white-space: nowrap;
   }
 
   .lead {
