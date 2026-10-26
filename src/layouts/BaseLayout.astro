@@ -1,0 +1,138 @@
+---
+import { Font } from 'astro:assets';
+import SiteFooter from '@/components/site/SiteFooter.astro';
+import SiteHeader from '@/components/site/SiteHeader.astro';
+import { profile } from '@/data/profile';
+import {
+  DEFAULT_LOCALE,
+  LANG_TAG,
+  LOCALES,
+  OG_LOCALE,
+  otherLocale,
+  type Locale,
+  type Localized,
+} from '@/i18n/locales';
+import type { RouteKey } from '@/i18n/routes';
+import { useTranslations } from '@/i18n/ui';
+import '@/styles/global.css';
+
+interface Props {
+  locale: Locale;
+  /** The nav entry this page belongs to; highlights it in the header. */
+  route?: RouteKey;
+  /** Paths of this page in every locale. */
+  alternates: Localized;
+  /** Page title without the site name; omit on the start page. */
+  title?: string;
+  description?: string;
+  /** Keeps the page out of search results and skips canonical/hreflang (e.g. 404). */
+  noindex?: boolean;
+}
+
+/** Browser UI colour per theme; matches `--color-bg` in tokens.css. */
+const THEME_COLOR = { dark: '#0e161d', light: '#f2f5f7' } as const;
+
+const { locale, route, alternates, title, description, noindex = false } = Astro.props;
+const t = useTranslations(locale);
+
+const fullTitle = title
+  ? `${title} – ${profile.name}`
+  : `${profile.name} – ${profile.headline[locale]}`;
+const metaDescription = description ?? t('site.description');
+const canonical = new URL(alternates[locale], Astro.site);
+---
+
+<!doctype html>
+<html lang={LANG_TAG[locale]} data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={metaDescription} />
+    {!noindex && (
+      <>
+        <link rel="canonical" href={canonical} />
+        {LOCALES.map((l) => (
+          <link rel="alternate" hreflang={LANG_TAG[l]} href={new URL(alternates[l], Astro.site)} />
+        ))}
+        <link
+          rel="alternate"
+          hreflang="x-default"
+          href={new URL(alternates[DEFAULT_LOCALE], Astro.site)}
+        />
+      </>
+    )}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={profile.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={OG_LOCALE[locale]} />
+    <meta property="og:locale:alternate" content={OG_LOCALE[otherLocale(locale)]} />
+
+    <!-- Follows the page theme; the theme scripts keep it in sync. -->
+    <meta
+      name="theme-color"
+      content={THEME_COLOR.dark}
+      data-dark={THEME_COLOR.dark}
+      data-light={THEME_COLOR.light}
+    />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <Font cssVariable="--font-sans" preload />
+    <Font cssVariable="--font-mono" />
+
+    <!--
+      Runs before first paint: marks that JavaScript is available and applies the stored
+      theme, so there is no flash of the wrong theme.
+    -->
+    <script is:inline>
+      document.documentElement.dataset.js = '';
+      try {
+        if (localStorage.getItem('theme') === 'light') {
+          document.documentElement.dataset.theme = 'light';
+          const meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.content = meta.dataset.light;
+        }
+      } catch {
+        /* storage unavailable: keep the dark default */
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">
+      {t('a11y.skip')}
+    </a>
+    <SiteHeader locale={locale} route={route} alternates={alternates} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <SiteFooter locale={locale} />
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: fixed;
+    inset-block-start: var(--space-3);
+    inset-inline-start: var(--space-3);
+    z-index: 100;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-control);
+    background: var(--color-signal);
+    color: var(--color-signal-contrast);
+    font-weight: 600;
+    text-decoration: none;
+    transform: translateY(-200%);
+  }
+
+  .skip-link:focus-visible {
+    transform: none;
+  }
+
+  main:focus {
+    outline: none;
+  }
+</style>

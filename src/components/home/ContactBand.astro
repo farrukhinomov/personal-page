@@ -1,0 +1,76 @@
+---
+import ButtonLink from '@/components/ui/ButtonLink.astro';
+import { profile } from '@/data/profile';
+import type { Locale } from '@/i18n/locales';
+import { pathFor } from '@/i18n/routes';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const copy = {
+  de: {
+    title: 'Sie suchen einen .NET-Entwickler, der Verantwortung übernimmt?',
+    body: 'Schreiben Sie mir – ich antworte persönlich.',
+    primary: 'Kontakt aufnehmen',
+  },
+  en: {
+    title: 'Looking for a .NET developer who takes ownership?',
+    body: 'Write to me – I answer personally.',
+    primary: 'Get in touch',
+  },
+}[locale];
+---
+
+<section class="contact-band" aria-labelledby="contact-band-title">
+  <div class="container panel">
+    <h2 id="contact-band-title">{copy.title}</h2>
+    <p>{copy.body}</p>
+    <div class="actions">
+      <ButtonLink href={pathFor('contact', locale)}>{copy.primary}</ButtonLink>
+      <ButtonLink href={`mailto:${profile.email}`} variant="secondary">
+        {profile.email}
+      </ButtonLink>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact-band {
+    padding-block: var(--space-8) 0;
+  }
+
+  .panel {
+    display: grid;
+    gap: var(--space-4);
+    padding: clamp(var(--space-6), 4vw, var(--space-7));
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+    background:
+      radial-gradient(
+        120% 140% at 100% 0%,
+        color-mix(in srgb, var(--color-signal) 9%, transparent),
+        transparent 55%
+      ),
+      var(--color-surface);
+  }
+
+  h2 {
+    max-width: 22ch;
+    font-size: var(--step-3);
+  }
+
+  p {
+    max-width: 50ch;
+    color: var(--color-fg-muted);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-2);
+  }
+</style>

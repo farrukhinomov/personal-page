@@ -1,0 +1,113 @@
+---
+import type { Locale } from '@/i18n/locales';
+import { useTranslations } from '@/i18n/ui';
+
+interface Props {
+  locale: Locale;
+}
+
+const t = useTranslations(Astro.props.locale);
+---
+
+<button class="theme-toggle" type="button" aria-pressed="true" aria-label={t('a11y.darkTheme')}>
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+    <!-- One shape morphs between moon and sun: the mask circle slides away, rays fade in. -->
+    <mask id="theme-toggle-mask">
+      <rect width="24" height="24" fill="#fff"></rect>
+      <circle class="moon-cut" cx="17" cy="7" r="7" fill="#000"></circle>
+    </mask>
+    <circle
+      class="core"
+      cx="12"
+      cy="12"
+      r="7"
+      fill="currentColor"
+      mask="url(#theme-toggle-mask)"
+    ></circle>
+    <g class="rays" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M12 1.5v2M12 20.5v2M1.5 12h2M20.5 12h2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M4.6 19.4 6 18M18 6l1.4-1.4"></path>
+    </g>
+  </svg>
+</button>
+
+<script>
+  const STORAGE_KEY = 'theme';
+  const root = document.documentElement;
+  const button = document.querySelector<HTMLButtonElement>('.theme-toggle');
+
+  const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+
+  function syncButton() {
+    const isLight = root.dataset.theme === 'light';
+    button?.setAttribute('aria-pressed', String(!isLight));
+    if (themeColor)
+      themeColor.content = (isLight ? themeColor.dataset.light : themeColor.dataset.dark) ?? '';
+  }
+
+  button?.addEventListener('click', () => {
+    const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+    root.dataset.theme = next;
+    syncButton();
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // Storage blocked (private mode): the choice lasts for this page only.
+    }
+  });
+
+  syncButton();
+</script>
+
+<style>
+  .theme-toggle {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--color-fg-muted);
+    cursor: pointer;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .theme-toggle:hover {
+    color: var(--color-fg);
+    background: var(--color-surface);
+  }
+
+  .core,
+  .rays {
+    transform-origin: center;
+    transition:
+      transform var(--duration-base) var(--ease-out),
+      opacity var(--duration-base) var(--ease-out);
+  }
+
+  .moon-cut {
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  /* Dark theme shows the moon. */
+  .rays {
+    opacity: 0;
+    transform: rotate(-45deg) scale(0.6);
+  }
+
+  /* Light theme shows the sun. */
+  :global([data-theme='light']) .moon-cut {
+    transform: translate(8px, -8px);
+  }
+
+  :global([data-theme='light']) .core {
+    transform: scale(0.65);
+  }
+
+  :global([data-theme='light']) .rays {
+    opacity: 1;
+    transform: none;
+  }
+</style>

@@ -1,0 +1,63 @@
+---
+import { availability } from '@/data/availability';
+import { describeAvailability } from '@/data/describe';
+import type { Locale } from '@/i18n/locales';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+---
+
+<p class="availability">
+  <span class="pulse" aria-hidden="true"></span>
+  {describeAvailability(availability, locale)}
+</p>
+
+<style>
+  .availability {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+
+  /* A live-status light: amber is reserved for things that are true right now. */
+  .pulse {
+    position: relative;
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--color-status);
+    transform: translateY(-0.05em);
+  }
+
+  .pulse::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: pulse 2.4s var(--ease-out) infinite;
+  }
+
+  @keyframes pulse {
+    from {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(3);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse::after {
+      animation: none;
+    }
+  }
+</style>

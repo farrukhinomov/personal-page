@@ -1,0 +1,46 @@
+---
+import { LANG_TAG, otherLocale, type Locale, type Localized } from '@/i18n/locales';
+import { useTranslations } from '@/i18n/ui';
+
+interface Props {
+  locale: Locale;
+  alternates: Localized;
+}
+
+const { locale, alternates } = Astro.props;
+const target = otherLocale(locale);
+const t = useTranslations(locale);
+---
+
+<a
+  class="language-switch"
+  href={alternates[target]}
+  hreflang={LANG_TAG[target]}
+  lang={LANG_TAG[target]}
+  aria-label={t('a11y.switchLanguage')}
+>
+  {t('lang.short')}
+</a>
+
+<style>
+  .language-switch {
+    display: grid;
+    place-items: center;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-control);
+    color: var(--color-fg-muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .language-switch:hover {
+    color: var(--color-fg);
+    background: var(--color-surface);
+  }
+</style>
