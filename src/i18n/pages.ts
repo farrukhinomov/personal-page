@@ -16,12 +16,12 @@ export interface PageMeta {
 const PAGES: Record<RouteKey, Localized<PageMeta>> = {
   home: {
     de: {
-      title: 'Business-Software, die im Alltag zuverlässig läuft.',
-      description: `${profile.name}, Senior Full-Stack-Entwickler in Saarbrücken. C#/.NET, React und TypeScript – Business-Software von der Architektur bis zum Betrieb.`,
+      title: 'Senior Full-Stack Software Engineer',
+      description: `${profile.name}, Senior Full-Stack Software Engineer in Saarbrücken: C#/.NET beruflich, React/TypeScript und Python/Django im GRC-Eigenprojekt.`,
     },
     en: {
-      title: 'Business software that holds up in daily use.',
-      description: `${profile.name}, senior full-stack developer in Saarbrücken, Germany. C#/.NET, React and TypeScript – business software from architecture to operations.`,
+      title: 'Senior Full-Stack Software Engineer',
+      description: `${profile.name}, senior full-stack software engineer in Saarbrücken, Germany: C#/.NET professionally, React/TypeScript and Python/Django in an own GRC project.`,
     },
   },
   about: {

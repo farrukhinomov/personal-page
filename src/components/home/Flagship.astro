@@ -1,0 +1,110 @@
+---
+import ProjectLinks from '@/components/projects/ProjectLinks.astro';
+import ButtonLink from '@/components/ui/ButtonLink.astro';
+import type { Project } from '@/data/schema';
+import type { Locale } from '@/i18n/locales';
+import { childPathFor } from '@/i18n/routes';
+
+interface Props {
+  locale: Locale;
+  project: Project;
+}
+
+const { locale, project } = Astro.props;
+
+const copy = {
+  de: { label: 'Hauptprojekt', details: 'Projektdetails', stack: 'Technologien' },
+  en: { label: 'Main project', details: 'Project details', stack: 'Technologies' },
+}[locale];
+---
+
+<section class="flagship" aria-labelledby="flagship-title">
+  <div class="container">
+    <article class="panel" data-reveal="fade">
+      <div class="text">
+        <p class="label">{copy.label}</p>
+        <h2 id="flagship-title">{project.name}</h2>
+        <p class="tagline">{project.tagline[locale]}</p>
+        <p class="description">{project.description[locale]}</p>
+      </div>
+      <div class="side">
+        <ul class="stack" aria-label={copy.stack}>
+          {project.stack.map((tech) => (
+            <li>{tech}</li>
+          ))}
+        </ul>
+        <ButtonLink href={childPathFor('projects', locale, project.slug)}>
+          {copy.details}
+        </ButtonLink>
+        <ProjectLinks locale={locale} project={project} />
+      </div>
+    </article>
+  </div>
+</section>
+
+<style>
+  .flagship {
+    padding-block: 0 var(--space-8);
+  }
+
+  .panel {
+    display: grid;
+    gap: var(--space-6);
+    padding: clamp(var(--space-5), 4vw, var(--space-7));
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface);
+  }
+
+  @media (min-width: 60rem) {
+    .panel {
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: var(--space-7);
+    }
+  }
+
+  .label {
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+
+  h2 {
+    margin-block-start: var(--space-2);
+    font-size: var(--step-3);
+  }
+
+  .tagline {
+    margin-block-start: var(--space-3);
+    font-size: var(--step-1);
+    line-height: 1.45;
+  }
+
+  .description {
+    max-width: var(--measure);
+    margin-block-start: var(--space-4);
+    color: var(--color-fg-muted);
+  }
+
+  .side {
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: var(--space-5);
+  }
+
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
+  }
+
+  .stack li {
+    padding: 0.15rem var(--space-3);
+    border: 1px solid var(--color-line-strong);
+    border-radius: 0.35rem;
+    font-size: var(--step--1);
+    font-weight: 500;
+  }
+</style>

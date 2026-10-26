@@ -1,7 +1,9 @@
 ---
 import ContactBand from '@/components/home/ContactBand.astro';
 import CurrentWork from '@/components/home/CurrentWork.astro';
+import Flagship from '@/components/home/Flagship.astro';
 import Hero from '@/components/home/Hero.astro';
+import TerminalSection from '@/components/home/TerminalSection.astro';
 import ProjectList from '@/components/projects/ProjectList.astro';
 import ButtonLink from '@/components/ui/ButtonLink.astro';
 import { projects } from '@/data/projects';
@@ -14,32 +16,38 @@ interface Props {
 }
 
 const { locale } = Astro.props;
-const featured = projects.filter((project) => project.featured);
+// The first Project is the flagship; the other featured ones follow it.
+const [flagship, ...rest] = projects;
+const moreFeatured = rest.filter((project) => project.featured);
 
 const copy = {
-  de: { projects: 'Ausgewählte Projekte', all: 'Alle Projekte' },
-  en: { projects: 'Selected projects', all: 'All projects' },
+  de: { projects: 'Weitere Projekte', all: 'Alle Projekte' },
+  en: { projects: 'More projects', all: 'All projects' },
 }[locale];
 ---
 
 <BaseLayout locale={locale} route="home" alternates={alternatesFor('home')}>
-  <Hero locale={locale} alternates={alternatesFor('home')} />
-  <CurrentWork locale={locale} />
+  <Hero locale={locale} />
+  {flagship && <Flagship locale={locale} project={flagship} />}
 
-  <section class="featured" aria-labelledby="featured-title">
-    <div class="container">
-      <div class="featured-head">
-        <h2 id="featured-title" data-reveal="lines">
-          {copy.projects}
-        </h2>
-        <ButtonLink href={pathFor('projects', locale)} variant="secondary">
-          {copy.all}
-        </ButtonLink>
+  {moreFeatured.length > 0 && (
+    <section class="featured" aria-labelledby="featured-title">
+      <div class="container">
+        <div class="featured-head">
+          <h2 id="featured-title" data-reveal="lines">
+            {copy.projects}
+          </h2>
+          <ButtonLink href={pathFor('projects', locale)} variant="secondary">
+            {copy.all}
+          </ButtonLink>
+        </div>
+        <ProjectList locale={locale} projects={moreFeatured} />
       </div>
-      <ProjectList locale={locale} projects={featured} />
-    </div>
-  </section>
+    </section>
+  )}
 
+  <TerminalSection locale={locale} alternates={alternatesFor('home')} />
+  <CurrentWork locale={locale} />
   <ContactBand locale={locale} />
 </BaseLayout>
 
