@@ -77,11 +77,11 @@ const link = (value: string, href: string): TerminalLine => ({ kind: 'link', tex
 
 /** One line per skill group, e.g. "Backend: C#, .NET, Python". */
 function skillLines(locale: Locale): TerminalLine[] {
-  return skills.map((group) =>
-    text(
-      `${group.name[locale]}: ${group.items.map((item) => skillLabel(item, locale)).join(', ')}`,
-    ),
-  );
+  return skills.map((group) => {
+    const note = group.note ? ` (${group.note[locale]})` : '';
+    const items = group.items.map((item) => skillLabel(item, locale)).join(', ');
+    return text(`${group.name[locale]}${note}: ${items}`);
+  });
 }
 
 type Handler = (args: string[], ctx: TerminalContext) => TerminalResult;
