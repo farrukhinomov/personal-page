@@ -1,0 +1,66 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+import type { Project } from '@/data/schema';
+import type { Locale } from '@/i18n/locales';
+
+interface Props {
+  locale: Locale;
+  screenshot: NonNullable<Project['screenshot']>;
+  /** The `sizes` attribute for the layout this screenshot sits in. */
+  sizes: string;
+}
+
+const { locale, screenshot, sizes } = Astro.props;
+
+const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/**/*.{png,jpg,jpeg,webp}');
+
+/** Fails the build when the data names a file that does not exist. */
+async function load(path: string): Promise<ImageMetadata> {
+  const image = images[`/${path}`];
+  if (!image) throw new Error(`Project screenshot not found: ${path}`);
+  return (await image()).default;
+}
+
+// Only the variant matching the site theme is displayed; lazy images that are not
+// displayed are not downloaded.
+const variants = [
+  { theme: 'light', image: await load(screenshot.light) },
+  { theme: 'dark', image: await load(screenshot.dark) },
+] as const;
+---
+
+<figure class="screenshot">
+  {variants.map(({ theme, image }) => (
+    <div class={theme}>
+      <Picture
+        src={image}
+        alt={screenshot.alt[locale]}
+        formats={['avif', 'webp']}
+        widths={[480, 800, 1120, image.width]}
+        sizes={sizes}
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+  ))}
+</figure>
+
+<style>
+  .screenshot {
+    overflow: hidden;
+    border: 1px solid var(--color-line);
+    border-radius: calc(var(--radius-panel) / 2);
+  }
+
+  .screenshot :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  :global([data-theme='light']) .dark,
+  :global(:root:not([data-theme='light'])) .light {
+    display: none;
+  }
+</style>
