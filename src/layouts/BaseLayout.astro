@@ -73,7 +73,7 @@ const rssUrl = `${pathFor('blog', locale)}/rss.xml`;
 ---
 
 <!doctype html>
-<html lang={LANG_TAG[locale]} data-theme="dark">
+<html lang={LANG_TAG[locale]} data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -128,7 +128,7 @@ const rssUrl = `${pathFor('blog', locale)}/rss.xml`;
     <!-- Follows the page theme; the theme scripts keep it in sync. -->
     <meta
       name="theme-color"
-      content={THEME_COLOR.dark}
+      content={THEME_COLOR.light}
       data-dark={THEME_COLOR.dark}
       data-light={THEME_COLOR.light}
     />
@@ -148,13 +148,13 @@ const rssUrl = `${pathFor('blog', locale)}/rss.xml`;
         document.documentElement.dataset.motion = '';
       }
       try {
-        if (localStorage.getItem('theme') === 'light') {
-          document.documentElement.dataset.theme = 'light';
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.dataset.theme = 'dark';
           const meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.content = meta.dataset.light;
+          if (meta) meta.content = meta.dataset.dark;
         }
       } catch {
-        /* storage unavailable: keep the dark default */
+        /* storage unavailable: keep the light default */
       }
     </script>
   </head>
