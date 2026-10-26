@@ -14,7 +14,10 @@ const { locale, groups } = Astro.props;
 <dl class="skills">
   {groups.map((group) => (
     <div class="group">
-      <dt>{group.name[locale]}</dt>
+      <dt>
+        {group.name[locale]}
+        {group.note && <span class="note">{group.note[locale]}</span>}
+      </dt>
       <dd>
         <ul class:list={['items', `items--${group.kind}`]}>
           {group.items.map((item) => (
@@ -48,6 +51,12 @@ const { locale, groups } = Astro.props;
     color: var(--color-fg-muted);
     font-size: var(--step--1);
     font-weight: 500;
+  }
+
+  .note {
+    display: block;
+    margin-block-start: var(--space-1);
+    font-weight: 400;
   }
 
   .items {

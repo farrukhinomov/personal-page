@@ -31,7 +31,8 @@ describe('runCommand', () => {
 
   it('prints skills one group per line and never mentions availability', () => {
     const lines = texts('skills', en);
-    expect(lines[0]).toContain('Backend: C#');
+    expect(lines[0]).toContain('Professional experience: C#');
+    expect(lines[1]).toContain('Own projects – in progress (From FlowPro and KRITIS GRC): React');
     expect(lines.join('\n')).toContain('Ways of working: AI First Development');
     expect(texts('help', en).join('\n')).not.toMatch(/availability/i);
     expect(runCommand('availability', en).lines[0]?.kind).toBe('error');
