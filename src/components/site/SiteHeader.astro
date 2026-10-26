@@ -18,6 +18,7 @@ const t = useTranslations(locale);
 const navItems = [
   { route: 'about', label: t('nav.about') },
   { route: 'projects', label: t('nav.projects') },
+  { route: 'blog', label: t('nav.blog') },
   { route: 'contact', label: t('nav.contact') },
 ] as const satisfies readonly { route: RouteKey; label: string }[];
 ---

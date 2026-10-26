@@ -1,0 +1,113 @@
+---
+import PostMeta from '@/components/blog/PostMeta.astro';
+import PageHeader from '@/components/ui/PageHeader.astro';
+import { getPosts } from '@/blog/posts';
+import type { Locale } from '@/i18n/locales';
+import { pageMeta } from '@/i18n/pages';
+import { alternatesFor, childPathFor } from '@/i18n/routes';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { ogImagePath } from '@/seo/og';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const meta = pageMeta('blog', locale);
+const posts = await getPosts(locale);
+
+const copy = {
+  de: { empty: 'Noch keine Artikel. Der erste ist in Arbeit.', draft: 'Entwurf' },
+  en: { empty: 'No posts yet. The first one is in progress.', draft: 'Draft' },
+}[locale];
+---
+
+<BaseLayout
+  locale={locale}
+  route="blog"
+  alternates={alternatesFor('blog')}
+  title={meta.title}
+  description={meta.description}
+  ogImage={ogImagePath(locale, 'blog')}
+>
+  <PageHeader title={meta.title} lead={meta.description} />
+
+  <div class="container">
+    {posts.length === 0 ? (
+      <p class="empty">{copy.empty}</p>
+    ) : (
+      <ol class="posts" data-reveal="fade">
+        {posts.map(({ slug, entry, readingMinutes }) => (
+          <li class="post">
+            <PostMeta
+              locale={locale}
+              published={entry.data.published}
+              updated={entry.data.updated}
+              readingMinutes={readingMinutes}
+            />
+            <h2 class="title">
+              <a href={childPathFor('blog', locale, slug)}>{entry.data.title}</a>
+              {entry.data.draft && <span class="draft">{copy.draft}</span>}
+            </h2>
+            <p class="description">{entry.data.description}</p>
+          </li>
+        ))}
+      </ol>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .posts {
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--color-line);
+  }
+
+  .post {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    padding-block: var(--space-6);
+    border-block-end: 1px solid var(--color-line);
+  }
+
+  .title {
+    font-size: var(--step-2);
+  }
+
+  /* The title link covers the whole entry. */
+  .title a {
+    text-decoration: none;
+  }
+
+  .title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .post:hover .title a {
+    color: var(--color-signal);
+  }
+
+  .draft {
+    margin-inline-start: var(--space-3);
+    padding: 0.1rem var(--space-2);
+    border: 1px dashed var(--color-status);
+    border-radius: 0.3rem;
+    color: var(--color-status);
+    font-size: var(--step--1);
+    font-weight: 500;
+    vertical-align: middle;
+  }
+
+  .description {
+    max-width: var(--measure);
+    color: var(--color-fg-muted);
+  }
+
+  .empty {
+    color: var(--color-fg-muted);
+  }
+</style>

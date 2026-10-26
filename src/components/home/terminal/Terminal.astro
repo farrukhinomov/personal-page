@@ -1,6 +1,7 @@
 ---
 import type { Locale, Localized } from '@/i18n/locales';
 import { otherLocale } from '@/i18n/locales';
+import { jsonForScript } from '@/lib/html';
 import { buildCommandTable } from './commands';
 
 interface Props {
@@ -74,13 +75,8 @@ const SUGGESTED = ['whoami', 'projects', 'availability', 'contact', 'help'] as c
     ))}
   </ul>
 
-  <!-- Not executed: data for the client script. "<" is escaped so the JSON cannot close the tag. -->
-  <script
-    is:inline
-    type="application/json"
-    data-command-table
-    set:html={JSON.stringify(table).replaceAll('<', String.raw`\u003c`)}
-  />
+  <!-- Not executed: data for the client script. -->
+  <script is:inline type="application/json" data-command-table set:html={jsonForScript(table)} />
 </section>
 
 <script>

@@ -1,11 +1,24 @@
 // @ts-check
 import { defineConfig, fontProviders } from 'astro/config';
+import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
   site: 'https://inomov.online',
   trailingSlash: 'never',
   adapter: vercel(),
+  integrations: [
+    mdx(),
+    // Language alternates are declared per page with <link rel="alternate" hreflang>.
+    sitemap({ filter: (page) => !page.includes('/404') && !page.includes('/og/') }),
+  ],
+  markdown: {
+    shikiConfig: {
+      // Light colours inline, dark colours as --shiki-dark variables (see src/styles/prose.css).
+      themes: { light: 'github-light', dark: 'github-dark-dimmed' },
+    },
+  },
   // Hashes every script and style Astro renders into a CSP <meta>. Requires no ClientRouter.
   security: {
     csp: {

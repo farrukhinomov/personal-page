@@ -1,0 +1,48 @@
+---
+title: A portfolio for humans and machines
+description: How I built this website – static, bilingual, with a strict CSP and a terminal that ships no data model to the browser.
+published: 2026-10-26
+tags: [Astro, Architecture, Security]
+---
+
+A portfolio is no longer read only by people. Recruiters ask their AI assistant,
+search engines parse structured data, and agents call APIs directly. This site is
+meant to be unambiguous for all three. These are the decisions behind it.
+
+## One source of truth, checked at build time
+
+My CV, projects and availability are written exactly once in the repository.
+Every page, every endpoint and the JSON résumé read from that one source. Zod
+validates it during the build:
+
+```ts
+export const localized = z.object({ de: text, en: text });
+```
+
+If a text is missing in one language, the build fails. A mistake never reaches the
+website, only my CI.
+
+## Two languages, enforced
+
+German is the default at `/`, English lives at `/en`. Every post has to exist in
+both languages – including this one. The build checks that too, instead of relying
+on discipline.
+
+## Static, with a strict CSP
+
+The pages are plain HTML, built with Astro. A hash-based Content Security Policy
+allows only the scripts I ship myself. That is why I use the browser's native view
+transitions instead of a client-side router: they need no JavaScript and work with
+the CSP.
+
+## A terminal with no data model in the browser
+
+The terminal on the start page feels dynamic but knows no data. Every answer is
+computed during the build and embedded as JSON. What reaches the browser is a
+lookup table of about two kilobytes – no validation code, no data models, nothing
+that can drift apart.
+
+## What comes next
+
+Next, the site gets an MCP endpoint. Agents will then be able to query my profile
+and propose an intro call without reading a single line of HTML.

@@ -1,0 +1,50 @@
+---
+title: Ein Portfolio für Menschen und Maschinen
+description: Wie ich meine Website gebaut habe – statisch, zweisprachig, mit strenger CSP und einem Terminal, das ohne ausgeliefertes Datenmodell auskommt.
+published: 2026-10-26
+tags: [Astro, Architektur, Sicherheit]
+---
+
+Eine Bewerbungsseite wird heute nicht nur von Menschen gelesen. Recruiter fragen
+ihren KI-Assistenten, Suchmaschinen werten strukturierte Daten aus, und Agenten
+sprechen Schnittstellen direkt an. Diese Website soll für alle drei eindeutig sein.
+Hier sind die Entscheidungen dahinter.
+
+## Eine Datenquelle, zur Build-Zeit geprüft
+
+Lebenslauf, Projekte und Verfügbarkeit stehen genau einmal im Repository. Jede
+Seite, jede Schnittstelle und der Lebenslauf als JSON lesen aus derselben Quelle.
+Zod prüft die Daten beim Build:
+
+```ts
+export const localized = z.object({ de: text, en: text });
+```
+
+Fehlt ein Text in einer Sprache, bricht der Build ab. Ein Fehler erreicht also nie
+die Website, sondern nur meine CI.
+
+## Zwei Sprachen, erzwungen
+
+Deutsch ist die Standardsprache unter `/`, Englisch liegt unter `/en`. Jeder
+Artikel muss in beiden Sprachen existieren – auch dieser hier. Auch das prüft der
+Build, statt sich auf Disziplin zu verlassen.
+
+## Statisch und mit strenger CSP
+
+Die Seiten sind reines HTML, gebaut mit Astro. Eine Content Security Policy mit
+Hashes erlaubt nur die Skripte, die ich selbst ausliefere. Deshalb nutze ich
+native View Transitions des Browsers statt eines clientseitigen Routers: Sie
+brauchen kein JavaScript und vertragen sich mit der CSP.
+
+## Ein Terminal ohne Datenmodell im Browser
+
+Das Terminal auf der Startseite wirkt dynamisch, kennt aber keine Daten. Alle
+Antworten werden beim Build berechnet und als JSON eingebettet. Im Browser bleibt
+eine Nachschlagetabelle von etwa zwei Kilobyte – kein Validierungscode, keine
+Datenmodelle, nichts, was sich auseinanderentwickeln kann.
+
+## Was noch kommt
+
+Als Nächstes bekommt die Website eine MCP-Schnittstelle. Dann können Agenten mein
+Profil abfragen und ein Kennenlerngespräch vorschlagen, ohne eine Zeile HTML zu
+lesen.

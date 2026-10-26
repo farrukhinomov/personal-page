@@ -5,7 +5,10 @@ import PageHeader from '@/components/ui/PageHeader.astro';
 import { experience } from '@/data/experience';
 import { profile } from '@/data/profile';
 import type { Locale } from '@/i18n/locales';
-import { alternatesFor } from '@/i18n/routes';
+import { pageMeta } from '@/i18n/pages';
+import { alternatesFor, pathFor } from '@/i18n/routes';
+import { ogImagePath } from '@/seo/og';
+import { profilePageSchema } from '@/seo/structured-data';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
 interface Props {
@@ -16,28 +19,27 @@ const { locale } = Astro.props;
 
 const copy = {
   de: {
-    title: 'Über mich',
-    description: `Werdegang, Sprachen und Schwerpunkte von ${profile.name}, Senior Full-Stack-Entwickler in Saarbrücken.`,
     experience: 'Werdegang',
     languages: 'Sprachen',
     awards: 'Auszeichnungen',
   },
   en: {
-    title: 'About',
-    description: `Experience, languages and focus of ${profile.name}, senior full-stack developer in Saarbrücken, Germany.`,
     experience: 'Experience',
     languages: 'Languages',
     awards: 'Awards',
   },
 }[locale];
+const meta = pageMeta('about', locale);
 ---
 
 <BaseLayout
   locale={locale}
   route="about"
   alternates={alternatesFor('about')}
-  title={copy.title}
-  description={copy.description}
+  title={meta.title}
+  description={meta.description}
+  ogImage={ogImagePath(locale, 'about')}
+  structuredData={[profilePageSchema(pathFor('about', locale), locale)]}
 >
   <PageHeader title={profile.headline[locale]} lead={profile.summary[locale]} />
 
