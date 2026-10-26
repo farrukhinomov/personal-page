@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { experience } from './experience';
 import { profile } from './profile';
@@ -35,10 +36,35 @@ describe('portfolio data', () => {
     });
   });
 
-  it('says the KRITIS demo is a prototype on demo data, in both languages', () => {
+  it('presents KRITIS GRC as a prototype, in both languages', () => {
     const kritis = projects[0];
-    expect(kritis?.description.en).toContain('prototype on fictional demo data');
-    expect(kritis?.description.de).toContain('Prototyp mit fiktiven Demodaten');
+    expect(kritis?.kind).toEqual({ de: 'GRC-SaaS-Prototyp', en: 'GRC SaaS prototype' });
+    expect(kritis?.description.de).toContain(
+      'Frontend-Prototyp ist umgesetzt und nutzt fiktive Demodaten',
+    );
+    expect(kritis?.description.en).toContain('uses fictional demo data');
+    expect(kritis?.tagline.de).not.toContain('Compliance-SaaS');
+  });
+
+  it('gives KRITIS GRC the four agreed sections, dated', () => {
+    const kritis = projects[0];
+    expect(kritis?.sections?.map((section) => section.heading.de)).toEqual([
+      'Umgesetzt',
+      'Qualität',
+      'Architektur und Arbeitsweise',
+      'Aktueller Stand',
+    ]);
+    expect(kritis?.sectionsUpdated).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('points project screenshots at files that exist', () => {
+    const screenshots = projects.flatMap((project) =>
+      project.screenshot ? [project.screenshot.light, project.screenshot.dark] : [],
+    );
+    expect(screenshots.length).toBeGreaterThan(0);
+    for (const path of screenshots) {
+      expect(existsSync(path), path).toBe(true);
+    }
   });
 
   it('marks private repositories so they get no source link', () => {
@@ -68,7 +94,8 @@ describe('skills', () => {
       'Knowledge sharing',
     ];
     for (const skill of wanted) expect(labels('en')).toContain(skill);
-    expect(labels('en').some((label) => label.startsWith('Django REST Framework'))).toBe(true);
+    // DRF comes back once there is an implemented API to point to.
+    expect(labels('en').some((label) => label.includes('REST Framework'))).toBe(false);
     expect(labels('en').some((label) => label.includes('Product Management and UX'))).toBe(true);
   });
 
@@ -76,6 +103,19 @@ describe('skills', () => {
     expect(labels('de')).toContain('Wissensaustausch');
     expect(labels('de')).toContain('PostgreSQL');
     expect(labels('de')).not.toContain('Knowledge sharing');
+  });
+
+  it('separates professional experience from own-project skills', () => {
+    const group = (id: string) =>
+      skills.find((g) => g.id === id)?.items.map((item) => skillLabel(item, 'en')) ?? [];
+    expect(group('professional')).toEqual(
+      expect.arrayContaining(['C#', '.NET', 'SQL Server', 'OpenTelemetry']),
+    );
+    // Not used in a job yet: FlowPro and KRITIS GRC are own projects.
+    for (const skill of ['React', 'TypeScript', 'Ant Design', 'Python', 'Django', 'FastAPI']) {
+      expect(group('professional')).not.toContain(skill);
+      expect(group('own-projects')).toContain(skill);
+    }
   });
 
   it('has no duplicate skills', () => {

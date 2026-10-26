@@ -3,6 +3,8 @@ import ExperienceTrace from '@/components/about/ExperienceTrace.astro';
 import SkillGroups from '@/components/about/SkillGroups.astro';
 import PageHeader from '@/components/ui/PageHeader.astro';
 import { experience } from '@/data/experience';
+import ButtonLink from '@/components/ui/ButtonLink.astro';
+import { cvPath } from '@/cv/paths';
 import { profile } from '@/data/profile';
 import { skills } from '@/data/skills';
 import type { Locale } from '@/i18n/locales';
@@ -21,12 +23,14 @@ const { locale } = Astro.props;
 const copy = {
   de: {
     experience: 'Werdegang',
+    cv: 'Lebenslauf herunterladen (PDF)',
     skills: 'Kenntnisse',
     languages: 'Sprachen',
     awards: 'Auszeichnungen',
   },
   en: {
     experience: 'Experience',
+    cv: 'Download CV (PDF)',
     skills: 'Skills',
     languages: 'Languages',
     awards: 'Awards',
@@ -45,6 +49,12 @@ const meta = pageMeta('about', locale);
   structuredData={[profilePageSchema(pathFor('about', locale), locale)]}
 >
   <PageHeader title={profile.headline[locale]} lead={profile.summary[locale]} />
+
+  <div class="container">
+    <ButtonLink href={cvPath(locale)} download>
+      {copy.cv}
+    </ButtonLink>
+  </div>
 
   <section class="block" aria-labelledby="experience-title">
     <div class="container">

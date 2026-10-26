@@ -16,8 +16,8 @@ export const experience = experienceSchema.parse([
     },
     highlights: [
       {
-        de: 'E-Mail-Versanddienst mit OAuth2 für Microsoft 365 und Google, produktiv bei drei Kunden: Versand in Batches, Wiederholversuche, idempotente Zustellung.',
-        en: 'Email delivery service with OAuth2 for Microsoft 365 and Google, in production at three customers: batched sending, retries, idempotent delivery.',
+        de: 'E-Mail-Versanddienst mit OAuth2 für Microsoft 365 und Google, produktiv bei Kunden: Versand in Batches, Wiederholversuche, idempotente Zustellung.',
+        en: 'Email delivery service with OAuth2 for Microsoft 365 and Google, in production at customers: batched sending, retries, idempotent delivery.',
       },
       {
         de: 'Modernisierung eines ERP-Konfigurationswerkzeugs zum modularen Monolithen mit Clean Architecture und DDD, abgesichert durch über 1000 automatisierte Tests.',

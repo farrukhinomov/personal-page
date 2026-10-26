@@ -1,5 +1,6 @@
 ---
 import ProjectLinks from '@/components/projects/ProjectLinks.astro';
+import ProjectScreenshot from '@/components/projects/ProjectScreenshot.astro';
 import ButtonLink from '@/components/ui/ButtonLink.astro';
 import type { Project } from '@/data/schema';
 import type { Locale } from '@/i18n/locales';
@@ -38,6 +39,15 @@ const copy = {
         </ButtonLink>
         <ProjectLinks locale={locale} project={project} />
       </div>
+      {project.screenshot && (
+        <div class="shot">
+          <ProjectScreenshot
+            locale={locale}
+            screenshot={project.screenshot}
+            sizes="(min-width: 80rem) 72rem, calc(100vw - 6rem)"
+          />
+        </div>
+      )}
     </article>
   </div>
 </section>
@@ -61,6 +71,10 @@ const copy = {
       grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
       gap: var(--space-7);
     }
+  }
+
+  .shot {
+    grid-column: 1 / -1;
   }
 
   .label {

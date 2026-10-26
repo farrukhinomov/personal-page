@@ -5,20 +5,110 @@ export const projects = projectsSchema.parse([
   {
     slug: 'kritis-grc',
     name: 'KRITIS GRC',
+    kind: { de: 'GRC-SaaS-Prototyp', en: 'GRC SaaS prototype' },
     repository: 'farrukhinomov/kritis-grc',
     visibility: 'public',
     homepage: 'https://grc.inomov.online',
     tagline: {
-      de: 'Compliance-SaaS für Betreiber kritischer Anlagen nach KRITIS-Dachgesetz und NIS2.',
-      en: 'Compliance SaaS for operators of critical facilities under the KRITIS umbrella act and NIS2.',
+      de: 'GRC-Plattform für Betreiber kritischer Anlagen nach KRITIS-Dachgesetz und NIS2 – als klickbarer Prototyp.',
+      en: 'GRC platform for operators of critical facilities under the KRITIS umbrella act and NIS2 – as a clickable prototype.',
     },
     description: {
-      de: 'Eine mandantenfähige Governance-, Risk- und Compliance-Plattform für Betreiber kritischer Anlagen in Deutschland. Sie deckt das KRITIS-Dachgesetz ab und bildet es auf NIS2 im BSIG ab, sodass eine Maßnahme für beide Regelwerke zählt. Die Live-App ist ein klickbarer Prototyp mit fiktiven Demodaten; das echte Backend ist in Arbeit.',
-      en: 'A multi-tenant governance, risk and compliance platform for operators of critical facilities in Germany. It covers the KRITIS umbrella act and maps it to NIS2 as implemented in the BSIG, so one measure counts toward both. The live app is a clickable prototype on fictional demo data; the real backend is in progress.',
+      de: 'Eigenständiges Entwicklungsprojekt für eine mandantenfähige Governance-, Risk- und Compliance-Plattform im Kontext von KRITIS-Dachgesetz und NIS2. Der klickbare React/TypeScript-Frontend-Prototyp ist umgesetzt und nutzt fiktive Demodaten. Die Backend-Anbindung und persistente Speicherung mit Python/Django und FastAPI werden schrittweise entwickelt.',
+      en: 'An independent development project for a multi-tenant governance, risk and compliance platform in the context of the KRITIS umbrella act and NIS2. The clickable React/TypeScript frontend prototype is built and uses fictional demo data. The backend connection and persistent storage with Python/Django and FastAPI are being developed step by step.',
     },
-    stack: ['Django', 'FastAPI', 'React', 'TypeScript', 'PostgreSQL', 'Docker'],
+    stack: ['React', 'TypeScript', 'Django', 'FastAPI', 'Ant Design', 'PostgreSQL', 'Docker'],
     year: 2026,
     featured: true,
+    sections: [
+      {
+        heading: { de: 'Umgesetzt', en: 'Implemented' },
+        items: [
+          {
+            de: 'React-SPA mit TypeScript im Strict Mode und Ant Design',
+            en: 'React SPA with TypeScript in strict mode and Ant Design',
+          },
+          {
+            de: 'Responsive Oberfläche für Desktop, Tablet und Smartphone',
+            en: 'Responsive UI for desktop, tablet and phone',
+          },
+          {
+            de: 'Demo-Abläufe auf fiktiven Daten: vom Gesetzesparagrafen über die Anforderung zur Umsetzung mit Nachweis, Risikobewertung mit Restrisiko in der Matrix',
+            en: 'Demo workflows on fictional data: from legal paragraph to requirement to implementation with evidence, and risk assessment with the residual risk in the matrix',
+          },
+          {
+            de: 'Rollen GRC-Manager und Auditor (nur lesend)',
+            en: 'Roles: GRC manager and auditor (read-only)',
+          },
+        ],
+      },
+      {
+        heading: { de: 'Qualität', en: 'Quality' },
+        items: [
+          {
+            de: 'Unit-Tests mit Vitest und einer Mindestabdeckung von 80 %',
+            en: 'Unit tests with Vitest and a minimum coverage of 80%',
+          },
+          { de: 'Typprüfung und Linting in der CI', en: 'Type checks and linting in CI' },
+          { de: 'End-to-End-Tests mit Playwright', en: 'End-to-end tests with Playwright' },
+          {
+            de: 'Automatisierte Barrierefreiheitsprüfung mit axe',
+            en: 'Automated accessibility checks with axe',
+          },
+          {
+            de: 'Visuelle Regressionstests für Desktop und Smartphone',
+            en: 'Visual regression tests for desktop and phone',
+          },
+        ],
+      },
+      {
+        heading: { de: 'Architektur und Arbeitsweise', en: 'Architecture and way of working' },
+        items: [
+          {
+            de: 'Über 20 Architekturentscheidungen als ADRs dokumentiert',
+            en: 'More than 20 architecture decisions recorded as ADRs',
+          },
+          {
+            de: 'Scope mit Meilensteinen, Konventionen und Glossar',
+            en: 'Scope with milestones, conventions and a glossary',
+          },
+          {
+            de: 'User Stories mit Akzeptanzkriterien, ein Pull Request pro Issue',
+            en: 'User stories with acceptance criteria, one pull request per issue',
+          },
+          {
+            de: 'Anweisungen für KI-Coding-Assistenten und ein KI-Protokoll im Repository',
+            en: 'Instructions for AI coding assistants and an AI log in the repository',
+          },
+        ],
+      },
+      {
+        heading: { de: 'Aktueller Stand', en: 'Current status' },
+        items: [
+          {
+            de: 'Fertig: der klickbare Prototyp auf Demodaten (Meilenstein P)',
+            en: 'Done: the clickable prototype on demo data (milestone P)',
+          },
+          {
+            de: 'In Arbeit: das Walking Skeleton (M0) – Django- und FastAPI-Dienste mit Health-Checks und CI/CD',
+            en: 'In progress: the walking skeleton (M0) – Django and FastAPI services with health checks and CI/CD',
+          },
+          {
+            de: 'Als Nächstes: der Compliance-Kern (M1) – die echte API hinter dem Hauptablauf mit Login, Mandanten, Umsetzungen und Nachweisen',
+            en: 'Next: the compliance core (M1) – the real API behind the main flow, with login, tenants, implementations and evidence',
+          },
+        ],
+      },
+    ],
+    sectionsUpdated: '2026-10-26',
+    screenshot: {
+      light: 'src/assets/projects/kritis-grc/dashboard-light.png',
+      dark: 'src/assets/projects/kritis-grc/dashboard-dark.png',
+      alt: {
+        de: 'Übersicht des KRITIS-GRC-Prototyps mit fiktiven Demodaten: Compliance je Framework und Anlage, Restrisiko-Matrix, Top-5-Risiken und Fristen',
+        en: 'Overview screen of the KRITIS GRC prototype with fictional demo data: compliance per framework and facility, residual risk matrix, top five risks and deadlines',
+      },
+    },
   },
   {
     slug: 'inomov-online',
