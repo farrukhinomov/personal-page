@@ -22,6 +22,25 @@ describe('portfolio data', () => {
     expect(serialized).not.toMatch(/\+\d|\d{10,}/);
   });
 
+  it('shows KRITIS GRC first, then the inomov.online project, each with its live link', () => {
+    expect(projects.map((project) => project.slug).slice(0, 2)).toEqual([
+      'kritis-grc',
+      'inomov-online',
+    ]);
+    expect(projects[0]?.homepage).toBe('https://grc.inomov.online');
+    expect(projects[1]).toMatchObject({
+      repository: 'farrukhinomov/personal-page',
+      visibility: 'public',
+      homepage: 'https://inomov.online',
+    });
+  });
+
+  it('says the KRITIS demo is a prototype on demo data, in both languages', () => {
+    const kritis = projects[0];
+    expect(kritis?.description.en).toContain('prototype on fictional demo data');
+    expect(kritis?.description.de).toContain('Prototyp mit fiktiven Demodaten');
+  });
+
   it('marks private repositories so they get no source link', () => {
     expect(projects.find((project) => project.slug === 'flowpro')?.visibility).toBe('private');
   });
