@@ -15,15 +15,15 @@ pnpm verify     # lint, format check, tests, type check and build
 
 ## Where things live
 
-| Path              | What                                                                                                   |
-| ----------------- | ------------------------------------------------------------------------------------------------------ |
-| `src/data/`       | Single source of truth: profile, Experience, Projects, Availability. Validated with Zod at build time. |
-| `src/i18n/`       | Locales, translated routes and UI strings.                                                             |
-| `src/views/`      | One component per page, shared by both locales. `src/pages/` only maps URLs to views.                  |
-| `src/components/` | Components grouped by surface (`site`, `home`, `about`, `projects`, `ui`).                             |
-| `src/styles/`     | Design tokens and global styles.                                                                       |
-| `GLOSSARY.md`     | The domain language. Use these terms in code and copy.                                                 |
-| `docs/adr/`       | Architecture decisions.                                                                                |
+| Path              | What                                                                                             |
+| ----------------- | ------------------------------------------------------------------------------------------------ |
+| `src/data/`       | Single source of truth: profile, Experience, Skills, Projects. Validated with Zod at build time. |
+| `src/i18n/`       | Locales, translated routes and UI strings.                                                       |
+| `src/views/`      | One component per page, shared by both locales. `src/pages/` only maps URLs to views.            |
+| `src/components/` | Components grouped by surface (`site`, `home`, `about`, `projects`, `ui`).                       |
+| `src/styles/`     | Design tokens and global styles.                                                                 |
+| `GLOSSARY.md`     | The domain language. Use these terms in code and copy.                                           |
+| `docs/adr/`       | Architecture decisions.                                                                          |
 
 ## Deploy
 

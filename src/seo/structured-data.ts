@@ -1,8 +1,8 @@
 import { jsonForScript } from '@/lib/html';
-import { availability } from '@/data/availability';
-import { describeAvailability } from '@/data/describe';
+import { skillLabel } from '@/data/describe';
 import { experience } from '@/data/experience';
 import { profile } from '@/data/profile';
+import { skills } from '@/data/skills';
 import { LANG_TAG, type Locale } from '@/i18n/locales';
 
 /** schema.org JSON-LD node. Kept loose on purpose: schema.org has no useful TS types. */
@@ -34,18 +34,13 @@ export function personSchema(locale: Locale): JsonLd {
     },
     sameAs: [profile.links.github, profile.links.linkedin],
     knowsLanguage: ['de', 'en', 'ru', 'tg'],
-    knowsAbout: [...new Set(experience.flatMap((entry) => entry.stack))],
+    knowsAbout: skills.flatMap((group) => group.items.map((item) => skillLabel(item, 'en'))),
     ...(current && {
       worksFor: { '@type': 'Organization', name: current.organization },
     }),
     ...(education && {
       alumniOf: { '@type': 'CollegeOrUniversity', name: education.organization },
     }),
-    seeks: {
-      '@type': 'Demand',
-      description: describeAvailability(availability, locale),
-      areaServed: availability.countries,
-    },
   };
 }
 

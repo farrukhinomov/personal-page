@@ -1,6 +1,5 @@
 ---
 import Terminal from '@/components/home/terminal/Terminal.astro';
-import AvailabilityNote from '@/components/ui/AvailabilityNote.astro';
 import ButtonLink from '@/components/ui/ButtonLink.astro';
 import { yearsSince } from '@/data/dates';
 import { profile } from '@/data/profile';
@@ -54,9 +53,6 @@ const titleWords = pageMeta('home', locale).title.split(' ');
       <p class="lead enter" style="--delay: 420ms">
         {copy.lead}
       </p>
-      <div class="enter" style="--delay: 520ms">
-        <AvailabilityNote locale={locale} />
-      </div>
       <div class="actions enter" style="--delay: 600ms">
         <ButtonLink href={pathFor('contact', locale)}>{copy.primary}</ButtonLink>
         <ButtonLink href={pathFor('projects', locale)} variant="secondary">

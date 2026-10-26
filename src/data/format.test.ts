@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { formatDuration, formatMonth, yearsSince } from './dates';
-import { describeAvailability, describePeriod } from './describe';
-import type { Availability } from './schema';
+import { describePeriod, skillLabel } from './describe';
 import { buildTimeline } from './timeline';
 import { experience } from './experience';
 
@@ -45,23 +44,11 @@ describe('formatMonth and describePeriod', () => {
   });
 });
 
-describe('describeAvailability', () => {
-  const availability: Availability = {
-    openTo: ['permanent', 'freelance'],
-    countries: ['DE', 'AT'],
-    remote: true,
-    updated: '2026-10-25',
-  };
-
-  it('writes one German sentence', () => {
-    expect(describeAvailability(availability, 'de')).toBe(
-      'Offen für Festanstellung und Freelance-Projekte. Vor Ort: Deutschland und Österreich – oder remote.',
-    );
-  });
-
-  it('leaves out remote when it is not an option', () => {
-    expect(describeAvailability({ ...availability, remote: false }, 'en')).toBe(
-      'Open to permanent roles and freelance projects. On-site: Germany and Austria.',
+describe('skillLabel', () => {
+  it('returns technology names unchanged and translated text per locale', () => {
+    expect(skillLabel('React', 'de')).toBe('React');
+    expect(skillLabel({ de: 'Wissensaustausch', en: 'Knowledge sharing' }, 'en')).toBe(
+      'Knowledge sharing',
     );
   });
 });

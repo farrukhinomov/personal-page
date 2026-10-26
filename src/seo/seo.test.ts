@@ -141,3 +141,27 @@ describe('review follow-ups', () => {
     expect(buildResume('en').basics.location).toEqual({ city: 'Saarbrücken', countryCode: 'DE' });
   });
 });
+
+describe('availability is not published', () => {
+  it('appears in no machine-readable output', () => {
+    const everything = JSON.stringify([
+      personSchema('en'),
+      personSchema('de'),
+      buildResume('en'),
+      buildResume('de'),
+      buildLlmsTxt([]),
+      buildLlmsFullTxt([]),
+    ]);
+    // "available on request" (private source code) is fine; work availability is not.
+    expect(everything).not.toMatch(
+      /availability|open to|offen für|festanstellung|seeks|freelance/i,
+    );
+  });
+
+  it('publishes the full skill list in the résumé, JSON-LD and llms-full.txt', () => {
+    expect(buildResume('en').skills.map((group) => group.name)).toContain('Ways of working');
+    expect(personSchema('en')['knowsAbout']).toContain('FastAPI');
+    expect(buildLlmsFullTxt([])).toContain('## Skills');
+    expect(buildLlmsFullTxt([])).toContain('Ant Design');
+  });
+});
