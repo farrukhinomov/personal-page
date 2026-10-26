@@ -7,17 +7,36 @@ export const projects = projectsSchema.parse([
     name: 'KRITIS GRC',
     repository: 'farrukhinomov/kritis-grc',
     visibility: 'public',
+    homepage: 'https://grc.inomov.online',
     tagline: {
       de: 'Compliance-SaaS für Betreiber kritischer Anlagen nach KRITIS-Dachgesetz und NIS2.',
       en: 'Compliance SaaS for operators of critical facilities under the KRITIS umbrella act and NIS2.',
     },
     description: {
-      de: 'Eine mandantenfähige Governance-, Risk- und Compliance-Plattform für Betreiber kritischer Anlagen in Deutschland. Sie deckt das KRITIS-Dachgesetz ab und bildet es auf NIS2 im BSIG ab, sodass eine Maßnahme für beide Regelwerke zählt.',
-      en: 'A multi-tenant governance, risk and compliance platform for operators of critical facilities in Germany. It covers the KRITIS umbrella act and maps it to NIS2 as implemented in the BSIG, so one measure counts toward both.',
+      de: 'Eine mandantenfähige Governance-, Risk- und Compliance-Plattform für Betreiber kritischer Anlagen in Deutschland. Sie deckt das KRITIS-Dachgesetz ab und bildet es auf NIS2 im BSIG ab, sodass eine Maßnahme für beide Regelwerke zählt. Die Live-App ist ein klickbarer Prototyp mit fiktiven Demodaten; das echte Backend ist in Arbeit.',
+      en: 'A multi-tenant governance, risk and compliance platform for operators of critical facilities in Germany. It covers the KRITIS umbrella act and maps it to NIS2 as implemented in the BSIG, so one measure counts toward both. The live app is a clickable prototype on fictional demo data; the real backend is in progress.',
     },
     stack: ['Django', 'FastAPI', 'React', 'TypeScript', 'PostgreSQL', 'Docker'],
     year: 2026,
     featured: true,
+  },
+  {
+    slug: 'inomov-online',
+    name: 'inomov.online',
+    repository: 'farrukhinomov/personal-page',
+    visibility: 'public',
+    homepage: 'https://inomov.online',
+    tagline: {
+      de: 'Dieses Portfolio: zweisprachig, statisch und für Menschen und KI-Agenten gebaut.',
+      en: 'This portfolio: bilingual, static, and built for people and AI agents.',
+    },
+    description: {
+      de: 'Die Website, die Sie gerade lesen. Statisch mit Astro gebaut, zweisprachig mit erzwungenen Übersetzungen und einer strengen Content Security Policy. Dazu ein Terminal auf der Startseite sowie JSON-LD, llms.txt und JSON Resume für Suchmaschinen und KI-Agenten. Alle Inhalte stehen genau einmal als geprüfte Daten im Repository.',
+      en: 'The website you are reading. Built static with Astro, bilingual with enforced translations and a strict Content Security Policy. It adds a terminal on the start page, plus JSON-LD, llms.txt and JSON Resume for search engines and AI agents. All content lives exactly once as validated data in the repository.',
+    },
+    stack: ['Astro', 'TypeScript', 'MDX', 'GSAP', 'Zod', 'Vitest', 'Vercel'],
+    year: 2026,
+    featured: false,
   },
   {
     slug: 'flowpro',
