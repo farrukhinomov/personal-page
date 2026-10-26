@@ -6,7 +6,6 @@ import { LOCALES, type Locale } from '@/i18n/locales';
 import { buildCvModel, type CvOptions } from './model';
 import { cvPath } from './paths';
 import { renderCvDocx } from './render-docx';
-import { renderCvPdf } from './render-pdf';
 
 const OCT_2026 = new Date('2026-10-26T12:00:00Z');
 const PHONE = '+49 151 0000 0000';
@@ -97,19 +96,17 @@ describe('CV DOCX', () => {
   }, 30_000);
 });
 
-describe('CV PDF', () => {
-  it('renders a valid, multi-page A4 PDF in each language', async () => {
+describe('CV PDF on the site', () => {
+  it('serves the web edition: A4, no phone link, links to the demo', () => {
     for (const locale of LOCALES) {
-      const pdf = await renderCvPdf(buildCvModel(locale, WEB));
-      const raw = pdf.toString('latin1');
+      const raw = readFileSync(`public${cvPath(locale)}`).toString('latin1');
       expect(raw.startsWith('%PDF-')).toBe(true);
-      expect(raw.trimEnd().endsWith('%%EOF')).toBe(true);
-      const pages = raw.match(/\/Type \/Page\b/g)?.length ?? 0;
-      expect(pages).toBeGreaterThanOrEqual(1);
-      expect(pages).toBeLessThanOrEqual(4);
-      expect(raw).toContain('/MediaBox [0 0 595.28 841.89]');
+      expect(raw).toMatch(/\/MediaBox\s*\[\s*0 0 595\.\d+ 841\.\d+\]/);
+      const links = [...raw.matchAll(/\/URI\s*\(([^)]*)\)/g)].map((match) => match[1]);
+      expect(links).toContain('https://grc.inomov.online/');
+      expect(links.some((link) => link?.startsWith('tel:'))).toBe(false);
     }
-  }, 30_000);
+  });
 
   it('is served at a stable path per language', () => {
     expect(cvPath('de')).toBe('/cv/farrukh-inomov-lebenslauf.pdf');
