@@ -47,7 +47,7 @@ const channels: { label: string; hint: string; href: string; value: string; icon
     label: copy.linkedin,
     hint: copy.linkedinHint,
     href: profile.links.linkedin,
-    value: 'in/farrukhinomov',
+    value: new URL(profile.links.linkedin).pathname.slice(1),
     icon: 'linkedin',
   },
   {

@@ -44,7 +44,8 @@ export const letterSchema = z.object({
 
 export type Letter = z.infer<typeof letterSchema>;
 
-const SIZE = { name: 20, body: 10, small: 8.5, subject: 10.5 } as const;
+// Body text as in the CV; the letter keeps spare room so it stays on one page in any viewer.
+const SIZE = { name: 20, body: 9.5, small: 8.5, subject: 10.5 } as const;
 const BODY_LINE = 276; // 1.15 line height
 
 /** The link a contact line points to, if it is an email or web address. */
@@ -94,13 +95,13 @@ export async function renderLetterDocx(letter: Letter, font: EmbeddedFont): Prom
             ],
           }),
           new Paragraph({
-            spacing: { before: spacing(4), after: spacing(22) },
+            spacing: { before: spacing(4), after: spacing(18) },
             children: contactLine(letter.sender.contact),
           }),
           ...letter.recipient.map((text) => new Paragraph({ children: [run(text)] })),
           new Paragraph({
             alignment: AlignmentType.RIGHT,
-            spacing: { before: spacing(16), after: spacing(14) },
+            spacing: { before: spacing(12), after: spacing(12) },
             children: [run(date)],
           }),
           new Paragraph({
@@ -110,7 +111,7 @@ export async function renderLetterDocx(letter: Letter, font: EmbeddedFont): Prom
           body(letter.salutation),
           ...letter.paragraphs.map((text) => body(text)),
           // Closing and name stay on one page.
-          body(letter.closing, 26, true),
+          body(letter.closing, 22, true),
           body(letter.sender.name, 0),
         ],
       },
