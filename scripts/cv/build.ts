@@ -13,14 +13,14 @@
  */
 import { execFileSync } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import sharp from 'sharp';
 import { z } from 'astro/zod';
 import { buildCvModel, type CvEdition } from '@/cv/model';
 import { renderCvDocx, type DocxAssets } from '@/cv/render-docx';
 import { LOCALES, type Locale } from '@/i18n/locales';
+import { loadFont, ROOT } from './assets';
 
-const ROOT = resolve(import.meta.dirname, '../..');
 const PRIVATE_DIR = join(ROOT, '_docs');
 const OUT_DIR = join(PRIVATE_DIR, 'cv');
 const EDITIONS: readonly CvEdition[] = ['web', 'application'];
@@ -58,14 +58,8 @@ async function roundedPhoto(): Promise<Buffer> {
 }
 
 async function loadAssets(): Promise<DocxAssets> {
-  // A direct devDependency; the package does not export its font files.
-  const fonts = join(ROOT, 'node_modules/geist/dist/fonts/geist-sans');
-  const [photo, regular, bold] = await Promise.all([
-    roundedPhoto(),
-    readFile(join(fonts, 'Geist-Regular.ttf')),
-    readFile(join(fonts, 'Geist-Bold.ttf')),
-  ]);
-  return { photo, font: { name: 'Geist', regular, bold } };
+  const [photo, font] = await Promise.all([roundedPhoto(), loadFont()]);
+  return { photo, font };
 }
 
 async function main() {
