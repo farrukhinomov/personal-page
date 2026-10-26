@@ -1,9 +1,10 @@
 ---
 import ExperienceTrace from '@/components/about/ExperienceTrace.astro';
-import AvailabilityNote from '@/components/ui/AvailabilityNote.astro';
+import SkillGroups from '@/components/about/SkillGroups.astro';
 import PageHeader from '@/components/ui/PageHeader.astro';
 import { experience } from '@/data/experience';
 import { profile } from '@/data/profile';
+import { skills } from '@/data/skills';
 import type { Locale } from '@/i18n/locales';
 import { pageMeta } from '@/i18n/pages';
 import { alternatesFor, pathFor } from '@/i18n/routes';
@@ -20,11 +21,13 @@ const { locale } = Astro.props;
 const copy = {
   de: {
     experience: 'Werdegang',
+    skills: 'Kenntnisse',
     languages: 'Sprachen',
     awards: 'Auszeichnungen',
   },
   en: {
     experience: 'Experience',
+    skills: 'Skills',
     languages: 'Languages',
     awards: 'Awards',
   },
@@ -43,16 +46,21 @@ const meta = pageMeta('about', locale);
 >
   <PageHeader title={profile.headline[locale]} lead={profile.summary[locale]} />
 
-  <div class="container">
-    <AvailabilityNote locale={locale} />
-  </div>
-
   <section class="block" aria-labelledby="experience-title">
     <div class="container">
       <h2 id="experience-title" data-reveal="lines">
         {copy.experience}
       </h2>
       <ExperienceTrace locale={locale} entries={experience} />
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="skills-title">
+    <div class="container">
+      <h2 id="skills-title" data-reveal="lines">
+        {copy.skills}
+      </h2>
+      <SkillGroups locale={locale} groups={skills} />
     </div>
   </section>
 

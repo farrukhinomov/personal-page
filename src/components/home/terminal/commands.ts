@@ -1,9 +1,8 @@
-import { availability } from '@/data/availability';
 import { yearsSince } from '@/data/dates';
-import { describeAvailability } from '@/data/describe';
-import { experience } from '@/data/experience';
+import { skillLabel } from '@/data/describe';
 import { profile } from '@/data/profile';
 import { projects } from '@/data/projects';
+import { skills } from '@/data/skills';
 import type { Locale } from '@/i18n/locales';
 import { childPathFor, pathFor, type RouteKey } from '@/i18n/routes';
 
@@ -35,7 +34,6 @@ const COPY = {
       whoami: 'wer ich bin',
       projects: 'meine Projekte',
       skills: 'womit ich arbeite',
-      availability: 'wofür ich offen bin',
       contact: 'wie Sie mich erreichen',
       open: 'Seite öffnen: about, projects, contact',
       lang: 'Switch to English',
@@ -54,7 +52,6 @@ const COPY = {
       whoami: 'who I am',
       projects: 'my projects',
       skills: 'what I work with',
-      availability: 'what I am open to',
       contact: 'how to reach me',
       open: 'open a page: about, projects, contact',
       lang: 'Auf Deutsch wechseln',
@@ -78,9 +75,13 @@ const text = (value: string): TerminalLine => ({ kind: 'text', text: value });
 const muted = (value: string): TerminalLine => ({ kind: 'muted', text: value });
 const link = (value: string, href: string): TerminalLine => ({ kind: 'link', text: value, href });
 
-/** Unique technologies across all Experience, most recent first. */
-function skills(): string[] {
-  return [...new Set(experience.flatMap((entry) => entry.stack))];
+/** One line per skill group, e.g. "Backend: C#, .NET, Python". */
+function skillLines(locale: Locale): TerminalLine[] {
+  return skills.map((group) =>
+    text(
+      `${group.name[locale]}: ${group.items.map((item) => skillLabel(item, locale)).join(', ')}`,
+    ),
+  );
 }
 
 type Handler = (args: string[], ctx: TerminalContext) => TerminalResult;
@@ -110,8 +111,7 @@ const HANDLERS: Record<CommandName, Handler> = {
       muted(`  ${project.tagline[locale]}`),
     ]),
   }),
-  skills: () => ({ lines: [text(skills().join(', '))] }),
-  availability: (_, { locale }) => ({ lines: [text(describeAvailability(availability, locale))] }),
+  skills: (_, { locale }) => ({ lines: skillLines(locale) }),
   contact: () => ({
     lines: [
       link(profile.email, `mailto:${profile.email}`),

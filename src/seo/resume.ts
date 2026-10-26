@@ -1,8 +1,8 @@
-import { availability } from '@/data/availability';
-import { describeAvailability } from '@/data/describe';
+import { skillLabel } from '@/data/describe';
 import { experience } from '@/data/experience';
 import { profile } from '@/data/profile';
 import { projects } from '@/data/projects';
+import { skills } from '@/data/skills';
 import type { Locale } from '@/i18n/locales';
 import { childPathFor, pathFor } from '@/i18n/routes';
 import { SITE_URL } from './structured-data';
@@ -59,7 +59,10 @@ export function buildResume(locale: Locale) {
       language: language.name[locale],
       fluency: language.level[locale],
     })),
-    skills: [{ name: 'Technologies', keywords: [...new Set(experience.flatMap((e) => e.stack))] }],
+    skills: skills.map((group) => ({
+      name: group.name[locale],
+      keywords: group.items.map((item) => skillLabel(item, locale)),
+    })),
     projects: projects.map((project) => ({
       name: project.name,
       description: project.description[locale],
@@ -72,13 +75,6 @@ export function buildResume(locale: Locale) {
     meta: {
       canonical: absolute(resumePath(locale)),
       version: 'v1.0.0',
-      lastModified: availability.updated,
-      availability: {
-        summary: describeAvailability(availability, locale),
-        openTo: availability.openTo,
-        countries: availability.countries,
-        remote: availability.remote,
-      },
     },
   };
 }

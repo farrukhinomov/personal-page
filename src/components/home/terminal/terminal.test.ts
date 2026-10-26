@@ -29,6 +29,14 @@ describe('runCommand', () => {
     expect(runCommand('open nowhere', de).effect).toBeUndefined();
   });
 
+  it('prints skills one group per line and never mentions availability', () => {
+    const lines = texts('skills', en);
+    expect(lines[0]).toContain('Backend: C#');
+    expect(lines.join('\n')).toContain('Ways of working: AI First Development');
+    expect(texts('help', en).join('\n')).not.toMatch(/availability/i);
+    expect(runCommand('availability', en).lines[0]?.kind).toBe('error');
+  });
+
   it('switches language to the alternate path', () => {
     expect(runCommand('lang', de).effect).toEqual({ type: 'navigate', href: '/en' });
   });

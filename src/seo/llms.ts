@@ -1,9 +1,8 @@
-import { availability } from '@/data/availability';
-import { formatMonth } from '@/data/dates';
-import { describeAvailability, describePeriod } from '@/data/describe';
+import { describePeriod, skillLabel } from '@/data/describe';
 import { experience } from '@/data/experience';
 import { profile } from '@/data/profile';
 import { projects } from '@/data/projects';
+import { skills } from '@/data/skills';
 import { LOCALES } from '@/i18n/locales';
 import { pageMeta } from '@/i18n/pages';
 import { childPathFor, pathFor, ROUTES, type RouteKey } from '@/i18n/routes';
@@ -30,7 +29,7 @@ function header(): string[] {
   return [
     `# ${profile.name}`,
     '',
-    `> ${profile.headline.en}, based in ${profile.location.en}. ${describeAvailability(availability, 'en')}`,
+    `> ${profile.headline.en}, based in ${profile.location.en}.`,
     '',
     profile.summary.en,
     '',
@@ -116,10 +115,12 @@ export function buildLlmsFullTxt(posts: readonly PostSummary[]): string {
   return [
     ...header(),
     '',
-    '## Availability',
+    '## Skills',
     '',
-    describeAvailability(availability, 'en'),
-    `Last confirmed: ${formatMonth(availability.updated.slice(0, 7), 'en')}.`,
+    ...skills.map(
+      (group) =>
+        `- ${group.name.en}: ${group.items.map((item) => skillLabel(item, 'en')).join(', ')}`,
+    ),
     '',
     '## Languages',
     '',
