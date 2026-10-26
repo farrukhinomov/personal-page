@@ -50,9 +50,17 @@ export const experienceSchema = z
   )
   .min(1);
 
+/** A titled list on a Project page, e.g. "Implemented" or "Current status". */
+const projectSection = z.object({
+  heading: localized,
+  items: z.array(localized).min(1),
+});
+
 export const projectSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
   name: text,
+  /** What kind of thing it is, shown after the name, e.g. "GRC-SaaS-Prototyp". */
+  kind: localized.optional(),
   /** GitHub repository as `owner/name`. */
   repository: z.string().regex(/^[\w.-]+\/[\w.-]+$/),
   /** Private repositories are shown without a source link ("source on request"). */
@@ -63,6 +71,12 @@ export const projectSchema = z.object({
   stack: z.array(text).min(1),
   year: z.number().int().min(2000),
   featured: z.boolean(),
+  /** Optional detail sections; their content is updated by hand. */
+  sections: z.array(projectSection).optional(),
+  /** Date the sections were last checked against the project, as `YYYY-MM-DD`. */
+  sectionsUpdated: z.iso.date().optional(),
+  /** Self-hosted screen recording below `public/`, shown once the file exists. */
+  demoVideo: z.object({ src: z.string().startsWith('/'), caption: localized }).optional(),
 });
 
 export const projectsSchema = z

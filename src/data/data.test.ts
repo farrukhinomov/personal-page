@@ -35,10 +35,25 @@ describe('portfolio data', () => {
     });
   });
 
-  it('says the KRITIS demo is a prototype on demo data, in both languages', () => {
+  it('presents KRITIS GRC as a prototype, in both languages', () => {
     const kritis = projects[0];
-    expect(kritis?.description.en).toContain('prototype on fictional demo data');
-    expect(kritis?.description.de).toContain('Prototyp mit fiktiven Demodaten');
+    expect(kritis?.kind).toEqual({ de: 'GRC-SaaS-Prototyp', en: 'GRC SaaS prototype' });
+    expect(kritis?.description.de).toContain(
+      'Frontend-Prototyp ist umgesetzt und nutzt fiktive Demodaten',
+    );
+    expect(kritis?.description.en).toContain('uses fictional demo data');
+    expect(kritis?.tagline.de).not.toContain('Compliance-SaaS');
+  });
+
+  it('gives KRITIS GRC the four agreed sections, dated', () => {
+    const kritis = projects[0];
+    expect(kritis?.sections?.map((section) => section.heading.de)).toEqual([
+      'Umgesetzt',
+      'Qualität',
+      'Architektur und Arbeitsweise',
+      'Aktueller Stand',
+    ]);
+    expect(kritis?.sectionsUpdated).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it('marks private repositories so they get no source link', () => {
