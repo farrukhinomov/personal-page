@@ -1,8 +1,6 @@
 import type { Locale } from './locales';
 
 const de = {
-  'site.description':
-    'Farrukh Inomov, Senior Full-Stack-Entwickler in Saarbrücken. C#/.NET, React und TypeScript – Business-Software von der Architektur bis zum Betrieb.',
   'a11y.skip': 'Zum Inhalt springen',
   'a11y.mainNav': 'Hauptnavigation',
   'a11y.menuOpen': 'Menü öffnen',
@@ -12,6 +10,7 @@ const de = {
   'nav.home': 'Start',
   'nav.about': 'Über mich',
   'nav.projects': 'Projekte',
+  'nav.blog': 'Blog',
   'nav.contact': 'Kontakt',
   'lang.short': 'EN',
   'footer.builtWith': 'Gebaut mit Astro, ausgeliefert von Vercel.',
@@ -23,8 +22,6 @@ const de = {
 type UiKey = keyof typeof de;
 
 const en: Record<UiKey, string> = {
-  'site.description':
-    'Farrukh Inomov, senior full-stack developer in Saarbrücken, Germany. C#/.NET, React and TypeScript – business software from architecture to operations.',
   'a11y.skip': 'Skip to content',
   'a11y.mainNav': 'Main navigation',
   'a11y.menuOpen': 'Open menu',
@@ -34,6 +31,7 @@ const en: Record<UiKey, string> = {
   'nav.home': 'Home',
   'nav.about': 'About',
   'nav.projects': 'Projects',
+  'nav.blog': 'Blog',
   'nav.contact': 'Contact',
   'lang.short': 'DE',
   'footer.builtWith': 'Built with Astro, served by Vercel.',

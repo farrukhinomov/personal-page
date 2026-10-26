@@ -22,6 +22,11 @@ export function formatDuration(totalMonths: number, locale: Locale): string {
   return parts.filter(Boolean).join(' ') || unit(0, 'month');
 }
 
+/** Formats a calendar date for display, e.g. "26. Oktober 2026" or "October 26, 2026". */
+export function formatDate(date: Date, locale: Locale): string {
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone: 'UTC' }).format(date);
+}
+
 /** Formats a `YYYY-MM` month for display, e.g. "Juli 2022" or "Jul 2022". */
 export function formatMonth(yearMonth: string, locale: Locale): string {
   const [year, month] = yearMonth.split('-').map(Number);

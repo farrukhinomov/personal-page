@@ -5,6 +5,7 @@ import PageHeader from '@/components/ui/PageHeader.astro';
 import type { Project } from '@/data/schema';
 import type { Locale } from '@/i18n/locales';
 import { alternatesForChild, pathFor } from '@/i18n/routes';
+import { ogImagePath } from '@/seo/og';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
 interface Props {
@@ -26,6 +27,7 @@ const copy = {
   alternates={alternatesForChild('projects', project.slug)}
   title={project.name}
   description={project.tagline[locale]}
+  ogImage={ogImagePath(locale, 'projects', project.slug)}
 >
   <div class="container back">
     <a href={pathFor('projects', locale)}>

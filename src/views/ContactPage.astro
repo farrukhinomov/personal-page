@@ -5,7 +5,9 @@ import type { IconName } from '@/components/ui/icons';
 import PageHeader from '@/components/ui/PageHeader.astro';
 import { profile } from '@/data/profile';
 import type { Locale } from '@/i18n/locales';
+import { pageMeta } from '@/i18n/pages';
 import { alternatesFor } from '@/i18n/routes';
+import { ogImagePath } from '@/seo/og';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
 interface Props {
@@ -16,8 +18,6 @@ const { locale } = Astro.props;
 
 const copy = {
   de: {
-    title: 'Kontakt',
-    lead: 'Eine Stelle, ein Projekt oder eine Frage zu meiner Arbeit? Schreiben Sie mir – ich antworte persönlich.',
     email: 'E-Mail',
     emailHint: 'Der schnellste Weg zu mir.',
     linkedin: 'LinkedIn',
@@ -26,8 +26,6 @@ const copy = {
     githubHint: 'Code und öffentliche Projekte.',
   },
   en: {
-    title: 'Contact',
-    lead: 'A role, a project or a question about my work? Write to me – I answer personally.',
     email: 'Email',
     emailHint: 'The fastest way to reach me.',
     linkedin: 'LinkedIn',
@@ -36,6 +34,7 @@ const copy = {
     githubHint: 'Code and public projects.',
   },
 }[locale];
+const meta = pageMeta('contact', locale);
 
 const channels: { label: string; hint: string; href: string; value: string; icon: IconName }[] = [
   {
@@ -66,10 +65,11 @@ const channels: { label: string; hint: string; href: string; value: string; icon
   locale={locale}
   route="contact"
   alternates={alternatesFor('contact')}
-  title={copy.title}
-  description={copy.lead}
+  title={meta.title}
+  description={meta.description}
+  ogImage={ogImagePath(locale, 'contact')}
 >
-  <PageHeader title={copy.title} lead={copy.lead} />
+  <PageHeader title={meta.title} lead={meta.description} />
   <div class="container">
     <AvailabilityNote locale={locale} />
     <ul class="channels">
