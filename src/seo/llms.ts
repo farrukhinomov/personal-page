@@ -119,7 +119,7 @@ export function buildLlmsFullTxt(posts: readonly PostSummary[]): string {
     '',
     ...skills.map(
       (group) =>
-        `- ${group.name.en}: ${group.items.map((item) => skillLabel(item, 'en')).join(', ')}`,
+        `- ${group.name.en}${group.note ? ` (${group.note.en})` : ''}: ${group.items.map((item) => skillLabel(item, 'en')).join(', ')}`,
     ),
     '',
     '## Languages',
