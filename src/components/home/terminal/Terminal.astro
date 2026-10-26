@@ -31,7 +31,7 @@ const copy = {
   },
 }[locale];
 
-const SUGGESTED = ['whoami', 'projects', 'availability', 'contact', 'help'] as const;
+const SUGGESTED = ['whoami', 'projects', 'skills', 'contact', 'help'] as const;
 ---
 
 <section class="terminal" aria-label={copy.label} data-terminal>
@@ -117,7 +117,7 @@ const SUGGESTED = ['whoami', 'projects', 'availability', 'contact', 'help'] as c
     font-size: 0.75rem;
   }
 
-  /* Amber because the terminal is live, matching the availability light. */
+  /* Amber marks the terminal as live. */
   .status {
     width: 0.45rem;
     height: 0.45rem;

@@ -1,5 +1,4 @@
 ---
-import AvailabilityNote from '@/components/ui/AvailabilityNote.astro';
 import Icon from '@/components/ui/Icon.astro';
 import type { IconName } from '@/components/ui/icons';
 import PageHeader from '@/components/ui/PageHeader.astro';
@@ -71,7 +70,6 @@ const channels: { label: string; hint: string; href: string; value: string; icon
 >
   <PageHeader title={meta.title} lead={meta.description} />
   <div class="container">
-    <AvailabilityNote locale={locale} />
     <ul class="channels">
       {channels.map((channel) => (
         <li>
