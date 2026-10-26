@@ -1,0 +1,88 @@
+---
+import { experience } from '@/data/experience';
+import type { Locale } from '@/i18n/locales';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const current = experience.find((entry) => entry.kind === 'work' && entry.end === null);
+
+const copy = {
+  de: { title: 'Woran ich gerade arbeite', at: 'bei' },
+  en: { title: 'What I am working on', at: 'at' },
+}[locale];
+---
+
+{current && (
+  <section class="current" aria-labelledby="current-title">
+    <div class="container layout">
+      <header class="heading">
+        <h2 id="current-title">{copy.title}</h2>
+        <p class="where">
+          {current.role[locale]} {copy.at} {current.organization}
+        </p>
+      </header>
+      <ul class="items">
+        {current.highlights.map((item) => (
+          <li>{item[locale]}</li>
+        ))}
+      </ul>
+    </div>
+  </section>
+)}
+
+<style>
+  .current {
+    padding-block: var(--space-8);
+    border-block-start: 1px solid var(--color-line);
+  }
+
+  .layout {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 60rem) {
+    .layout {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-7);
+    }
+
+    .heading {
+      position: sticky;
+      inset-block-start: calc(var(--header-height) + var(--space-6));
+      align-self: start;
+    }
+  }
+
+  h2 {
+    font-size: var(--step-3);
+  }
+
+  .where {
+    margin-block-start: var(--space-3);
+    color: var(--color-fg-muted);
+  }
+
+  .items {
+    display: grid;
+    padding: 0;
+    list-style: none;
+  }
+
+  .items li {
+    max-width: var(--measure);
+    padding-block: var(--space-5);
+    padding-inline-start: var(--space-5);
+    border-inline-start: 1px solid var(--color-line);
+    font-size: var(--step-1);
+    line-height: 1.45;
+    transition: border-color var(--duration-base) var(--ease-out);
+  }
+
+  .items li:hover {
+    border-inline-start-color: var(--color-signal);
+  }
+</style>

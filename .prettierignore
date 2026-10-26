@@ -1,0 +1,6 @@
+dist
+.astro
+.vercel
+coverage
+pnpm-lock.yaml
+_docs
