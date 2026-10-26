@@ -1,0 +1,135 @@
+---
+import { render } from 'astro:content';
+import PostMeta from '@/components/blog/PostMeta.astro';
+import Icon from '@/components/ui/Icon.astro';
+import type { Post } from '@/blog/posts';
+import { alternatesForChild, childPathFor, pathFor } from '@/i18n/routes';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { ogImagePath } from '@/seo/og';
+import { blogPostingSchema } from '@/seo/structured-data';
+import '@/styles/prose.css';
+
+interface Props {
+  post: Post;
+}
+
+const { post } = Astro.props;
+const { locale, slug, entry, readingMinutes } = post;
+const { title, description, published, updated, tags } = entry.data;
+const { Content } = await render(entry);
+const imagePath = ogImagePath(locale, 'blog', slug);
+
+const copy = {
+  de: { back: 'Alle Artikel', tags: 'Themen' },
+  en: { back: 'All posts', tags: 'Topics' },
+}[locale];
+---
+
+<BaseLayout
+  locale={locale}
+  route="blog"
+  alternates={alternatesForChild('blog', slug)}
+  title={title}
+  description={description}
+  ogImage={imagePath}
+  article={{ published, updated, tags }}
+  structuredData={[
+    blogPostingSchema({
+      path: childPathFor('blog', locale, slug),
+      locale,
+      title,
+      description,
+      published,
+      updated,
+      tags,
+      imagePath,
+    }),
+  ]}
+>
+  <article class="container article">
+    <a class="back" href={pathFor('blog', locale)}>
+      <Icon name="arrow-left" size={16} />
+      {copy.back}
+    </a>
+
+    <header class="header">
+      <h1>{title}</h1>
+      <p class="lead">{description}</p>
+      <PostMeta
+        locale={locale}
+        published={published}
+        updated={updated}
+        readingMinutes={readingMinutes}
+      />
+      {tags.length > 0 && (
+        <ul class="tags" aria-label={copy.tags}>
+          {tags.map((tag) => (
+            <li>{tag}</li>
+          ))}
+        </ul>
+      )}
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .article {
+    display: grid;
+    gap: var(--space-6);
+    padding-block-start: var(--space-6);
+  }
+
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    justify-self: start;
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+    text-decoration: none;
+  }
+
+  .back:hover {
+    color: var(--color-fg);
+  }
+
+  .header {
+    display: grid;
+    gap: var(--space-4);
+    max-width: var(--measure);
+    padding-block-end: var(--space-6);
+    border-block-end: 1px solid var(--color-line);
+  }
+
+  h1 {
+    font-size: var(--step-4);
+    line-height: var(--leading-tight);
+    letter-spacing: -0.03em;
+  }
+
+  .lead {
+    color: var(--color-fg-muted);
+    font-size: var(--step-1);
+    line-height: 1.5;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
+  }
+
+  .tags li {
+    padding: 0.1rem var(--space-2);
+    border: 1px solid var(--color-line);
+    border-radius: 0.3rem;
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+</style>

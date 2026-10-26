@@ -12,8 +12,17 @@ import {
   type Locale,
   type Localized,
 } from '@/i18n/locales';
-import type { RouteKey } from '@/i18n/routes';
+import { pageMeta } from '@/i18n/pages';
+import { pathFor, type RouteKey } from '@/i18n/routes';
 import { useTranslations } from '@/i18n/ui';
+import { OG_IMAGE_SIZE, ogImagePath } from '@/seo/og';
+import {
+  graph,
+  personSchema,
+  serializeJsonLd,
+  websiteSchema,
+  type JsonLd,
+} from '@/seo/structured-data';
 import '@/styles/global.css';
 
 interface Props {
@@ -27,19 +36,40 @@ interface Props {
   description?: string;
   /** Keeps the page out of search results and skips canonical/hreflang (e.g. 404). */
   noindex?: boolean;
+  /** Generated Open Graph image (see src/seo/og.ts); defaults to the start page's. */
+  ogImage?: string;
+  /** Extra schema.org nodes for this page; Person and WebSite are always included. */
+  structuredData?: JsonLd[];
+  /** Marks the page as an article for link previews. */
+  article?: { published: Date; updated?: Date | undefined; tags: readonly string[] };
 }
 
 /** Browser UI colour per theme; matches `--color-bg` in tokens.css. */
 const THEME_COLOR = { dark: '#0e161d', light: '#f2f5f7' } as const;
 
-const { locale, route, alternates, title, description, noindex = false } = Astro.props;
+const {
+  locale,
+  route,
+  alternates,
+  title,
+  description,
+  noindex = false,
+  ogImage = ogImagePath(locale, 'home'),
+  structuredData = [],
+  article,
+} = Astro.props;
 const t = useTranslations(locale);
 
 const fullTitle = title
   ? `${title} – ${profile.name}`
   : `${profile.name} – ${profile.headline[locale]}`;
-const metaDescription = description ?? t('site.description');
+const metaDescription = description ?? pageMeta('home', locale).description;
 const canonical = new URL(alternates[locale], Astro.site);
+const ogImageUrl = new URL(ogImage, Astro.site);
+const jsonLd = serializeJsonLd(
+  graph([personSchema(locale), websiteSchema(locale), ...structuredData]),
+);
+const rssUrl = `${pathFor('blog', locale)}/rss.xml`;
 ---
 
 <!doctype html>
@@ -63,14 +93,38 @@ const canonical = new URL(alternates[locale], Astro.site);
       </>
     )}
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={article ? 'article' : 'website'} />
     <meta property="og:site_name" content={profile.name} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={metaDescription} />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content={OG_LOCALE[locale]} />
     <meta property="og:locale:alternate" content={OG_LOCALE[otherLocale(locale)]} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content={String(OG_IMAGE_SIZE.width)} />
+    <meta property="og:image:height" content={String(OG_IMAGE_SIZE.height)} />
+    <meta property="og:image:alt" content={title ?? profile.name} />
+    {article && (
+      <>
+        <meta property="article:published_time" content={article.published.toISOString()} />
+        {article.updated && (
+          <meta property="article:modified_time" content={article.updated.toISOString()} />
+        )}
+        {article.tags.map((tag) => (
+          <meta property="article:tag" content={tag} />
+        ))}
+      </>
+    )}
+    <meta name="twitter:card" content="summary_large_image" />
 
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={`${profile.name} – Blog`}
+      href={rssUrl}
+    />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <script is:inline type="application/ld+json" set:html={jsonLd} />
     <!-- Follows the page theme; the theme scripts keep it in sync. -->
     <meta
       name="theme-color"

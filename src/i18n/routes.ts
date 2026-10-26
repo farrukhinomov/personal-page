@@ -8,6 +8,7 @@ export const ROUTES = {
   home: { de: '/', en: '/en' },
   about: { de: '/ueber-mich', en: '/en/about' },
   projects: { de: '/projekte', en: '/en/projects' },
+  blog: { de: '/blog', en: '/en/blog' },
   contact: { de: '/kontakt', en: '/en/contact' },
 } as const satisfies Record<string, Localized>;
 

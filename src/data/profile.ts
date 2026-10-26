@@ -11,6 +11,7 @@ export const profile = profileSchema.parse({
     en: 'I build business software that holds up in daily use – from the architecture to running it at the customer. I care about clean architecture, automated tests and decisions that are written down.',
   },
   location: { de: 'Saarbrücken, Deutschland', en: 'Saarbrücken, Germany' },
+  address: { city: 'Saarbrücken', countryCode: 'DE' },
   email: 'farrukhfinomov@gmail.com',
   developerSince: '2019-09',
   links: {
