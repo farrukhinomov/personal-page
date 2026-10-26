@@ -1,0 +1,64 @@
+---
+import Terminal from '@/components/home/terminal/Terminal.astro';
+import type { Locale, Localized } from '@/i18n/locales';
+
+interface Props {
+  locale: Locale;
+  alternates: Localized;
+}
+
+const { locale, alternates } = Astro.props;
+
+const copy = {
+  de: {
+    title: 'Lieber tippen?',
+    lead: 'Dieselben Informationen als Befehle – probieren Sie whoami, projects oder skills.',
+  },
+  en: {
+    title: 'Rather type?',
+    lead: 'The same information as commands – try whoami, projects or skills.',
+  },
+}[locale];
+---
+
+<section class="terminal-section" aria-labelledby="terminal-title">
+  <div class="container layout">
+    <header>
+      <h2 id="terminal-title" data-reveal="lines">
+        {copy.title}
+      </h2>
+      <p class="lead">{copy.lead}</p>
+    </header>
+    <Terminal locale={locale} alternates={alternates} />
+  </div>
+</section>
+
+<style>
+  .terminal-section {
+    padding-block: var(--space-8);
+    border-block-start: 1px solid var(--color-line);
+  }
+
+  .layout {
+    display: grid;
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  @media (min-width: 60rem) {
+    .layout {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-7);
+    }
+  }
+
+  h2 {
+    font-size: var(--step-3);
+  }
+
+  .lead {
+    max-width: 40ch;
+    margin-block-start: var(--space-3);
+    color: var(--color-fg-muted);
+  }
+</style>
