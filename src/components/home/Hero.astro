@@ -60,11 +60,13 @@ const titleWords = pageMeta('home', locale).title.split(' ');
         </>
       ))}
     </h1>
-    <ul class="stack enter" style="--delay: 320ms" aria-label={copy.stackLabel}>
-      {copy.stack.map((item) => (
-        <li>{item}</li>
-      ))}
-    </ul>
+    <div class="stack-clip enter" style="--delay: 320ms">
+      <ul class="stack" aria-label={copy.stackLabel}>
+        {copy.stack.map((item) => (
+          <li>{item}</li>
+        ))}
+      </ul>
+    </div>
     <p class="lead enter" style="--delay: 420ms">
       {copy.lead}
     </p>
@@ -135,11 +137,21 @@ const titleWords = pageMeta('home', locale).title.split(' ');
     font-weight: 650;
   }
 
-  /* The stack reads as one line; separators are drawn, so screen readers hear a plain list. */
+  /*
+   * The stack reads as one line; separators are drawn, so screen readers hear a plain list.
+   * Every item carries its dot in the padding before it. The list is shifted left by that
+   * padding and the wrapper clips what sticks out, so the dot of an item that starts a row
+   * is never seen, however the items wrap.
+   */
+  .stack-clip {
+    overflow: hidden;
+  }
+
   .stack {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-1) 0;
+    margin-inline-start: -1.5em;
     padding: 0;
     list-style: none;
     font-family: var(--font-mono);
@@ -147,15 +159,21 @@ const titleWords = pageMeta('home', locale).title.split(' ');
     font-weight: 500;
   }
 
-  .stack li + li::before {
+  .stack li {
+    position: relative;
+    padding-inline-start: 1.5em;
+  }
+
+  .stack li::before {
     content: '';
-    display: inline-block;
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 0.6em;
     width: 0.3em;
     height: 0.3em;
-    margin-inline: 0.75em;
+    translate: 0 -50%;
     border-radius: 50%;
     background: var(--color-signal);
-    vertical-align: middle;
   }
 
   .lead {
