@@ -5,6 +5,7 @@ import ButtonLink from '@/components/ui/ButtonLink.astro';
 import { yearsSince } from '@/data/dates';
 import { profile } from '@/data/profile';
 import type { Locale, Localized } from '@/i18n/locales';
+import { pageMeta } from '@/i18n/pages';
 import { pathFor } from '@/i18n/routes';
 
 interface Props {
@@ -18,14 +19,12 @@ const years = yearsSince(profile.developerSince);
 const copy = {
   de: {
     intro: `${profile.name}, Senior Full-Stack-Entwickler in Saarbrücken`,
-    title: 'Business-Software, die im Alltag zuverlässig läuft.',
     lead: `Seit ${years} Jahren baue ich mit C# und .NET Systeme für Unternehmen – von der Architektur bis zum Betrieb beim Kunden. Im Frontend arbeite ich mit React und TypeScript.`,
     primary: 'Kontakt aufnehmen',
     secondary: 'Projekte ansehen',
   },
   en: {
     intro: `${profile.name}, senior full-stack developer in Saarbrücken, Germany`,
-    title: 'Business software that holds up in daily use.',
     lead: `For ${years} years I have been building systems for companies with C# and .NET – from the architecture to running them at the customer. On the frontend I work with React and TypeScript.`,
     primary: 'Get in touch',
     secondary: 'See projects',
@@ -33,7 +32,7 @@ const copy = {
 }[locale];
 
 // Words are wrapped individually for the load sequence; spaces stay real text nodes.
-const titleWords = copy.title.split(' ');
+const titleWords = pageMeta('home', locale).title.split(' ');
 ---
 
 <section class="hero" aria-labelledby="hero-title">

@@ -15,6 +15,8 @@ export const profileSchema = z.object({
   headline: localized,
   summary: localized,
   location: localized,
+  /** Machine-readable location for structured data and the JSON résumé. */
+  address: z.object({ city: text, countryCode: z.string().regex(/^[A-Z]{2}$/) }),
   email: z.email(),
   /** Month Farrukh started working as a professional developer. */
   developerSince: yearMonth,

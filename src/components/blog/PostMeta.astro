@@ -1,0 +1,42 @@
+---
+import { formatDate } from '@/data/dates';
+import type { Locale } from '@/i18n/locales';
+
+interface Props {
+  locale: Locale;
+  published: Date;
+  updated?: Date | undefined;
+  readingMinutes: number;
+}
+
+const { locale, published, updated, readingMinutes } = Astro.props;
+
+const copy = {
+  de: { minutes: (n: number) => `${n} Min. Lesezeit`, updated: 'aktualisiert' },
+  en: { minutes: (n: number) => `${n} min read`, updated: 'updated' },
+}[locale];
+---
+
+<!--
+  The explicit spaces keep the items apart for screen readers and copy-paste;
+  the HTML is whitespace-compressed and the visual gap comes from flexbox.
+-->
+<p class="post-meta">
+  <time datetime={published.toISOString()}>{formatDate(published, locale)}</time>{' '}
+  {updated && (
+    <span>
+      {copy.updated} <time datetime={updated.toISOString()}>{formatDate(updated, locale)}</time>
+    </span>
+  )}{' '}
+  <span>{copy.minutes(readingMinutes)}</span>
+</p>
+
+<style>
+  .post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+</style>
