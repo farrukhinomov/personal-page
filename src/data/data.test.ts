@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { experience } from './experience';
 import { profile } from './profile';
@@ -54,6 +55,16 @@ describe('portfolio data', () => {
       'Aktueller Stand',
     ]);
     expect(kritis?.sectionsUpdated).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('points project screenshots at files that exist', () => {
+    const screenshots = projects.flatMap((project) =>
+      project.screenshot ? [project.screenshot.light, project.screenshot.dark] : [],
+    );
+    expect(screenshots.length).toBeGreaterThan(0);
+    for (const path of screenshots) {
+      expect(existsSync(path), path).toBe(true);
+    }
   });
 
   it('marks private repositories so they get no source link', () => {
