@@ -1,0 +1,42 @@
+---
+title: Imprint
+description: Legal notice under § 5 DDG (German Digital Services Act) for inomov.online.
+updated: 2026-10-26
+---
+
+import { profile } from '@/data/profile';
+import { legal } from '@/data/legal';
+
+This is a courtesy translation. The German text is legally binding.
+
+## Information under § 5 DDG
+
+<address>
+  {profile.name}
+  <br />
+  {legal.street}
+  <br />
+  {`${legal.postalCode} ${legal.city}`}
+  <br />
+  {legal.country.en}
+</address>
+
+## Contact
+
+Email: <a href={`mailto:${profile.email}`}>{profile.email}</a>
+
+## Responsible for the content
+
+Responsible under § 18 (2) MStV: {profile.name}, address as above.
+
+## Liability for content
+
+I have written the content of this website with the greatest possible care. I cannot, however, guarantee that it is correct, complete or up to date. As a service provider I am responsible for my own content under the general laws. Obligations to remove or block the use of information under the general laws remain unaffected. Liability is only possible from the moment I become aware of a specific infringement; once I do, I will remove the content immediately.
+
+## Liability for links
+
+This website links to external websites of third parties. I have no influence on their content and cannot guarantee it. The respective provider is always responsible for the content of linked pages. No infringements were apparent when the links were created; once I become aware of any, I will remove the links immediately.
+
+## Copyright
+
+The texts, designs and source code of this website that I created are subject to German copyright law. Any reproduction, editing or distribution beyond the limits of copyright law requires my written consent. Third-party content is marked as such.

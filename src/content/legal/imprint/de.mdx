@@ -1,0 +1,40 @@
+---
+title: Impressum
+description: Anbieterkennzeichnung nach § 5 DDG für inomov.online.
+updated: 2026-10-26
+---
+
+import { profile } from '@/data/profile';
+import { legal } from '@/data/legal';
+
+## Angaben gemäß § 5 DDG
+
+<address>
+  {profile.name}
+  <br />
+  {legal.street}
+  <br />
+  {`${legal.postalCode} ${legal.city}`}
+  <br />
+  {legal.country.de}
+</address>
+
+## Kontakt
+
+E-Mail: <a href={`mailto:${profile.email}`}>{profile.email}</a>
+
+## Verantwortlich für den Inhalt
+
+Verantwortlich im Sinne von § 18 Abs. 2 MStV: {profile.name}, Anschrift wie oben.
+
+## Haftung für Inhalte
+
+Die Inhalte dieser Website habe ich mit größtmöglicher Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität übernehme ich jedoch keine Gewähr. Als Diensteanbieter bin ich nach den allgemeinen Gesetzen für eigene Inhalte verantwortlich. Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben unberührt. Eine Haftung ist erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich; bei Bekanntwerden entsprechender Rechtsverletzungen entferne ich diese Inhalte umgehend.
+
+## Haftung für Links
+
+Diese Website enthält Links zu externen Websites Dritter, auf deren Inhalte ich keinen Einfluss habe. Für diese fremden Inhalte kann ich keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter verantwortlich. Zum Zeitpunkt der Verlinkung waren keine Rechtsverstöße erkennbar; bei Bekanntwerden entfernte ich solche Links umgehend.
+
+## Urheberrecht
+
+Die von mir erstellten Texte, Gestaltungen und Quelltexte dieser Website unterliegen dem deutschen Urheberrecht. Eine Vervielfältigung, Bearbeitung oder Verbreitung außerhalb der Grenzen des Urheberrechts bedarf meiner schriftlichen Zustimmung. Inhalte Dritter sind als solche gekennzeichnet.

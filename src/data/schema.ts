@@ -1,6 +1,6 @@
 import { z } from 'astro/zod';
 
-const text = z.string().trim().min(1);
+export const text = z.string().trim().min(1);
 
 /** Non-empty text in every locale. */
 export const localized = z.object({ de: text, en: text });
