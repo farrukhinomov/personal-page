@@ -1,0 +1,70 @@
+---
+title: Quality gates for a React frontend that AI helps write
+description: The checks every change to the KRITIS GRC prototype must pass – from strict TypeScript to screenshots – and what they have caught so far.
+published: 2026-10-26
+tags: [React, TypeScript, Testing, AI]
+draft: true
+---
+
+In the [KRITIS GRC prototype](https://github.com/farrukhinomov/kritis-grc), AI writes
+much of the code. I decide what ships. Gut feeling is not enough for that, so every
+frontend change runs through the same checks, locally and in CI. Here they are, with
+what they actually caught.
+
+## TypeScript as strict as it gets
+
+Besides `strict`, `tsconfig.app.json` turns on `noUncheckedIndexedAccess` and
+`exactOptionalPropertyTypes`. An array access may be `undefined`, and an optional
+field is not the same as a field set to `undefined`.
+
+That paid off early. The AI's first test setup used an MSW 2 option that MSW 3
+silently ignores. The tests passed without their safety net. The strict type check
+reported it, not a test.
+
+## ESLint with type information and project rules
+
+The config uses typescript-eslint's `strictTypeChecked` and the strict `jsx-a11y`
+rules. Three more rules fit this project in particular:
+
+- **No raw colors.** Hex values, `rgb()` and named colors are banned outside the
+  theme folder. Colors come only from design tokens, so themes and dark mode stay
+  consistent.
+- **No `fetch` in app code.** HTTP goes through the typed functions in `shared/api`
+  only, so error handling, headers and the API contract live in one place.
+- **No `console`.** Whatever the frontend needs to report gets its own decision.
+
+The linter runs with `--max-warnings=0`. A warning is an error.
+
+## Unit tests with a coverage threshold
+
+Vitest and Testing Library, with an 80 % threshold for lines, functions, branches and
+statements. Below it, CI fails.
+
+The number is not the goal. One review finding: nothing proved that login and logout
+clear the cache. Deleting both calls left every test green. Now two tests fail
+without them. Every review finding first gets a test that reproduces it.
+
+## End-to-end against the real build
+
+Playwright tests the production build with the mock API, the way the prototype is
+deployed: one desktop and one phone viewport, in German and on Berlin time. A failing
+test is investigated, not retried: `retries: 0`.
+
+Three kinds of checks run there:
+
+- **Accessibility.** axe checks the main screens against WCAG 2.2 A and AA, as far as
+  a machine can. The test also requires more than ten passing rules, so an empty page
+  can't pass as "no violations".
+- **Reduced motion.** A test counts, frame by frame, the running animations that move
+  something. With `prefers-reduced-motion`, the count must be zero.
+- **Visual regression.** Every main screen in three looks – light, dark and high
+  contrast – on both viewports, 30 screenshots in all. The threshold is tuned so a box
+  8 pixels narrower shows up.
+
+## What the gates don't replace
+
+They don't prove a screen is good to use. They make sure that something that was
+right once doesn't break unnoticed. The decisions behind them – 22 ADRs and an
+[AI log](https://github.com/farrukhinomov/kritis-grc/blob/main/docs/ai-log.md) that
+records which suggestions I accepted, changed or rejected – are handwork. About a
+third of review findings were rejected or narrowed, each with a reason.
