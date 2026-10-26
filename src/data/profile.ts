@@ -16,7 +16,7 @@ export const profile = profileSchema.parse({
   developerSince: '2019-09',
   links: {
     github: 'https://github.com/farrukhinomov',
-    linkedin: 'https://www.linkedin.com/in/farrukhinomov',
+    linkedin: 'https://www.linkedin.com/in/inomov',
   },
   languages: [
     {
