@@ -80,6 +80,8 @@ export const skillsSchema = z
     z.object({
       id: z.string().regex(/^[a-z0-9-]+$/),
       name: localized,
+      /** Where the skills in this group come from, e.g. which own projects. */
+      note: localized.optional(),
       /** `tags` renders chips, `list` renders one line per item. */
       kind: z.enum(['tags', 'list']),
       items: z.array(skillItem).min(1),
