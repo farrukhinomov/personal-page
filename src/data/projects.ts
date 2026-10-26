@@ -101,6 +101,14 @@ export const projects = projectsSchema.parse([
       },
     ],
     sectionsUpdated: '2026-10-26',
+    screenshot: {
+      light: 'src/assets/projects/kritis-grc/dashboard-light.png',
+      dark: 'src/assets/projects/kritis-grc/dashboard-dark.png',
+      alt: {
+        de: 'Übersicht des KRITIS-GRC-Prototyps mit fiktiven Demodaten: Compliance je Framework und Anlage, Restrisiko-Matrix, Top-5-Risiken und Fristen',
+        en: 'Overview screen of the KRITIS GRC prototype with fictional demo data: compliance per framework and facility, residual risk matrix, top five risks and deadlines',
+      },
+    },
   },
   {
     slug: 'inomov-online',
