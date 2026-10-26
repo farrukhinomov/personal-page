@@ -3,7 +3,8 @@ import { z } from 'astro/zod';
 
 /**
  * Postal address for the Impressum (DDG § 5). Kept apart from `profile` on purpose:
- * it appears on the Impressum page only, never in structured data or the JSON résumé.
+ * it appears on the Impressum page and in the CV sent with applications (never published),
+ * never in structured data, the JSON résumé or the CV on the site.
  */
 const legalSchema = z.object({
   street: text,

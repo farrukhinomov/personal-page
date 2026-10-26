@@ -1,5 +1,6 @@
 import { describePeriod, skillLabel } from '@/data/describe';
 import { experience } from '@/data/experience';
+import { cvPath } from '@/cv/paths';
 import { profile } from '@/data/profile';
 import { projects } from '@/data/projects';
 import { skills } from '@/data/skills';
@@ -76,6 +77,8 @@ export function buildLlmsTxt(posts: readonly PostSummary[]): string {
       '/llms-full.txt',
       'CV, projects and every blog post in one file',
     ),
+    link('CV as PDF (English)', cvPath('en')),
+    link('CV as PDF (German)', cvPath('de')),
     link('Sitemap', '/sitemap-index.xml'),
     '',
   ].join('\n');
