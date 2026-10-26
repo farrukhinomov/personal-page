@@ -9,7 +9,7 @@ interface Props {
 const t = useTranslations(Astro.props.locale);
 ---
 
-<button class="theme-toggle" type="button" aria-pressed="true" aria-label={t('a11y.darkTheme')}>
+<button class="theme-toggle" type="button" aria-pressed="false" aria-label={t('a11y.darkTheme')}>
   <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
     <!-- One shape morphs between moon and sun: the mask circle slides away, rays fade in. -->
     <mask id="theme-toggle-mask">
