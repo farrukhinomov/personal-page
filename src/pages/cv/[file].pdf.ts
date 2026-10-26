@@ -12,6 +12,6 @@ export const getStaticPaths = (() =>
   }))) satisfies GetStaticPaths;
 
 export const GET: APIRoute<{ locale: Locale }> = async ({ props }) =>
-  new Response(new Uint8Array(await renderCvPdf(buildCvModel(props.locale))), {
+  new Response(new Uint8Array(await renderCvPdf(buildCvModel(props.locale, { edition: 'web' }))), {
     headers: { 'Content-Type': 'application/pdf' },
   });

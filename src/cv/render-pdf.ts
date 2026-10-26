@@ -52,7 +52,11 @@ export async function renderCvPdf(cv: CvModel): Promise<Buffer> {
   // Header
   doc.font('semibold').fontSize(SIZE.name).fillColor(COLOR.text).text(cv.name);
   doc.font('regular').fontSize(SIZE.role).fillColor(COLOR.accent).text(cv.role);
-  doc.moveDown(0.3).fontSize(SIZE.small).fillColor(COLOR.muted).text(cv.contact.join('   '));
+  doc
+    .moveDown(0.3)
+    .fontSize(SIZE.small)
+    .fillColor(COLOR.muted)
+    .text(cv.contact.map((item) => item.text).join('   '));
   doc
     .moveDown(0.8)
     .fontSize(SIZE.body)
@@ -64,8 +68,10 @@ export async function renderCvPdf(cv: CvModel): Promise<Buffer> {
     doc.moveDown(0.5).font('semibold').fontSize(SIZE.title).fillColor(COLOR.text);
     doc.text(item.title, { width, continued: Boolean(item.subtitle) });
     if (item.subtitle) doc.font('regular').fillColor(COLOR.muted).text(`  ${item.subtitle}`);
-    if (item.meta)
-      doc.font('regular').fontSize(SIZE.small).fillColor(COLOR.muted).text(item.meta, { width });
+    const meta = [item.period, item.place, ...(item.links ?? []).map((link) => link.text)]
+      .filter(Boolean)
+      .join('   ');
+    if (meta) doc.font('regular').fontSize(SIZE.small).fillColor(COLOR.muted).text(meta, { width });
     if (item.text) {
       doc.moveDown(0.2).font('regular').fontSize(SIZE.body).fillColor(COLOR.text);
       doc.text(item.text, { width, lineGap: 1.5 });
