@@ -73,8 +73,18 @@ const legalLinks = [
     list-style: none;
   }
 
+  /* Touch target: WCAG 2.2 asks for 24 px at least; thumbs are happier with 44 px. */
   .links a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 1.5rem;
     color: var(--color-fg);
+  }
+
+  @media (pointer: coarse) {
+    .links a {
+      min-block-size: 2.75rem;
+    }
   }
 
   .links.legal a {

@@ -32,7 +32,13 @@ const { title, suffix, lead } = Astro.props;
     letter-spacing: -0.03em;
   }
 
+  /*
+   * Never broken at its hyphens. On a narrow phone it would be wider than the page,
+   * so it shrinks to fit: the longest suffix is about 10.3 times its font size wide,
+   * and the container is the viewport minus both gutters. Wider screens keep 1em.
+   */
   .suffix {
+    font-size: min(1em, calc((100vw - 2 * var(--gutter)) / 11));
     white-space: nowrap;
   }
 
