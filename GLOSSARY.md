@@ -20,6 +20,10 @@ _Avoid_: Bot, crawler (a search-engine crawler is not an Agent)
 A GitHub repository of Farrukh's, curated and described in the Portfolio as evidence of skill. Employer work is not a Project; it belongs to Experience.
 _Avoid_: Product, case study, repo
 
+**Skill**:
+A technology, practice or way of working Farrukh lists as something he can do, grouped on the About page.
+_Avoid_: Competency, tech stack (the stack of one job is part of that Experience entry)
+
 **Experience**:
 Farrukh's employment and education history, as in his CV.
 _Avoid_: Career, jobs, résumé (the CV is the document, Experience is the content)
@@ -27,10 +31,6 @@ _Avoid_: Career, jobs, résumé (the CV is the document, Experience is the conte
 **Post**:
 A blog article on the Portfolio, always published in both German and English.
 _Avoid_: Article, entry
-
-**Availability**:
-Farrukh's current openness to work: permanent or freelance, in Germany, Switzerland, Luxembourg, Austria, or remote.
-_Avoid_: Status, open-to-work
 
 **Intro Call**:
 A 30-minute video call a Visitor or Agent books with Farrukh. It counts as booked only after Farrukh approves it.
@@ -42,7 +42,7 @@ _Avoid_: Inquiry, request, mail
 
 **Slot**:
 A free time window in which an Intro Call can be booked.
-_Avoid_: Availability (that term is about work, not calendar time)
+_Avoid_: Availability, appointment
 
 **Connect page**:
 The page explaining how an Agent connects to the Portfolio over MCP.

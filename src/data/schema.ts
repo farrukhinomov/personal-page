@@ -72,16 +72,26 @@ export const projectsSchema = z
     error: 'Project slugs must be unique',
   });
 
-export const availabilitySchema = z.object({
-  openTo: z.array(z.enum(['permanent', 'freelance'])).min(1),
-  /** ISO 3166-1 alpha-2 country codes where on-site work is possible. */
-  countries: z.array(z.string().regex(/^[A-Z]{2}$/)).min(1),
-  remote: z.boolean(),
-  /** Date the Availability was last confirmed, as `YYYY-MM-DD`. */
-  updated: z.iso.date(),
-});
+/** A skill is a technology name (not translated) or text that exists in every locale. */
+const skillItem = z.union([text, localized]);
+
+export const skillsSchema = z
+  .array(
+    z.object({
+      id: z.string().regex(/^[a-z0-9-]+$/),
+      name: localized,
+      /** `tags` renders chips, `list` renders one line per item. */
+      kind: z.enum(['tags', 'list']),
+      items: z.array(skillItem).min(1),
+    }),
+  )
+  .min(1)
+  .refine((groups) => new Set(groups.map((group) => group.id)).size === groups.length, {
+    error: 'Skill group ids must be unique',
+  });
 
 export type Profile = z.infer<typeof profileSchema>;
 export type ExperienceEntry = z.infer<typeof experienceSchema>[number];
 export type Project = z.infer<typeof projectSchema>;
-export type Availability = z.infer<typeof availabilitySchema>;
+export type SkillGroup = z.infer<typeof skillsSchema>[number];
+export type SkillItem = SkillGroup['items'][number];

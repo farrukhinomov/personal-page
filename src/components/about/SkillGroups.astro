@@ -1,0 +1,82 @@
+---
+import { skillLabel } from '@/data/describe';
+import type { SkillGroup } from '@/data/schema';
+import type { Locale } from '@/i18n/locales';
+
+interface Props {
+  locale: Locale;
+  groups: readonly SkillGroup[];
+}
+
+const { locale, groups } = Astro.props;
+---
+
+<dl class="skills">
+  {groups.map((group) => (
+    <div class="group">
+      <dt>{group.name[locale]}</dt>
+      <dd>
+        <ul class:list={['items', `items--${group.kind}`]}>
+          {group.items.map((item) => (
+            <li>{skillLabel(item, locale)}</li>
+          ))}
+        </ul>
+      </dd>
+    </div>
+  ))}
+</dl>
+
+<style>
+  .skills {
+    border-block-start: 1px solid var(--color-line);
+  }
+
+  .group {
+    display: grid;
+    gap: var(--space-3) var(--space-6);
+    padding-block: var(--space-5);
+    border-block-end: 1px solid var(--color-line);
+  }
+
+  @media (min-width: 48rem) {
+    .group {
+      grid-template-columns: 12rem minmax(0, 1fr);
+    }
+  }
+
+  dt {
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+    font-weight: 500;
+  }
+
+  .items {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .items--tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .items--tags li {
+    padding: 0.15rem var(--space-3);
+    border: 1px solid var(--color-line-strong);
+    border-radius: 0.35rem;
+    font-size: var(--step--1);
+    font-weight: 500;
+  }
+
+  .items--list {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .items--list li {
+    padding-inline-start: var(--space-4);
+    border-inline-start: 2px solid var(--color-signal);
+  }
+</style>
