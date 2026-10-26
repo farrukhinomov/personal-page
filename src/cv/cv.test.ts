@@ -1,60 +1,112 @@
+import { readFileSync } from 'node:fs';
+import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
 import { legal } from '@/data/legal';
-import { LOCALES } from '@/i18n/locales';
-import { buildCvModel } from './model';
+import { LOCALES, type Locale } from '@/i18n/locales';
+import { buildCvModel, type CvOptions } from './model';
 import { cvPath } from './paths';
-import { renderCvPdf } from './render-pdf';
+import { renderCvDocx } from './render-docx';
 
 const OCT_2026 = new Date('2026-10-26T12:00:00Z');
-const everything = (locale: 'de' | 'en') => JSON.stringify(buildCvModel(locale, OCT_2026));
+const PHONE = '+49 151 0000 0000';
+const WEB: CvOptions = { edition: 'web', now: OCT_2026 };
+const APPLICATION: CvOptions = { edition: 'application', phone: PHONE, now: OCT_2026 };
+const everything = (locale: Locale, options: CvOptions) =>
+  JSON.stringify(buildCvModel(locale, options));
 
 describe('CV model', () => {
-  it('never contains a phone number or the street address', () => {
+  it('publishes neither a phone number nor the street in the web edition', () => {
     for (const locale of LOCALES) {
-      expect(everything(locale)).not.toMatch(/\+\d|\d{10,}/);
-      expect(everything(locale)).not.toContain(legal.street);
+      expect(everything(locale, WEB)).not.toMatch(/\+\d|\d{10,}/);
+      expect(everything(locale, WEB)).not.toContain(legal.street);
     }
+  });
+
+  it('adds phone and street address to the application edition', () => {
+    for (const locale of LOCALES) {
+      const contact = buildCvModel(locale, APPLICATION).contact;
+      expect(contact[0]?.text).toBe(`${legal.street}, ${legal.postalCode} ${legal.city}`);
+      expect(contact).toContainEqual({ text: PHONE, url: 'tel:+4915100000000' });
+    }
+  });
+
+  it('refuses a phone number in the web edition and none in the application edition', () => {
+    expect(() => buildCvModel('de', { ...WEB, phone: PHONE })).toThrow(/web edition/);
+    expect(() => buildCvModel('de', { edition: 'application' })).toThrow(/phone number/);
   });
 
   it('has the same sections in both languages', () => {
-    const headings = (locale: 'de' | 'en') =>
-      buildCvModel(locale, OCT_2026).sections.map((section) => section.entries.length);
-    expect(headings('de')).toEqual(headings('en'));
+    const shape = (locale: Locale) =>
+      buildCvModel(locale, WEB).sections.map((section) => section.entries.length);
+    expect(shape('de')).toEqual(shape('en'));
   });
 
-  it('leads with role, contact and the flagship project', () => {
-    const cv = buildCvModel('en', OCT_2026);
+  it('leads with the role and describes KRITIS GRC with its demo', () => {
+    const cv = buildCvModel('en', WEB);
     expect(cv.role).toBe('Senior Full-Stack Software Engineer');
-    expect(cv.contact).toContain('inomov.online');
-    const projects = cv.sections.find((section) => section.heading === 'Projects');
-    expect(projects?.entries[0]?.title).toMatch(/^KRITIS GRC/);
+    const project = cv.sections.find((section) => section.heading === 'Project');
+    expect(project?.entries).toHaveLength(1);
+    expect(project?.entries[0]?.title).toMatch(/^KRITIS GRC/);
+    expect(project?.entries[0]?.links?.map((link) => link.url)).toEqual([
+      'https://grc.inomov.online',
+      'https://github.com/farrukhinomov/kritis-grc',
+    ]);
   });
 
-  it('marks private repositories instead of linking them', () => {
-    const projects = buildCvModel('de', OCT_2026).sections.find((s) => s.heading === 'Projekte');
-    const flowpro = projects?.entries.find((entry) => entry.title.startsWith('FlowPro'));
-    expect(flowpro?.meta).toContain('Quellcode auf Anfrage');
+  it('details recent engineering roles and keeps older positions to one paragraph', () => {
+    const experience = buildCvModel('de', WEB).sections.find(
+      (section) => section.heading === 'Berufserfahrung',
+    );
+    const detailed = experience?.entries.filter((entry) => entry.bullets).map((e) => e.subtitle);
+    expect(detailed).toEqual(['INTEX EDV-Software GmbH', 'Silk Road Professionals Tajikistan']);
+  });
+
+  it('states the driving licence and nothing about residence status', () => {
+    expect(everything('de', APPLICATION)).toContain('Klasse B');
+    expect(everything('en', APPLICATION)).toContain('Class B');
+    expect(everything('de', APPLICATION)).not.toMatch(/Aufenthalt/);
+    expect(everything('en', APPLICATION)).not.toMatch(/residence|permit/i);
   });
 
   it('dates the footer in the reader’s language', () => {
-    expect(buildCvModel('de', OCT_2026).footer).toContain('26. Oktober 2026');
-    expect(buildCvModel('en', OCT_2026).footer).toContain('October 26, 2026');
+    expect(buildCvModel('de', WEB).footer).toContain('26. Oktober 2026');
+    expect(buildCvModel('en', WEB).footer).toContain('October 26, 2026');
   });
 });
 
-describe('CV PDF', () => {
-  it('renders a valid, multi-page A4 PDF in each language', async () => {
-    for (const locale of LOCALES) {
-      const pdf = await renderCvPdf(buildCvModel(locale, OCT_2026));
-      const raw = pdf.toString('latin1');
-      expect(raw.startsWith('%PDF-')).toBe(true);
-      expect(raw.trimEnd().endsWith('%%EOF')).toBe(true);
-      const pages = raw.match(/\/Type \/Page\b/g)?.length ?? 0;
-      expect(pages).toBeGreaterThanOrEqual(1);
-      expect(pages).toBeLessThanOrEqual(4);
-      expect(raw).toContain('/MediaBox [0 0 595.28 841.89]');
-    }
+describe('CV DOCX', () => {
+  it('renders a Word document with the font embedded', async () => {
+    const fonts = 'node_modules/geist/dist/fonts/geist-sans';
+    const docx = await renderCvDocx(buildCvModel('de', APPLICATION), {
+      photo: await sharp({
+        create: { width: 8, height: 8, channels: 3, background: '#ffffff' },
+      })
+        .png()
+        .toBuffer(),
+      font: {
+        name: 'Geist',
+        regular: readFileSync(`${fonts}/Geist-Regular.ttf`),
+        bold: readFileSync(`${fonts}/Geist-Bold.ttf`),
+      },
+    });
+    const raw = docx.toString('latin1');
+    expect(raw.startsWith('PK')).toBe(true);
+    expect(raw).toContain('word/document.xml');
+    expect(raw).toMatch(/word\/fonts\/[^"]+\.odttf/);
   }, 30_000);
+});
+
+describe('CV PDF on the site', () => {
+  it('serves the web edition: A4, no phone link, links to the demo', () => {
+    for (const locale of LOCALES) {
+      const raw = readFileSync(`public${cvPath(locale)}`).toString('latin1');
+      expect(raw.startsWith('%PDF-')).toBe(true);
+      expect(raw).toMatch(/\/MediaBox\s*\[\s*0 0 595\.\d+ 841\.\d+\]/);
+      const links = [...raw.matchAll(/\/URI\s*\(([^)]*)\)/g)].map((match) => match[1]);
+      expect(links).toContain('https://grc.inomov.online/');
+      expect(links.some((link) => link?.startsWith('tel:'))).toBe(false);
+    }
+  });
 
   it('is served at a stable path per language', () => {
     expect(cvPath('de')).toBe('/cv/farrukh-inomov-lebenslauf.pdf');

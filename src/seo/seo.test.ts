@@ -24,7 +24,7 @@ describe('structured data', () => {
     expect(person['@id']).toBe('https://inomov.online/#person');
     expect(person['sameAs']).toEqual([
       'https://github.com/farrukhinomov',
-      'https://www.linkedin.com/in/farrukhinomov',
+      'https://www.linkedin.com/in/inomov',
     ]);
     expect(JSON.stringify(person)).not.toMatch(/telephone|\+\d/);
   });
