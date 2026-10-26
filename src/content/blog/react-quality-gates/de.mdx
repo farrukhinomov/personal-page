@@ -1,0 +1,73 @@
+---
+title: Qualitätsschranken für ein React-Frontend, das KI mitschreibt
+description: Welche Prüfungen im KRITIS-GRC-Prototyp jede Änderung bestehen muss – von strengem TypeScript bis zu Screenshots – und was sie schon gefunden haben.
+published: 2026-10-26
+tags: [React, TypeScript, Testing, KI]
+draft: true
+---
+
+Im [KRITIS-GRC-Prototyp](https://github.com/farrukhinomov/kritis-grc) schreibt KI
+einen großen Teil des Codes. Ich entscheide, was davon ausgeliefert wird. Dafür
+reicht kein Bauchgefühl. Jede Änderung am Frontend läuft durch dieselben Prüfungen,
+lokal und in der CI. Hier sind sie, mit dem, was sie tatsächlich gefangen haben.
+
+## TypeScript so streng wie möglich
+
+`tsconfig.app.json` schaltet neben `strict` auch `noUncheckedIndexedAccess` und
+`exactOptionalPropertyTypes` ein. Ein Arrayzugriff kann also `undefined` sein, und
+ein optionales Feld ist nicht dasselbe wie ein Feld mit dem Wert `undefined`.
+
+Das hat sich früh ausgezahlt: Die erste Testkonfiguration der KI nutzte eine Option
+aus MSW 2, die MSW 3 stillschweigend ignoriert. Die Tests liefen grün – ohne ihr
+Sicherheitsnetz. Der strenge Typcheck hat es gemeldet, nicht ein Test.
+
+## ESLint mit Typinformationen und Projektregeln
+
+Die Konfiguration nutzt `strictTypeChecked` von typescript-eslint und die strengen
+Regeln von `jsx-a11y`. Dazu kommen drei Regeln, die genau zu diesem Projekt passen:
+
+- **Keine rohen Farben.** Hex-Werte, `rgb()` und benannte Farben sind außerhalb des
+  Theme-Ordners verboten. Farben kommen nur aus Design-Tokens, damit Themes und
+  Dark Mode konsistent bleiben.
+- **Kein `fetch` im App-Code.** HTTP läuft nur über die typisierten Funktionen in
+  `shared/api`. So bleiben Fehlerbehandlung, Header und API-Vertrag an einer Stelle.
+- **Kein `console`.** Was das Frontend melden muss, bekommt eine eigene Entscheidung.
+
+Der Linter läuft mit `--max-warnings=0`. Eine Warnung ist ein Fehler.
+
+## Unit-Tests mit Coverage-Schwelle
+
+Vitest und Testing Library, mit einer Schwelle von 80 % für Zeilen, Funktionen,
+Branches und Statements. Unter der Schwelle schlägt die CI fehl.
+
+Die Zahl ist nicht das Ziel. Ein Beispiel aus dem Review: Nichts bewies, dass Login
+und Logout den Cache leeren. Beide Aufrufe zu löschen ließ alle Tests grün. Seitdem
+gibt es zwei Tests, die ohne sie fehlschlagen. Jeder Review-Fund bekommt zuerst
+einen Test, der ihn reproduziert.
+
+## End-to-End gegen den echten Build
+
+Playwright testet den Produktions-Build mit der Mock-API, so wie der Prototyp
+ausgeliefert wird – auf einem Desktop- und einem Telefon-Viewport, auf Deutsch und
+in Berliner Zeit. Ein fehlgeschlagener Test wird untersucht, nicht wiederholt:
+`retries: 0`.
+
+Drei Arten von Prüfungen laufen dort:
+
+- **Barrierefreiheit.** axe prüft die Hauptansichten gegen WCAG 2.2 A und AA, soweit
+  eine Maschine das kann. Der Test verlangt außerdem mehr als zehn bestandene Regeln,
+  damit eine leere Seite nicht als „keine Verstöße“ durchgeht.
+- **Reduzierte Bewegung.** Ein Test zählt Bild für Bild die laufenden Animationen,
+  die etwas bewegen. Mit `prefers-reduced-motion` muss die Zahl null sein.
+- **Visuelle Regression.** Jede Hauptansicht in drei Looks – hell, dunkel und hoher
+  Kontrast – auf beiden Viewports, zusammen 30 Screenshots. Die Schwelle ist so
+  eingestellt, dass eine um 8 Pixel schmalere Box auffällt.
+
+## Was die Schranken nicht ersetzen
+
+Sie beweisen nicht, dass eine Ansicht gut zu benutzen ist. Sie stellen sicher, dass
+etwas, das einmal richtig war, nicht unbemerkt kaputtgeht. Die Entscheidungen
+dahinter – 22 ADRs und ein [KI-Protokoll](https://github.com/farrukhinomov/kritis-grc/blob/main/docs/ai-log.md),
+in dem steht, welche Vorschläge ich übernommen, geändert oder abgelehnt habe – sind
+Handarbeit. Etwa ein Drittel der Review-Funde wurde abgelehnt oder eingeschränkt,
+jeweils mit Begründung.
