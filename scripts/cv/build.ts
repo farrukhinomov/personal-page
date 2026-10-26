@@ -10,19 +10,23 @@
  * from `_docs/avatar.jpg`; both stay out of git. Writes to `_docs/cv/<edition>/`.
  * The PDFs are exported by Microsoft Word (scripts/cv/export-pdf.ps1), so they look exactly
  * like the DOCX files. That step needs Windows, Word and PowerShell 7 (`pwsh`).
+ * Finally the web edition's PDFs are copied to `public/cv/`, where the site serves them;
+ * commit those after reviewing them.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import { z } from 'astro/zod';
 import { buildCvModel, type CvEdition } from '@/cv/model';
+import { cvPath } from '@/cv/paths';
 import { renderCvDocx, type DocxAssets } from '@/cv/render-docx';
 import { LOCALES, type Locale } from '@/i18n/locales';
 import { loadFont, ROOT } from './assets';
 
 const PRIVATE_DIR = join(ROOT, '_docs');
 const OUT_DIR = join(PRIVATE_DIR, 'cv');
+const PUBLIC_DIR = join(ROOT, 'public/cv');
 const EDITIONS: readonly CvEdition[] = ['web', 'application'];
 const FILE_NAME: Record<Locale, string> = {
   de: 'Farrukh-Inomov-Lebenslauf',
@@ -82,6 +86,15 @@ async function main() {
     ['-NoProfile', '-File', join(import.meta.dirname, 'export-pdf.ps1'), OUT_DIR],
     { stdio: 'inherit' },
   );
+
+  // The web edition is what the site serves for download.
+  await mkdir(PUBLIC_DIR, { recursive: true });
+  for (const locale of LOCALES) {
+    const target = join(ROOT, 'public', cvPath(locale));
+    await copyFile(join(OUT_DIR, 'web', `${FILE_NAME[locale]}.pdf`), target);
+    process.stdout.write(`copied to ${target}
+`);
+  }
 }
 
 await main();

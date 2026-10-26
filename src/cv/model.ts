@@ -10,7 +10,7 @@ import { pageMeta } from '@/i18n/pages';
 
 /**
  * The CV as plain content, built from the same data as the site.
- * Renderers (render-docx.ts, render-pdf.ts) only lay this out, so everything a recruiter
+ * The renderer (render-docx.ts) only lays this out, so everything a recruiter
  * reads can be tested here.
  *
  * Two editions: `web` is published on the site and names the city only; `application`
