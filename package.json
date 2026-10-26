@@ -13,6 +13,7 @@
     "build": "astro check && astro build",
     "preview": "astro preview",
     "cv": "tsx scripts/cv/build.ts",
+    "letter": "tsx scripts/cv/letter.ts",
     "check": "astro check",
     "lint": "eslint .",
     "format": "prettier --write .",

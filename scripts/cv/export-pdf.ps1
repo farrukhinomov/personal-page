@@ -1,6 +1,6 @@
-# Exports every .docx below the given folder to a PDF next to it, using Microsoft Word,
+# Exports a .docx file, or every .docx below a folder, to a PDF next to it, using Microsoft Word,
 # so the PDF matches the DOCX exactly (fonts, line breaks, page breaks).
-param([Parameter(Mandatory)][string]$Folder)
+param([Parameter(Mandatory)][string]$Path)
 
 $ErrorActionPreference = 'Stop'
 $wdExportFormatPDF = 17
@@ -11,7 +11,7 @@ $word = New-Object -ComObject Word.Application
 $word.Visible = $false
 $word.DisplayAlerts = 0
 try {
-  foreach ($file in Get-ChildItem -Path $Folder -Recurse -Filter *.docx) {
+  foreach ($file in Get-ChildItem -Path $Path -Recurse -Filter *.docx) {
     $pdf = [IO.Path]::ChangeExtension($file.FullName, '.pdf')
     $doc = $word.Documents.Open($file.FullName, $false, $true)
     try {
