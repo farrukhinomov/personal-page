@@ -1,0 +1,234 @@
+---
+import type { Locale, Localized } from '@/i18n/locales';
+import { otherLocale } from '@/i18n/locales';
+import { buildCommandTable } from './commands';
+
+interface Props {
+  locale: Locale;
+  alternates: Localized;
+}
+
+const { locale, alternates } = Astro.props;
+const table = buildCommandTable({ locale, alternatePath: alternates[otherLocale(locale)] });
+
+const copy = {
+  de: {
+    label: 'Interaktives Terminal',
+    title: 'farrukh@inomov.online',
+    welcome: 'Willkommen. Dieses Terminal beantwortet Fragen zu mir.',
+    hint: 'Tippen Sie einen Befehl oder wählen Sie unten einen aus.',
+    input: 'Befehl eingeben',
+    suggestions: 'Vorgeschlagene Befehle',
+  },
+  en: {
+    label: 'Interactive terminal',
+    title: 'farrukh@inomov.online',
+    welcome: 'Welcome. This terminal answers questions about me.',
+    hint: 'Type a command or pick one below.',
+    input: 'Enter a command',
+    suggestions: 'Suggested commands',
+  },
+}[locale];
+
+const SUGGESTED = ['whoami', 'projects', 'availability', 'contact', 'help'] as const;
+---
+
+<section class="terminal" aria-label={copy.label} data-terminal>
+  <div class="title-bar">
+    <span class="status" aria-hidden="true"></span>
+    <span class="title">{copy.title}</span>
+  </div>
+
+  <div class="screen" role="log" aria-live="polite" aria-relevant="additions" data-screen>
+    <p class="line line--muted">{copy.welcome}</p>
+    <p class="line line--muted">{copy.hint}</p>
+  </div>
+
+  <form class="prompt" data-form>
+    <label class="visually-hidden" for={`terminal-input-${locale}`}>
+      {copy.input}
+    </label>
+    <span class="caret" aria-hidden="true">
+      $
+    </span>
+    <input
+      id={`terminal-input-${locale}`}
+      name="command"
+      type="text"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      enterkeyhint="send"
+      placeholder="help"
+      data-input
+    />
+  </form>
+
+  <ul class="suggestions" aria-label={copy.suggestions}>
+    {SUGGESTED.map((command) => (
+      <li>
+        <button type="button" data-command={command}>
+          {command}
+        </button>
+      </li>
+    ))}
+  </ul>
+
+  <!-- Not executed: data for the client script. "<" is escaped so the JSON cannot close the tag. -->
+  <script
+    is:inline
+    type="application/json"
+    data-command-table
+    set:html={JSON.stringify(table).replaceAll('<', String.raw`\u003c`)}
+  />
+</section>
+
+<script>
+  import { initTerminal } from './terminal-client';
+
+  document.querySelectorAll<HTMLElement>('[data-terminal]').forEach(initTerminal);
+</script>
+
+<style>
+  .terminal {
+    --terminal-bg: color-mix(in srgb, var(--color-bg) 70%, #000);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    height: 26rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-panel);
+    background: var(--terminal-bg);
+    box-shadow:
+      0 1px 0 0 color-mix(in srgb, var(--color-fg) 6%, transparent) inset,
+      0 2rem 4rem -2rem rgb(0 0 0 / 0.55);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    overflow: hidden;
+  }
+
+  :global([data-theme='light']) .terminal {
+    --terminal-bg: #0f1e28;
+    color: #e4ecf0;
+  }
+
+  .title-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-block-end: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
+    color: #93a7b3;
+    font-size: 0.75rem;
+  }
+
+  /* Amber because the terminal is live, matching the availability light. */
+  .status {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--color-status);
+  }
+
+  .screen {
+    padding: var(--space-4);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    line-height: 1.55;
+  }
+
+  .screen :global(.line) {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .screen :global(.line--muted) {
+    color: #93a7b3;
+  }
+
+  .screen :global(.line--error) {
+    color: #f59b8a;
+  }
+
+  .screen :global(.line--input) {
+    margin-block-start: var(--space-3);
+    color: #5cd6e5;
+  }
+
+  .screen :global(.line--input)::before {
+    content: '$ ';
+    color: #93a7b3;
+  }
+
+  .screen :global(a) {
+    color: #5cd6e5;
+  }
+
+  .prompt {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-block-start: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
+  }
+
+  .caret {
+    color: #5cd6e5;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: #e4ecf0;
+    font: inherit;
+    font-size: max(16px, 0.85rem); /* 16px prevents iOS zoom on focus */
+    caret-color: #5cd6e5;
+  }
+
+  input::placeholder {
+    color: #5d7380;
+  }
+
+  input:focus-visible {
+    outline: none;
+  }
+
+  .prompt:focus-within {
+    box-shadow: 0 -1px 0 0 #5cd6e5 inset;
+  }
+
+  .suggestions {
+    display: flex;
+    gap: var(--space-2);
+    padding: 0 var(--space-4) var(--space-4);
+    overflow-x: auto;
+    list-style: none;
+    scrollbar-width: none;
+  }
+
+  .suggestions button {
+    padding: 0.2rem var(--space-3);
+    border: 1px solid #34505f;
+    border-radius: 999px;
+    background: transparent;
+    color: #c3d2da;
+    font: inherit;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .suggestions button:hover {
+    border-color: #5cd6e5;
+    color: #fff;
+  }
+
+  .suggestions button:focus-visible {
+    outline-color: #5cd6e5;
+  }
+</style>

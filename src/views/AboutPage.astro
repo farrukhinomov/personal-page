@@ -47,7 +47,9 @@ const copy = {
 
   <section class="block" aria-labelledby="experience-title">
     <div class="container">
-      <h2 id="experience-title">{copy.experience}</h2>
+      <h2 id="experience-title" data-reveal="lines">
+        {copy.experience}
+      </h2>
       <ExperienceTrace locale={locale} entries={experience} />
     </div>
   </section>
@@ -55,7 +57,9 @@ const copy = {
   <section class="block" aria-labelledby="languages-title">
     <div class="container facts">
       <div>
-        <h2 id="languages-title">{copy.languages}</h2>
+        <h2 id="languages-title" data-reveal="lines">
+          {copy.languages}
+        </h2>
         <dl class="fact-list">
           {profile.languages.map((language) => (
             <div>
