@@ -29,6 +29,13 @@ describe('structured data', () => {
     expect(JSON.stringify(person)).not.toMatch(/telephone|\+\d/);
   });
 
+  it('adds the portrait to the Person as an absolute URL', () => {
+    expect(personSchema('de')['image']).toBeUndefined();
+    expect(personSchema('de', '/_astro/portrait.abc.jpg')['image']).toBe(
+      'https://inomov.online/_astro/portrait.abc.jpg',
+    );
+  });
+
   it('links pages and articles to the Person and WebSite by @id', () => {
     const page = profilePageSchema('/en/about', 'en');
     expect(page['mainEntity']).toEqual({ '@id': 'https://inomov.online/#person' });

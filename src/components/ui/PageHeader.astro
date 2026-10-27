@@ -7,22 +7,49 @@ interface Props {
 }
 
 const { title, suffix, lead } = Astro.props;
+const hasPortrait = Astro.slots.has('portrait');
 ---
 
 <header class="page-header">
-  <div class="container">
-    <h1>
-      {title}
-      {suffix && ' '}
-      {suffix && <span class="suffix">— {suffix}</span>}
-    </h1>
-    {lead && <p class="lead">{lead}</p>}
+  <div class:list={['container', { 'with-portrait': hasPortrait }]}>
+    {hasPortrait && (
+      <div class="portrait">
+        <slot name="portrait" />
+      </div>
+    )}
+    <div>
+      <h1>
+        {title}
+        {suffix && ' '}
+        {suffix && <span class="suffix">— {suffix}</span>}
+      </h1>
+      {lead && <p class="lead">{lead}</p>}
+    </div>
   </div>
 </header>
 
 <style>
   .page-header {
     padding-block: clamp(3rem, 2rem + 5vw, 6rem) var(--space-7);
+  }
+
+  /* Phones: the portrait above the title. From 56rem (as in Portrait): beside it. */
+  .with-portrait {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  @media (min-width: 56rem) {
+    .with-portrait {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      column-gap: var(--space-7);
+    }
+
+    .portrait {
+      grid-column: 2;
+      grid-row: 1;
+    }
   }
 
   h1 {
