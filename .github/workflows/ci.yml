@@ -46,6 +46,8 @@ jobs:
         with:
           name: lighthouse-reports
           path: .lighthouseci/
+          # The folder starts with a dot, and hidden files are skipped by default.
+          include-hidden-files: true
           retention-days: 14
 
   e2e:
