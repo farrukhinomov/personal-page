@@ -30,6 +30,16 @@ Screenshots render differently on each operating system, so the visual tests onl
 in the official Playwright image: in CI and locally through `pnpm test:visual`, which needs Docker.
 Review the changed images in `e2e/__screenshots__/` before committing them.
 
+## Performance budgets
+
+Lighthouse CI audits the home, a project and the About page on simulated mobile, three runs each
+(median). A pull request fails when a category scores below 95, Largest Contentful Paint exceeds
+2 s or a page loads more than 60 KB of compressed JavaScript. Budgets live in `lighthouserc.cjs`.
+
+```bash
+pnpm build && pnpm test:lighthouse   # reports in .lighthouseci/
+```
+
 ## Where things live
 
 | Path              | What                                                                                             |
