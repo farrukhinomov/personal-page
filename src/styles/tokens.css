@@ -51,6 +51,9 @@
   --radius-control: 0.5rem;
   --radius-panel: 0.875rem;
 
+  /* Smallest height of a small text link: WCAG 2.2 asks for 24 px; touch gets 44 px below. */
+  --target-size: 1.5rem;
+
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --duration-fast: 140ms;
   --duration-base: 240ms;
@@ -71,6 +74,12 @@
   --color-status: #8f5d00;
   --color-focus: #08707f;
   --color-selection: rgb(8 112 127 / 0.2);
+}
+
+@media (pointer: coarse) {
+  :root {
+    --target-size: 2.75rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
