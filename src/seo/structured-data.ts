@@ -15,8 +15,11 @@ const WEBSITE_ID = `${SITE_URL}/#website`;
 
 const absolute = (path: string) => new URL(path, SITE_URL).href;
 
-/** Farrukh as a schema.org Person; referenced by every other node through its @id. */
-export function personSchema(locale: Locale): JsonLd {
+/**
+ * Farrukh as a schema.org Person; referenced by every other node through its @id.
+ * `imagePath` is the portrait's built URL, which only the Astro layout knows.
+ */
+export function personSchema(locale: Locale, imagePath?: string): JsonLd {
   const current = experience.find((entry) => entry.kind === 'work' && entry.end === null);
   const education = experience.find((entry) => entry.kind === 'education');
   return {
@@ -24,6 +27,7 @@ export function personSchema(locale: Locale): JsonLd {
     '@id': PERSON_ID,
     name: profile.name,
     url: SITE_URL,
+    ...(imagePath && { image: absolute(imagePath) }),
     email: `mailto:${profile.email}`,
     jobTitle: profile.headline[locale],
     description: profile.summary[locale],

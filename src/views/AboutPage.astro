@@ -2,6 +2,7 @@
 import ExperienceTrace from '@/components/about/ExperienceTrace.astro';
 import SkillGroups from '@/components/about/SkillGroups.astro';
 import PageHeader from '@/components/ui/PageHeader.astro';
+import Portrait from '@/components/ui/Portrait.astro';
 import { experience } from '@/data/experience';
 import ButtonLink from '@/components/ui/ButtonLink.astro';
 import { cvPath } from '@/cv/paths';
@@ -48,7 +49,9 @@ const meta = pageMeta('about', locale);
   ogImage={ogImagePath(locale, 'about')}
   structuredData={[profilePageSchema(pathFor('about', locale), locale)]}
 >
-  <PageHeader title={profile.headline[locale]} lead={profile.summary[locale]} />
+  <PageHeader title={profile.headline[locale]} lead={profile.summary[locale]}>
+    <Portrait slot="portrait" locale={locale} />
+  </PageHeader>
 
   <div class="container">
     <ButtonLink href={cvPath(locale)} download>

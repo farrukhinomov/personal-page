@@ -1,5 +1,6 @@
 ---
-import { Font } from 'astro:assets';
+import { Font, getImage } from 'astro:assets';
+import portrait from '@/assets/portrait/farrukh-inomov.jpg';
 import SiteFooter from '@/components/site/SiteFooter.astro';
 import SiteHeader from '@/components/site/SiteHeader.astro';
 import { profile } from '@/data/profile';
@@ -66,8 +67,10 @@ const fullTitle = title
 const metaDescription = description ?? pageMeta('home', locale).description;
 const canonical = new URL(alternates[locale], Astro.site);
 const ogImageUrl = new URL(ogImage, Astro.site);
+// A plain JPEG for search engines, which do not all read AVIF or WebP.
+const portraitJpeg = await getImage({ src: portrait, width: 800, format: 'jpeg' });
 const jsonLd = serializeJsonLd(
-  graph([personSchema(locale), websiteSchema(locale), ...structuredData]),
+  graph([personSchema(locale, portraitJpeg.src), websiteSchema(locale), ...structuredData]),
 );
 const rssUrl = `${pathFor('blog', locale)}/rss.xml`;
 ---

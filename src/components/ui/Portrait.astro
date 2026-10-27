@@ -1,0 +1,80 @@
+---
+import { Picture } from 'astro:assets';
+import portrait from '@/assets/portrait/farrukh-inomov.jpg';
+import { profile } from '@/data/profile';
+import type { Locale } from '@/i18n/locales';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const alt = { de: `Porträt von ${profile.name}`, en: `Portrait of ${profile.name}` }[locale];
+---
+
+<!--
+  A small circle beside the text on phones; from 56rem (the breakpoint of Hero and PageHeader)
+  a 4:5 portrait whose corner marks echo the engineering grid behind the hero.
+-->
+<div class="portrait">
+  <Picture
+    src={portrait}
+    alt={alt}
+    formats={['avif', 'webp']}
+    widths={[144, 352, 528, 704]}
+    sizes="(min-width: 56rem) 22rem, 3.5rem"
+    loading="eager"
+    fetchpriority="high"
+  />
+</div>
+
+<style>
+  .portrait {
+    --mark: 1rem;
+    --mark-width: 2px;
+    --mark-offset: 0.625rem;
+    position: relative;
+    inline-size: 3.5rem;
+  }
+
+  .portrait :global(img) {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    object-position: 50% 35%;
+    border: 1px solid var(--color-line-strong);
+    border-radius: 50%;
+    background: var(--color-surface);
+  }
+
+  @media (min-width: 56rem) {
+    .portrait {
+      inline-size: clamp(16rem, 6rem + 14vw, 22rem);
+    }
+
+    .portrait :global(img) {
+      aspect-ratio: 4 / 5;
+      border-radius: var(--radius-panel);
+    }
+
+    /* Four L-shaped corner marks, each drawn as two bars. */
+    .portrait::before {
+      content: '';
+      position: absolute;
+      inset: calc(-1 * var(--mark-offset));
+      pointer-events: none;
+      background:
+        linear-gradient(var(--color-signal) 0 0) left top / var(--mark) var(--mark-width),
+        linear-gradient(var(--color-signal) 0 0) left top / var(--mark-width) var(--mark),
+        linear-gradient(var(--color-signal) 0 0) right top / var(--mark) var(--mark-width),
+        linear-gradient(var(--color-signal) 0 0) right top / var(--mark-width) var(--mark),
+        linear-gradient(var(--color-signal) 0 0) left bottom / var(--mark) var(--mark-width),
+        linear-gradient(var(--color-signal) 0 0) left bottom / var(--mark-width) var(--mark),
+        linear-gradient(var(--color-signal) 0 0) right bottom / var(--mark) var(--mark-width),
+        linear-gradient(var(--color-signal) 0 0) right bottom / var(--mark-width) var(--mark);
+      background-repeat: no-repeat;
+    }
+  }
+</style>
