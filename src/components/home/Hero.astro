@@ -1,6 +1,7 @@
 ---
 import ButtonLink from '@/components/ui/ButtonLink.astro';
 import Icon from '@/components/ui/Icon.astro';
+import Portrait from '@/components/ui/Portrait.astro';
 import { cvPath } from '@/cv/paths';
 import { yearsSince } from '@/data/dates';
 import { profile } from '@/data/profile';
@@ -47,52 +48,57 @@ const titleWords = pageMeta('home', locale).title.split(' ');
 
 <section class="hero" aria-labelledby="hero-title">
   <div class="container hero-inner">
-    <p class="intro enter" style="--delay: 0ms">
-      {copy.intro}
-    </p>
-    <h1 id="hero-title" class="title">
-      {titleWords.map((word, index) => (
-        <>
-          <span class="word" style={`--delay: ${80 + index * 55}ms`}>
-            {word}
-          </span>
-          {index < titleWords.length - 1 && ' '}
-        </>
-      ))}
-    </h1>
-    <div class="stack-clip enter" style="--delay: 320ms">
-      <ul class="stack" aria-label={copy.stackLabel}>
-        {copy.stack.map((item) => (
-          <li>{item}</li>
-        ))}
-      </ul>
+    <div class="portrait enter" style="--delay: 200ms">
+      <Portrait locale={locale} />
     </div>
-    <p class="lead enter" style="--delay: 420ms">
-      {copy.lead}
-    </p>
-    <p class="experience enter" style="--delay: 480ms">
-      {copy.experience}
-    </p>
-    {flagship && (
-      <div class="actions enter" style="--delay: 560ms">
-        <ButtonLink href={childPathFor('projects', locale, flagship.slug)}>
-          {copy.flagship(flagship.name)}
-        </ButtonLink>
-        <ButtonLink href={cvPath(locale)} variant="secondary" download>
-          {copy.cv}
-        </ButtonLink>
-        {flagship.visibility === 'public' && (
-          <ButtonLink
-            href={`https://github.com/${flagship.repository}#readme`}
-            variant="secondary"
-            rel="noopener"
-          >
-            <Icon name="github" />
-            {copy.source}
-          </ButtonLink>
-        )}
+    <div class="copy">
+      <p class="intro enter" style="--delay: 0ms">
+        {copy.intro}
+      </p>
+      <h1 id="hero-title" class="title">
+        {titleWords.map((word, index) => (
+          <>
+            <span class="word" style={`--delay: ${80 + index * 55}ms`}>
+              {word}
+            </span>
+            {index < titleWords.length - 1 && ' '}
+          </>
+        ))}
+      </h1>
+      <div class="stack-clip enter" style="--delay: 320ms">
+        <ul class="stack" aria-label={copy.stackLabel}>
+          {copy.stack.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
       </div>
-    )}
+      <p class="lead enter" style="--delay: 420ms">
+        {copy.lead}
+      </p>
+      <p class="experience enter" style="--delay: 480ms">
+        {copy.experience}
+      </p>
+      {flagship && (
+        <div class="actions enter" style="--delay: 560ms">
+          <ButtonLink href={childPathFor('projects', locale, flagship.slug)}>
+            {copy.flagship(flagship.name)}
+          </ButtonLink>
+          <ButtonLink href={cvPath(locale)} variant="secondary" download>
+            {copy.cv}
+          </ButtonLink>
+          {flagship.visibility === 'public' && (
+            <ButtonLink
+              href={`https://github.com/${flagship.repository}#readme`}
+              variant="secondary"
+              rel="noopener"
+            >
+              <Icon name="github" />
+              {copy.source}
+            </ButtonLink>
+          )}
+        </div>
+      )}
+    </div>
   </div>
 </section>
 
@@ -100,7 +106,8 @@ const titleWords = pageMeta('home', locale).title.split(' ');
   .hero {
     position: relative;
     isolation: isolate;
-    padding-block: clamp(2.5rem, 1rem + 7vw, 8rem) var(--space-8);
+    /* Starts small on phones, so the portrait row does not push the buttons below the fold. */
+    padding-block: clamp(1.5rem, 7vw, 8rem) var(--space-8);
     overflow: hidden;
   }
 
@@ -118,14 +125,55 @@ const titleWords = pageMeta('home', locale).title.split(' ');
     opacity: 0.55;
   }
 
+  /*
+   * Phones: one grid, the portrait as a small circle beside the intro line, everything else
+   * full width below (.copy steps aside with display: contents).
+   * From 56rem (the breakpoint in Portrait): text in one column, the portrait beside it.
+   */
   .hero-inner {
     display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
     justify-items: start;
-    gap: var(--space-5);
+    gap: var(--space-5) var(--space-4);
+  }
+
+  .copy {
+    display: contents;
+  }
+
+  .copy > * {
+    grid-column: 1 / -1;
+  }
+
+  .copy > .intro {
+    grid-column: 2;
   }
 
   .intro {
     color: var(--color-fg-muted);
+  }
+
+  @media (min-width: 56rem) {
+    .hero-inner {
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: var(--space-7);
+    }
+
+    .copy {
+      display: grid;
+      justify-items: start;
+      gap: var(--space-5);
+    }
+
+    .copy > .intro {
+      grid-column: auto;
+    }
+
+    .portrait {
+      grid-column: 2;
+      grid-row: 1;
+    }
   }
 
   .title {
