@@ -13,7 +13,7 @@ export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
   // Three browser engines against one preview server overload a typical laptop; CI decides itself.
-  workers: isCI ? undefined : 4,
+  ...(isCI ? {} : { workers: 4 }),
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,
   reporter: isCI ? [['github'], ['html', { open: 'never' }]] : 'list',
