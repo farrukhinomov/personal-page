@@ -28,6 +28,26 @@ jobs:
       - run: pnpm test:coverage
       - run: pnpm build
 
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      # Budgets in lighthouserc.cjs; uses the runner's preinstalled Chrome.
+      - run: pnpm test:lighthouse
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          retention-days: 14
+
   e2e:
     runs-on: ubuntu-latest
     # The image `pnpm test:visual` uses, so screenshots match pixel for pixel.
