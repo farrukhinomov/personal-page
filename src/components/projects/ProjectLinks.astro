@@ -58,18 +58,8 @@ const copy = {
     gap: var(--space-2);
   }
 
-  /* Touch target: WCAG 2.2 asks for 24 px at least; thumbs are happier with 44 px. */
   a {
-    min-block-size: 1.5rem;
-  }
-
-  @media (pointer: coarse) {
-    a {
-      min-block-size: 2.75rem;
-    }
-  }
-
-  a {
+    min-block-size: var(--target-size);
     text-decoration: none;
   }
 
