@@ -16,7 +16,7 @@ test-results/
 .env.*
 !.env.example
 
-# private source material (CV with phone number etc.)
+# private source material (photo, generated CVs, cover letters)
 _docs/
 
 # editors / OS

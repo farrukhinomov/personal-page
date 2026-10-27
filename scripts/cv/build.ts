@@ -1,24 +1,19 @@
 /**
- * Builds the CV as DOCX and PDF, in German and English, in two editions:
- *
- *   web          published on the site: city only, no phone number
- *   application  sent by hand: street address and phone number
+ * Builds the CV as DOCX and PDF, in German and English.
  *
  * Usage: pnpm cv
  *
- * Reads the phone number from `_docs/cv-private.json` ({ "phone": "+49 …" }) and the photo
- * from `_docs/avatar.jpg`; both stay out of git. Writes to `_docs/cv/<edition>/`.
+ * Reads the photo from `_docs/avatar.jpg`, which stays out of git, and writes to `_docs/cv/`.
  * The PDFs are exported by Microsoft Word (scripts/cv/export-pdf.ps1), so they look exactly
  * like the DOCX files. That step needs Windows, Word and PowerShell 7 (`pwsh`).
- * Finally the web edition's PDFs are copied to `public/cv/`, where the site serves them;
+ * Finally the PDFs are copied to `public/cv/`, where the site serves them;
  * commit those after reviewing them.
  */
 import { execFileSync } from 'node:child_process';
-import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import sharp from 'sharp';
-import { z } from 'astro/zod';
-import { buildCvModel, type CvEdition } from '@/cv/model';
+import { buildCvModel } from '@/cv/model';
 import { cvPath } from '@/cv/paths';
 import { renderCvDocx, type DocxAssets } from '@/cv/render-docx';
 import { LOCALES, type Locale } from '@/i18n/locales';
@@ -27,7 +22,6 @@ import { loadFont, ROOT } from './assets';
 const PRIVATE_DIR = join(ROOT, '_docs');
 const OUT_DIR = join(PRIVATE_DIR, 'cv');
 const PUBLIC_DIR = join(ROOT, 'public/cv');
-const EDITIONS: readonly CvEdition[] = ['web', 'application'];
 const FILE_NAME: Record<Locale, string> = {
   de: 'Farrukh-Inomov-Lebenslauf',
   en: 'Farrukh-Inomov-CV',
@@ -36,18 +30,6 @@ const FILE_NAME: Record<Locale, string> = {
 /** Photo edge in pixels (30 mm at ~340 dpi) and corner radius relative to the edge. */
 const PHOTO_PX = 400;
 const PHOTO_RADIUS = 0.08;
-
-const privateSchema = z.object({
-  phone: z.string().regex(/^\+\d[\d ]{6,}$/, 'international format, e.g. "+49 152 …"'),
-});
-
-async function readPrivate() {
-  const path = join(PRIVATE_DIR, 'cv-private.json');
-  const raw = await readFile(path, 'utf8').catch(() => {
-    throw new Error(`Missing ${path}. Create it with {"phone": "+49 …"}.`);
-  });
-  return privateSchema.parse(JSON.parse(raw));
-}
 
 async function roundedPhoto(): Promise<Buffer> {
   const radius = Math.round(PHOTO_PX * PHOTO_RADIUS);
@@ -67,18 +49,13 @@ async function loadAssets(): Promise<DocxAssets> {
 }
 
 async function main() {
-  const { phone } = await readPrivate();
   const assets = await loadAssets();
 
-  for (const edition of EDITIONS) {
-    const dir = join(OUT_DIR, edition);
-    await mkdir(dir, { recursive: true });
-    for (const locale of LOCALES) {
-      const model = buildCvModel(locale, { edition, ...(edition === 'application' && { phone }) });
-      const path = join(dir, `${FILE_NAME[locale]}.docx`);
-      await writeFile(path, await renderCvDocx(model, assets));
-      process.stdout.write(`wrote ${path}\n`);
-    }
+  await mkdir(OUT_DIR, { recursive: true });
+  for (const locale of LOCALES) {
+    const path = join(OUT_DIR, `${FILE_NAME[locale]}.docx`);
+    await writeFile(path, await renderCvDocx(buildCvModel(locale), assets));
+    process.stdout.write(`wrote ${path}\n`);
   }
 
   execFileSync(
@@ -87,13 +64,11 @@ async function main() {
     { stdio: 'inherit' },
   );
 
-  // The web edition is what the site serves for download.
   await mkdir(PUBLIC_DIR, { recursive: true });
   for (const locale of LOCALES) {
     const target = join(ROOT, 'public', cvPath(locale));
-    await copyFile(join(OUT_DIR, 'web', `${FILE_NAME[locale]}.pdf`), target);
-    process.stdout.write(`copied to ${target}
-`);
+    await copyFile(join(OUT_DIR, `${FILE_NAME[locale]}.pdf`), target);
+    process.stdout.write(`copied to ${target}\n`);
   }
 }
 

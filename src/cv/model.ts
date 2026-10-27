@@ -1,7 +1,6 @@
 import { formatDate } from '@/data/dates';
 import { describePeriod, skillLabel } from '@/data/describe';
 import { experience } from '@/data/experience';
-import { legal } from '@/data/legal';
 import { profile } from '@/data/profile';
 import { projects } from '@/data/projects';
 import { skills } from '@/data/skills';
@@ -13,15 +12,13 @@ import { pageMeta } from '@/i18n/pages';
  * The renderer (render-docx.ts) only lays this out, so everything a recruiter
  * reads can be tested here.
  *
- * Two editions: `web` is published on the site and names the city only; `application`
- * is sent by hand and adds the phone number and the street address.
+ * The same CV is published on the site and sent with applications, so it names the city
+ * only: no phone number, no street address.
  */
-
-export type CvEdition = 'web' | 'application';
 
 export interface CvLink {
   text: string;
-  /** Absolute URL or `mailto:`/`tel:` link. */
+  /** Absolute URL or `mailto:` link. */
   url?: string;
 }
 
@@ -44,7 +41,6 @@ export interface CvSection {
 
 export interface CvModel {
   locale: Locale;
-  edition: CvEdition;
   name: string;
   role: string;
   contact: CvLink[];
@@ -54,9 +50,7 @@ export interface CvModel {
 }
 
 export interface CvOptions {
-  edition: CvEdition;
-  /** Required for the application edition; never stored in the repository. */
-  phone?: string;
+  /** Date in the footer; defaults to today. */
   now?: Date;
 }
 
@@ -99,17 +93,10 @@ const COPY = {
 
 const withoutScheme = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '');
 const link = (url: string): CvLink => ({ text: withoutScheme(url), url });
-const telUrl = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
 
-function contactLine(locale: Locale, options: CvOptions): CvLink[] {
-  const address =
-    options.edition === 'application'
-      ? `${legal.street}, ${legal.postalCode} ${legal.city}`
-      : profile.location[locale];
-  const phone = options.phone ? [{ text: options.phone, url: telUrl(options.phone) }] : [];
+function contactLine(locale: Locale): CvLink[] {
   return [
-    { text: address },
-    ...phone,
+    { text: profile.location[locale] },
     { text: profile.email, url: `mailto:${profile.email}` },
     link('https://inomov.online'),
     link(profile.links.linkedin),
@@ -161,21 +148,14 @@ function projectEntry(locale: Locale): CvEntry {
   };
 }
 
-export function buildCvModel(locale: Locale, options: CvOptions): CvModel {
-  if (options.edition === 'application' && !options.phone) {
-    throw new Error('The application edition needs a phone number');
-  }
-  if (options.edition === 'web' && options.phone) {
-    throw new Error('The web edition is published and must not contain a phone number');
-  }
+export function buildCvModel(locale: Locale, options: CvOptions = {}): CvModel {
   const copy = COPY[locale];
 
   return {
     locale,
-    edition: options.edition,
     name: profile.name,
     role: pageMeta('home', locale).title,
-    contact: contactLine(locale, options),
+    contact: contactLine(locale),
     summary: profile.summary[locale],
     sections: [
       {
