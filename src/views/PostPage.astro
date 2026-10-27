@@ -77,8 +77,10 @@ const copy = {
 </BaseLayout>
 
 <style>
+  /* minmax(0, …): a wide code block scrolls inside itself instead of widening the page. */
   .article {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-6);
     padding-block-start: var(--space-6);
   }
@@ -87,6 +89,7 @@ const copy = {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
+    min-block-size: var(--target-size);
     justify-self: start;
     color: var(--color-fg-muted);
     font-size: var(--step--1);
