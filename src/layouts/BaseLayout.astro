@@ -138,7 +138,10 @@ const rssUrl = `${pathFor('blog', locale)}/rss.xml`;
     {noindex && <meta name="robots" content="noindex" />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-    <Font cssVariable="--font-sans" preload />
+    <!-- Not preloaded: a preload competes with the render-blocking CSS on slow connections
+         (measured: LCP 1.9 s with, 1.5 s without). Text paints at once in the metric-matched
+         fallback and swaps to Geist without moving (CLS 0.002). -->
+    <Font cssVariable="--font-sans" />
     <Font cssVariable="--font-mono" />
 
     <!--
