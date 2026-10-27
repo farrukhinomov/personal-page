@@ -1,6 +1,6 @@
 import type { Locale, Localized } from '@/i18n/locales';
 
-/** File names of the CV's web edition per locale, served from `public/cv/` (see `pnpm cv`). */
+/** File names of the CV per locale, served from `public/cv/` (see `pnpm cv`). */
 export const CV_FILE: Localized = {
   de: 'farrukh-inomov-lebenslauf',
   en: 'farrukh-inomov-cv',
