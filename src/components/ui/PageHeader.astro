@@ -52,11 +52,19 @@ const hasPortrait = Astro.slots.has('portrait');
     }
   }
 
+  /*
+   * Long German compounds ("Datenschutzerklärung") are wider than a phone at this size,
+   * so they hyphenate by the page language; only words of 12+ letters, never short ones.
+   * Browsers without a German dictionary break the word without a hyphen instead.
+   */
   h1 {
     max-width: 18ch;
     font-size: var(--step-4);
     line-height: var(--leading-tight);
     letter-spacing: -0.03em;
+    hyphens: auto;
+    hyphenate-limit-chars: 12 5 5;
+    overflow-wrap: break-word;
   }
 
   /*

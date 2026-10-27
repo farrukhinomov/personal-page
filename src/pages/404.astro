@@ -6,7 +6,11 @@ import { useTranslations } from '@/i18n/ui';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 
 // One 404 page serves both languages, so it shows the message in each, default locale first.
-const messages = LOCALES.map((locale) => ({ locale, t: useTranslations(locale) }));
+// The first message is the page's one h1; the others are h2 and look the same.
+const messages = LOCALES.map((locale, index) => {
+  const Heading: 'h1' | 'h2' = index === 0 ? 'h1' : 'h2';
+  return { locale, t: useTranslations(locale), Heading };
+});
 const title = useTranslations(DEFAULT_LOCALE)('notFound.title');
 ---
 
@@ -15,9 +19,9 @@ const title = useTranslations(DEFAULT_LOCALE)('notFound.title');
     <p class="code" aria-hidden="true">
       404
     </p>
-    {messages.map(({ locale, t }) => (
+    {messages.map(({ locale, t, Heading }) => (
       <div lang={LANG_TAG[locale]} class="message">
-        <h1>{t('notFound.title')}</h1>
+        <Heading class="heading">{t('notFound.title')}</Heading>
         <p>{t('notFound.body')}</p>
         <ButtonLink href={pathFor('home', locale)} variant="secondary">
           {t('notFound.back')}
@@ -52,7 +56,7 @@ const title = useTranslations(DEFAULT_LOCALE)('notFound.title');
     border-block-start: 1px solid var(--color-line);
   }
 
-  h1 {
+  .heading {
     font-size: var(--step-3);
   }
 
