@@ -19,11 +19,19 @@ export function bookingWindow(now: Date): { from: Date; to: Date } {
   return { from: now, to: new Date(now.getTime() + BOOKING_WINDOW_DAYS * DAY_MS) };
 }
 
-/** Free Slots for the Contact page. A short CDN cache keeps Cal.com from being asked per view. */
+/**
+ * Free Slots for the Contact page. A short CDN cache keeps Cal.com from being asked per view. The
+ * CDN caches per URL, so a query string, which the page never sends, is refused: otherwise random
+ * ones would skip the cache and reach Cal.com on every request.
+ */
 export async function handleSlots(
+  url: URL,
   slots: BookingServices['slots'],
   now: Date = new Date(),
 ): Promise<Response> {
+  if (url.search) {
+    return errorResponse(400, 'invalid_input', 'This endpoint takes no parameters.');
+  }
   try {
     const free = await slots(bookingWindow(now));
     return Response.json(
@@ -34,7 +42,10 @@ export async function handleSlots(
     );
   } catch (error) {
     console.error('Loading Slots from Cal.com failed.', error);
-    return errorResponse(502, 'slots_unavailable', 'Free times could not be loaded.');
+    // Cached briefly too, so an outage does not turn every page view into a Cal.com request.
+    return errorResponse(502, 'slots_unavailable', 'Free times could not be loaded.', {
+      headers: { 'Cache-Control': 'public, max-age=0, s-maxage=10' },
+    });
   }
 }
 

@@ -97,14 +97,28 @@ describe('createBooking', () => {
     });
   });
 
-  it('reports a refused booking instead of throwing', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    const fetcher = fetchReturning(Response.json({ error: 'slot taken' }, { status: 400 }));
+  it.each([400, 409, 422])('reports a refused booking (%i) instead of throwing', async (status) => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const fetcher = fetchReturning(
+      Response.json(
+        { status: 'error', error: { code: 'no_available_users_found_error', details: booking } },
+        { status },
+      ),
+    );
 
-    expect(await createBooking('cal_test', booking, fetcher)).toEqual({
-      kind: 'refused',
-      status: 400,
-    });
+    expect(await createBooking('cal_test', booking, fetcher)).toEqual({ kind: 'refused', status });
+    // Logs the error code only, never the attendee's details from the body.
+    expect(error).toHaveBeenCalledWith(
+      `Cal.com refused a booking (${status}):`,
+      'no_available_users_found_error',
+    );
+    expect(JSON.stringify(error.mock.calls)).not.toContain('ada@example.com');
+  });
+
+  it('throws on a rejected API key instead of calling the Slot taken', async () => {
+    const fetcher = fetchReturning(Response.json({ error: 'unauthorized' }, { status: 401 }));
+
+    await expect(createBooking('cal_test', booking, fetcher)).rejects.toThrow('401');
   });
 
   it('throws when Cal.com itself fails', async () => {

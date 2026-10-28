@@ -20,6 +20,11 @@ const slotsResponse = z.object({
   data: z.record(z.string(), z.array(z.object({ start: z.string() }))),
 });
 
+/** Answers with which Cal.com turns a booking down, e.g. because the Slot was just taken. */
+const REFUSAL_STATUSES = new Set([400, 409, 422]);
+
+const errorBody = z.object({ error: z.object({ code: z.string() }).partial().optional() });
+
 const bookingResponse = z.object({
   data: z.object({ uid: z.string(), status: z.string() }),
 });
@@ -63,8 +68,8 @@ export type BookingOutcome =
 
 /**
  * Books an Intro Call. It stays pending until Farrukh approves it in Cal.com, which also sends the
- * emails. Cal.com refusing the booking (4xx, e.g. the Slot was just taken) is an outcome; anything
- * else throws.
+ * emails. Cal.com refusing the booking (e.g. the Slot was just taken) is an outcome; anything
+ * else, including a rejected API key, throws.
  */
 export async function createBooking(
   apiKey: string,
@@ -86,13 +91,22 @@ export async function createBooking(
       bookingFieldsResponses: { company: booking.company, reason: booking.reason },
     }),
   });
-  if (response.status >= 400 && response.status < 500) {
-    console.error(`Cal.com refused a booking (${response.status}):`, await response.text());
+  if (REFUSAL_STATUSES.has(response.status)) {
+    // Only the status and Cal.com's error code: the body may repeat the attendee's details.
+    console.error(`Cal.com refused a booking (${response.status}):`, await errorCode(response));
     return { kind: 'refused', status: response.status };
   }
   if (!response.ok) throw new Error(`Cal.com bookings answered ${response.status}`);
   const { data } = bookingResponse.parse(await response.json());
   return { kind: 'requested', uid: data.uid };
+}
+
+async function errorCode(response: Response): Promise<string> {
+  try {
+    return errorBody.parse(await response.json()).error?.code ?? 'unknown';
+  } catch {
+    return 'unknown';
+  }
 }
 
 function headers(apiKey: string, version: string): Record<string, string> {
