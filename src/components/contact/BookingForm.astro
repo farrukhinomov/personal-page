@@ -1,0 +1,392 @@
+---
+import { PUBLIC_TURNSTILE_SITE_KEY } from 'astro:env/client';
+import { profile } from '@/data/profile';
+import type { Locale } from '@/i18n/locales';
+import { pathFor } from '@/i18n/routes';
+import { BOOKING_LIMITS } from '@/server/booking';
+import { HONEYPOT_FIELD } from '@/server/submission';
+import '@/styles/forms.css';
+import { FORM_COPY } from './form-copy';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const shared = FORM_COPY[locale];
+const copy = {
+  de: {
+    title: 'Intro Call buchen',
+    lead: '30 Minuten per Google Meet, montags bis freitags zwischen 17 und 19 Uhr deutscher Zeit. Ich bestätige jede Anfrage persönlich.',
+    pick: 'Termin wählen',
+    days: 'Tag',
+    times: 'Uhrzeit',
+    zone: 'Zeiten in Ihrer Zeitzone: {zone}',
+    loading: 'Freie Termine werden geladen …',
+    empty:
+      'In den nächsten zwei Wochen ist leider kein Termin frei. Schreiben Sie mir gern eine Nachricht.',
+    loadFailed:
+      'Die freien Termine konnten nicht geladen werden. Bitte versuchen Sie es später erneut oder schreiben Sie mir eine Nachricht.',
+    company: 'Firma',
+    reason: 'Worum geht es?',
+    consentBefore:
+      'Ich bin einverstanden, dass meine Angaben zur Planung des Gesprächs an Cal.com übermittelt und dafür verwendet werden. Mehr in der ',
+    consentAfter: '.',
+    submit: 'Intro Call anfragen',
+    sentTitle: 'Anfrage gesendet',
+    sentText:
+      'Danke! Ihr Termin am {slot} ist für Sie vorgemerkt. Sobald ich ihn bestätige, schickt Ihnen Cal.com die Einladung mit dem Google-Meet-Link.',
+    errors: {
+      start: { missing: 'Bitte wählen Sie einen Termin.' },
+      company: {
+        missing: 'Bitte geben Sie Ihre Firma an.',
+        short: 'Der Firmenname ist zu kurz.',
+      },
+      reason: {
+        missing: 'Bitte beschreiben Sie kurz Ihr Anliegen.',
+        short: `Bitte schreiben Sie mindestens ${BOOKING_LIMITS.reason.min} Zeichen.`,
+      },
+      consent: { missing: 'Bitte stimmen Sie zu, damit ich den Termin planen kann.' },
+    },
+    status: {
+      sending: 'Wird angefragt …',
+      slot_unavailable:
+        'Dieser Termin wurde gerade vergeben. Die freien Termine sind aktualisiert, bitte wählen Sie einen anderen.',
+      rate_limited:
+        'Für heute sind keine weiteren Anfragen möglich. Schreiben Sie mir gern eine Nachricht.',
+      failed:
+        'Der Termin konnte nicht angefragt werden. Bitte versuchen Sie es später erneut oder schreiben Sie mir eine Nachricht.',
+    },
+  },
+  en: {
+    title: 'Book an intro call',
+    lead: '30 minutes on Google Meet, Monday to Friday between 5 and 7 pm German time. I confirm every request personally.',
+    pick: 'Choose a time',
+    days: 'Day',
+    times: 'Time',
+    zone: 'Times in your time zone: {zone}',
+    loading: 'Loading free times …',
+    empty: 'No time is free in the next two weeks. Feel free to send me a message instead.',
+    loadFailed: 'The free times could not be loaded. Please try again later or send me a message.',
+    company: 'Company',
+    reason: 'What would you like to talk about?',
+    consentBefore:
+      'I agree that my details are sent to Cal.com and used to schedule the call. More in the ',
+    consentAfter: '.',
+    submit: 'Request intro call',
+    sentTitle: 'Request sent',
+    sentText:
+      'Thank you! Your call on {slot} is reserved for you. Once I confirm it, Cal.com sends you the invitation with the Google Meet link.',
+    errors: {
+      start: { missing: 'Please choose a time.' },
+      company: {
+        missing: 'Please enter your company.',
+        short: 'The company name is too short.',
+      },
+      reason: {
+        missing: 'Please describe briefly what it is about.',
+        short: `Please write at least ${BOOKING_LIMITS.reason.min} characters.`,
+      },
+      consent: { missing: 'Please agree so that I can schedule the call.' },
+    },
+    status: {
+      sending: 'Requesting …',
+      slot_unavailable:
+        'This time was just taken. The free times are updated, please choose another one.',
+      rate_limited: 'No more requests are possible today. Feel free to send me a message.',
+      failed: 'The call could not be requested. Please try again later or send me a message.',
+    },
+  },
+}[locale];
+const errors = { ...shared.errors, ...copy.errors };
+const status = { ...shared.status, ...copy.status };
+const picker = {
+  zone: copy.zone,
+  loading: copy.loading,
+  empty: copy.empty,
+  loadFailed: copy.loadFailed,
+  sentText: copy.sentText,
+};
+
+const id = (field: string) => `booking-${field}`;
+const errorId = (field: string) => `booking-${field}-error`;
+---
+
+<section class="booking" aria-labelledby="booking-title">
+  <header class="intro">
+    <h2 id="booking-title">{copy.title}</h2>
+    <p>{copy.lead}</p>
+  </header>
+  <noscript>
+    <p class="form-noscript">
+      {shared.noscript} <a href={`mailto:${profile.email}`}>{profile.email}</a>.
+    </p>
+  </noscript>
+
+  <form
+    class="form"
+    novalidate
+    data-booking-form
+    data-locale={locale}
+    data-site-key={PUBLIC_TURNSTILE_SITE_KEY}
+    data-errors={JSON.stringify(errors)}
+    data-status={JSON.stringify(status)}
+    data-picker={JSON.stringify(picker)}
+  >
+    <fieldset class="picker field--wide" aria-describedby={errorId('start')}>
+      <legend>{copy.pick}</legend>
+      <p class="zone" data-zone></p>
+      <div class="days" role="radiogroup" aria-label={copy.days} data-days></div>
+      <div class="times" role="radiogroup" aria-label={copy.times} data-times></div>
+      <p class="picker-state" aria-live="polite" data-picker-state>
+        {copy.loading}
+      </p>
+      <input type="hidden" name="start" required data-focus="[data-days] input" />
+      <p class="error" id={errorId('start')}></p>
+    </fieldset>
+
+    <div class="field">
+      <input
+        id={id('name')}
+        name="name"
+        type="text"
+        required
+        minlength={BOOKING_LIMITS.name.min}
+        maxlength={BOOKING_LIMITS.name.max}
+        autocomplete="name"
+        placeholder=" "
+        aria-describedby={errorId('name')}
+      />
+      <label for={id('name')}>{shared.name}</label>
+      <p class="error" id={errorId('name')}></p>
+    </div>
+
+    <div class="field">
+      <input
+        id={id('email')}
+        name="email"
+        type="email"
+        required
+        maxlength={BOOKING_LIMITS.email.max}
+        autocomplete="email"
+        spellcheck="false"
+        placeholder=" "
+        aria-describedby={errorId('email')}
+      />
+      <label for={id('email')}>{shared.email}</label>
+      <p class="error" id={errorId('email')}></p>
+    </div>
+
+    <div class="field field--wide">
+      <input
+        id={id('company')}
+        name="company"
+        type="text"
+        required
+        minlength={BOOKING_LIMITS.company.min}
+        maxlength={BOOKING_LIMITS.company.max}
+        autocomplete="organization"
+        placeholder=" "
+        aria-describedby={errorId('company')}
+      />
+      <label for={id('company')}>{copy.company}</label>
+      <p class="error" id={errorId('company')}></p>
+    </div>
+
+    <div class="field field--wide">
+      <textarea
+        id={id('reason')}
+        name="reason"
+        required
+        minlength={BOOKING_LIMITS.reason.min}
+        maxlength={BOOKING_LIMITS.reason.max}
+        rows="4"
+        placeholder=" "
+        aria-describedby={errorId('reason')}
+      ></textarea>
+      <label for={id('reason')}>{copy.reason}</label>
+      <p class="error" id={errorId('reason')}></p>
+    </div>
+
+    <!-- People never see this field; bots that fill it are dropped without notice. -->
+    <div class="trap" aria-hidden="true">
+      <label for={id(HONEYPOT_FIELD)}>Website</label>
+      <input
+        id={id(HONEYPOT_FIELD)}
+        name={HONEYPOT_FIELD}
+        type="text"
+        tabindex="-1"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="field field--wide field--check">
+      <input
+        id={id('consent')}
+        name="consent"
+        type="checkbox"
+        required
+        aria-describedby={errorId('consent')}
+      />
+      <label for={id('consent')}>
+        {copy.consentBefore}
+        <a href={pathFor('privacy', locale)}>{shared.consentLink}</a>
+        {copy.consentAfter}
+      </label>
+      <p class="error" id={errorId('consent')}></p>
+    </div>
+
+    <div class="turnstile field--wide" data-turnstile></div>
+
+    <div class="actions field--wide">
+      <button class="submit" type="submit">
+        {copy.submit}
+      </button>
+      <p class="status" role="status" aria-live="polite" data-status-text></p>
+    </div>
+  </form>
+
+  <div class="form-sent" hidden tabindex="-1" data-sent>
+    <svg class="form-sent-mark" viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="24" r="22"></circle>
+      <path d="M14 25l7 7 13-15"></path>
+    </svg>
+    <h3>{copy.sentTitle}</h3>
+    <p data-sent-text>{copy.sentText}</p>
+  </div>
+</section>
+
+<script>
+  import './booking-client';
+</script>
+
+<style>
+  .booking {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .intro h2 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--step-2);
+    letter-spacing: -0.02em;
+  }
+
+  .intro p {
+    max-width: 60ch;
+    margin: 0;
+    color: var(--color-fg-muted);
+  }
+
+  .picker {
+    display: grid;
+    gap: var(--space-3);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .picker legend {
+    padding: 0;
+    font-weight: 600;
+  }
+
+  .zone,
+  .picker-state {
+    margin: 0;
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+
+  .zone:empty,
+  .picker-state:empty {
+    display: none;
+  }
+
+  /* Days scroll sideways on phones, so two weeks never wrap into a wall of buttons. */
+  .days {
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding-block: 2px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+
+  .times {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+    gap: var(--space-2);
+  }
+
+  .times:empty {
+    display: none;
+  }
+
+  /* Each option is a real radio button, visually replaced by its label. */
+  .booking :global(.option) {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: var(--target-size);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-control);
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+
+  .booking :global(.option input) {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .booking :global(.option:hover) {
+    border-color: var(--color-fg-muted);
+  }
+
+  .booking :global(.option:active) {
+    transform: scale(0.97);
+  }
+
+  .booking :global(.option:has(input:checked)) {
+    border-color: var(--color-signal);
+    background: color-mix(in srgb, var(--color-signal) 14%, var(--color-bg));
+    box-shadow: inset 0 0 0 1px var(--color-signal);
+    color: var(--color-fg);
+    font-weight: 600;
+  }
+
+  .booking :global(.option:has(input:focus-visible)) {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .booking :global(.day) {
+    flex: 0 0 auto;
+    min-width: 4.5rem;
+    line-height: 1.25;
+  }
+
+  .booking :global(.day-name) {
+    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+  }
+
+  .booking :global(.day-date) {
+    font-weight: 600;
+  }
+</style>
