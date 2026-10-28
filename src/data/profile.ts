@@ -12,7 +12,7 @@ export const profile = profileSchema.parse({
   },
   location: { de: 'Saarbrücken, Deutschland', en: 'Saarbrücken, Germany' },
   address: { city: 'Saarbrücken', countryCode: 'DE' },
-  email: 'farrukhfinomov@gmail.com',
+  email: 'farrukh@inomov.online',
   developerSince: '2019-09',
   links: {
     github: 'https://github.com/farrukhinomov',
