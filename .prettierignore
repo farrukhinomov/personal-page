@@ -6,3 +6,4 @@ pnpm-lock.yaml
 _docs
 playwright-report
 test-results
+.lighthouseci

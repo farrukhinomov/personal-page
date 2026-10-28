@@ -251,19 +251,28 @@ const titleWords = pageMeta('home', locale).title.split(' ');
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .word,
     .enter {
       animation: rise 700ms var(--ease-out) var(--delay, 0ms) both;
     }
 
+    /*
+     * The headline is the page's Largest Contentful Paint, which only counts once it is
+     * visible: its words rise without fading in, so they are painted with the first frame.
+     */
     .word {
-      animation-duration: 800ms;
+      animation: lift 800ms var(--ease-out) var(--delay, 0ms) both;
     }
   }
 
   @keyframes rise {
     from {
       opacity: 0;
+      transform: translateY(0.45em);
+    }
+  }
+
+  @keyframes lift {
+    from {
       transform: translateY(0.45em);
     }
   }
