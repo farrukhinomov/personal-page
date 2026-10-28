@@ -1,10 +1,18 @@
 /**
  * Scroll-driven motion, loaded only when it can help:
- * never for reduced motion, and only after the page has painted and gone idle,
- * so GSAP never competes with the first render.
+ * never for reduced motion, and only after the page has loaded and gone idle,
+ * so GSAP never competes with the fonts and images of the first screen.
  */
 
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
+
+function afterLoad(callback: () => void): void {
+  if (document.readyState === 'complete') {
+    callback();
+  } else {
+    window.addEventListener('load', callback, { once: true });
+  }
+}
 
 function whenIdle(callback: () => void): void {
   if ('requestIdleCallback' in window) {
@@ -36,11 +44,13 @@ function disableMotion(): void {
 if (window.matchMedia(REDUCED_MOTION).matches) {
   disableMotion();
 } else {
-  whenIdle(() => {
-    start().catch((error: unknown) => {
-      // Motion is an enhancement: the page is complete without it.
-      console.warn('Motion disabled:', error);
-      disableMotion();
-    });
-  });
+  afterLoad(() =>
+    whenIdle(() => {
+      start().catch((error: unknown) => {
+        // Motion is an enhancement: the page is complete without it.
+        console.warn('Motion disabled:', error);
+        disableMotion();
+      });
+    }),
+  );
 }
