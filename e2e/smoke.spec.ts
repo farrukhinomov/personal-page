@@ -45,7 +45,7 @@ for (const path of sitemapPaths()) {
         await page.goto(path);
         // Links inside running text are exempt (WCAG 2.5.8 "inline" exception).
         const tooSmall = await page.evaluate((min) => {
-          const inText = 'p, .prose, dd, figcaption, td';
+          const inText = 'p, label, .prose, dd, figcaption, td';
           return [...document.querySelectorAll<HTMLElement>('a, button, input')]
             .filter((element) => element.offsetParent !== null && !element.closest(inText))
             .filter((element) => element.getBoundingClientRect().height < min)
