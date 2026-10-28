@@ -1,5 +1,6 @@
 import { profile } from '@/data/profile';
-import type { Localized } from '@/i18n/locales';
+import { confirmationFor, confirmationText } from './confirmation';
+import { confirmationHtml } from './confirmation-html';
 import { TOPIC_LABELS, type Message } from './message';
 
 /** Verified in Resend for inomov.online. */
@@ -11,6 +12,8 @@ export interface Email {
   replyTo: string;
   subject: string;
   text: string;
+  /** Optional rich version; mail apps that cannot show it fall back to `text`. */
+  html?: string;
 }
 
 /** The Message as it reaches Farrukh; replying goes straight to the sender. */
@@ -33,53 +36,22 @@ export function notificationEmail(message: Message): Email {
   };
 }
 
-const CONFIRMATION: Localized<{ subject: string; body: (topic: string) => string }> = {
-  de: {
-    subject: 'Ihre Nachricht an Farrukh Inomov',
-    body: (topic) =>
-      [
-        'Hallo,',
-        '',
-        `vielen Dank für Ihre Nachricht zum Thema „${topic}“. Sie ist bei mir angekommen, und ich melde mich in der Regel innerhalb von zwei Werktagen.`,
-        '',
-        'Viele Grüße',
-        profile.name,
-        'https://inomov.online',
-      ].join('\n'),
-  },
-  en: {
-    subject: 'Your message to Farrukh Inomov',
-    body: (topic) =>
-      [
-        'Hello,',
-        '',
-        `thank you for your message about "${topic}". It has reached me, and I usually reply within two working days.`,
-        '',
-        'Best regards,',
-        profile.name,
-        'https://inomov.online/en',
-      ].join('\n'),
-  },
-};
-
-/**
- * Tells the sender their Message arrived, in the page's language. It never repeats what they
- * wrote: otherwise anyone could send any text to any address from inomov.online.
- */
+/** Tells the sender their Message arrived, as HTML with a plain-text twin (see confirmation.ts). */
 export function confirmationEmail(message: Message): Email {
-  const copy = CONFIRMATION[message.locale];
+  const confirmation = confirmationFor(message);
   return {
     from: SENDER,
     to: message.email,
     replyTo: profile.email,
-    subject: copy.subject,
-    text: copy.body(TOPIC_LABELS[message.topic][message.locale]),
+    subject: confirmation.subject,
+    text: confirmationText(confirmation),
+    html: confirmationHtml(confirmation),
   };
 }
 
 const RESEND_URL = 'https://api.resend.com/emails';
 
-/** Sends one plain-text email through the Resend API; throws when Resend refuses it. */
+/** Sends one email through the Resend API; throws when Resend refuses it. */
 export async function sendEmail(
   apiKey: string,
   email: Email,
@@ -94,6 +66,7 @@ export async function sendEmail(
       reply_to: email.replyTo,
       subject: email.subject,
       text: email.text,
+      ...(email.html ? { html: email.html } : {}),
     }),
   });
   if (!response.ok) {
