@@ -1,19 +1,23 @@
 /**
- * The Intro Call booking form: loads free Slots when the section comes near, shows them as day
- * and time radio buttons in the Visitor's time zone, and books one through /api/booking.
- * Validation, Turnstile and sending are shared with the Message form (form-client.ts).
+ * The Intro Call booking form: loads free Slots when the form comes into view, shows them a week
+ * at a time as day and time radio buttons in the Visitor's time zone, and books one through
+ * /api/booking. Step 1 picks the time, step 2 asks for the details. Validation, Turnstile and
+ * sending are shared with the Message form (form-client.ts); the calendar logic lives in
+ * booking-calendar.ts.
  */
+import { calendarWeeks, dateOf, firstWeekWithSlots, groupByDay } from './booking-calendar';
 import { setUpContactForm } from './form-client';
 
 interface PickerCopy {
   zone: string;
   loading: string;
+  weekEmpty: string;
   empty: string;
   loadFailed: string;
   sentText: string;
 }
 
-/** Start loading Slots a little before the section scrolls into view. */
+/** Start loading Slots a little before the form scrolls into view. */
 const PRELOAD_MARGIN = '400px';
 
 const form = document.querySelector<HTMLFormElement>('[data-booking-form]');
@@ -21,18 +25,30 @@ if (form) setUp(form);
 
 function setUp(form: HTMLFormElement): void {
   const copy = JSON.parse(form.dataset.picker ?? '{}') as PickerCopy;
+  const status = JSON.parse(form.dataset.status ?? '{}') as Record<string, string>;
   const locale = form.dataset.locale ?? 'de';
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const days = form.querySelector<HTMLElement>('[data-days]');
-  const times = form.querySelector<HTMLElement>('[data-times]');
-  const state = form.querySelector<HTMLElement>('[data-picker-state]');
-  const zone = form.querySelector<HTMLElement>('[data-zone]');
-  const start = form.querySelector<HTMLInputElement>('input[name="start"]');
-  if (!days || !times || !state || !start) return;
+  const find = <T extends HTMLElement>(selector: string) => form.querySelector<T>(selector);
+  const days = find('[data-days]');
+  const times = find('[data-times]');
+  const state = find('[data-picker-state]');
+  const week = find('[data-week]');
+  const range = find('[data-week-range]');
+  const previous = find<HTMLButtonElement>('[data-week-previous]');
+  const next = find<HTMLButtonElement>('[data-week-next]');
+  const chosen = find('[data-chosen]');
+  const start = find<HTMLInputElement>('input[name="start"]');
+  if (!days || !times || !state || !week || !range || !previous || !next || !start) return;
 
   const dayKey = new Intl.DateTimeFormat('en-CA', { timeZone });
-  const dayName = new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone });
-  const dayDate = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', timeZone });
+  // Day keys are formatted as midnight UTC, so these use UTC on purpose.
+  const dayName = new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' });
+  const dayNumber = new Intl.DateTimeFormat(locale, { day: 'numeric', timeZone: 'UTC' });
+  const dayRange = new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  });
   const clock = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', timeZone });
   const full = new Intl.DateTimeFormat(locale, {
     weekday: 'long',
@@ -44,6 +60,13 @@ function setUp(form: HTMLFormElement): void {
   });
 
   let slotsByDay = new Map<string, string[]>();
+  let weeks: string[][] = [];
+  let page = 0;
+
+  const showStep = (step: 'pick' | 'details') => {
+    form.dataset.step = step;
+  };
+
   // Callbacks run long after setup, when `load` below exists.
   const contactForm = setUpContactForm(form, {
     prefix: 'booking',
@@ -66,63 +89,114 @@ function setUp(form: HTMLFormElement): void {
       if (sentText)
         sentText.textContent = copy.sentText.replace('{slot}', full.format(new Date(start.value)));
     },
-    // Someone else took the Slot: show what is free now.
+    // Someone else took the Slot: back to step 1 with what is free now.
     onError: (code) => {
-      if (code === 'slot_unavailable') void load();
+      if (code !== 'slot_unavailable') return;
+      showStep('pick');
+      void load(status.slot_unavailable);
     },
   });
 
-  const choose = (slot: string) => {
-    start.value = slot;
-    contactForm.validate('start');
-  };
-
+  // A chosen time stays chosen only while its day is shown, so "Continue" never books a time
+  // the Visitor cannot see.
   const showTimes = (day: string) => {
+    const daySlots = slotsByDay.get(day) ?? [];
+    if (!daySlots.includes(start.value)) start.value = '';
     times.replaceChildren(
-      ...(slotsByDay.get(day) ?? []).map((slot) =>
-        option('slot', slot, [clock.format(new Date(slot))], slot === start.value, () =>
-          choose(slot),
-        ),
+      ...daySlots.map((slot) =>
+        option('slot', slot, [clock.format(new Date(slot))], slot === start.value, () => {
+          start.value = slot;
+          contactForm.validate('start');
+        }),
       ),
     );
   };
 
+  const showWeek = (index: number) => {
+    page = index;
+    const shown = weeks[page] ?? [];
+    const first = shown[0];
+    const last = shown.at(-1);
+    if (first && last) range.textContent = dayRange.formatRange(dateOf(first), dateOf(last));
+    previous.disabled = page === 0;
+    next.disabled = page >= weeks.length - 1;
+    // Back on the week of the chosen time, its day opens again.
+    const open =
+      shown.find((day) => slotsByDay.get(day)?.includes(start.value)) ??
+      shown.find((day) => slotsByDay.has(day));
+    days.replaceChildren(
+      ...shown.map((day) => {
+        const date = dateOf(day);
+        const chip = option(
+          'day',
+          day,
+          [dayName.format(date), dayNumber.format(date)],
+          day === open,
+          () => showTimes(day),
+        );
+        chip.querySelector('input')?.toggleAttribute('disabled', !slotsByDay.has(day));
+        return chip;
+      }),
+    );
+    state.textContent = open ? '' : copy.weekEmpty;
+    if (open) showTimes(open);
+    else {
+      start.value = '';
+      times.replaceChildren();
+    }
+  };
+
   const render = (slots: string[]) => {
-    slotsByDay = groupByDay(slots, dayKey);
+    slotsByDay = groupByDay(slots, (slot) => dayKey.format(new Date(slot)));
+    weeks = calendarWeeks(dayKey.format(new Date()), slotsByDay);
     start.value = '';
-    if (slotsByDay.size === 0) {
+    week.hidden = weeks.length === 0;
+    if (weeks.length === 0) {
       days.replaceChildren();
       times.replaceChildren();
       state.textContent = copy.empty;
       return;
     }
-    state.textContent = '';
-    const first = [...slotsByDay.keys()][0] ?? '';
-    days.replaceChildren(
-      ...[...slotsByDay.entries()].map(([day, daySlots]) => {
-        const date = new Date(daySlots[0] ?? '');
-        return option('day', day, [dayName.format(date), dayDate.format(date)], day === first, () =>
-          showTimes(day),
-        );
-      }),
-    );
-    showTimes(first);
+    showWeek(firstWeekWithSlots(weeks, slotsByDay));
   };
 
-  const load = async () => {
+  /** Loads the Slots; a notice (e.g. that a time was just taken) is shown and focused after. */
+  const load = async (notice = '') => {
     state.textContent = copy.loading;
     try {
       const response = await fetch('/api/slots');
       if (!response.ok) throw new Error(`Slots answered ${response.status}`);
       const body = (await response.json()) as { slots?: string[] };
       render(body.slots ?? []);
+      if (notice) state.textContent = notice;
     } catch {
+      week.hidden = true;
       days.replaceChildren();
       times.replaceChildren();
-      state.textContent = copy.loadFailed;
+      state.textContent = [notice, copy.loadFailed].filter(Boolean).join(' ');
     }
+    if (notice) state.focus();
   };
 
+  previous.addEventListener('click', () => showWeek(page - 1));
+  next.addEventListener('click', () => showWeek(page + 1));
+
+  find('[data-step-next]')?.addEventListener('click', () => {
+    if (!contactForm.validate('start')) {
+      (find('[data-times] input') ?? find('[data-days] input:not(:disabled)'))?.focus();
+      return;
+    }
+    if (chosen) chosen.textContent = full.format(new Date(start.value));
+    showStep('details');
+    find('input[name="name"]')?.focus();
+  });
+
+  find('[data-step-back]')?.addEventListener('click', () => {
+    showStep('pick');
+    (find('[data-times] input:checked') ?? find('[data-days] input:checked'))?.focus();
+  });
+
+  const zone = find('[data-zone]');
   if (zone) zone.textContent = copy.zone.replace('{zone}', timeZone);
 
   const observer = new IntersectionObserver(
@@ -134,16 +208,6 @@ function setUp(form: HTMLFormElement): void {
     { rootMargin: PRELOAD_MARGIN },
   );
   observer.observe(form);
-}
-
-/** Slot starts grouped by the Visitor's calendar day, in time order. */
-function groupByDay(slots: string[], dayKey: Intl.DateTimeFormat): Map<string, string[]> {
-  const groups = new Map<string, string[]>();
-  for (const slot of [...slots].sort()) {
-    const day = dayKey.format(new Date(slot));
-    groups.set(day, [...(groups.get(day) ?? []), slot]);
-  }
-  return groups;
 }
 
 /** A radio button that looks like a chip: the label is the visible control. */

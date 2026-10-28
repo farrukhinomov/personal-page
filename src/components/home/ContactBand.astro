@@ -15,11 +15,13 @@ const copy = {
     title: 'Sie suchen einen .NET-Entwickler, der Verantwortung übernimmt?',
     body: 'Schreiben Sie mir – ich antworte persönlich.',
     primary: 'Kontakt aufnehmen',
+    call: 'Intro Call buchen',
   },
   en: {
     title: 'Looking for a .NET developer who takes ownership?',
     body: 'Write to me – I answer personally.',
     primary: 'Get in touch',
+    call: 'Book an intro call',
   },
 }[locale];
 ---
@@ -32,6 +34,9 @@ const copy = {
     <p>{copy.body}</p>
     <div class="actions">
       <ButtonLink href={pathFor('contact', locale)}>{copy.primary}</ButtonLink>
+      <ButtonLink href={`${pathFor('contact', locale)}#intro-call`} variant="secondary">
+        {copy.call}
+      </ButtonLink>
       <ButtonLink href={`mailto:${profile.email}`} variant="secondary">
         {profile.email}
       </ButtonLink>
