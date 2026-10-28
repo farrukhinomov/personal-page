@@ -1,5 +1,5 @@
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   experienceView,
   postListView,
@@ -8,6 +8,7 @@ import {
   projectListView,
   projectView,
   skillsView,
+  type McpPost,
 } from './catalog';
 import { POSTS } from './catalog.fixture';
 import { createPortfolioMcpHandler } from './handler';
@@ -107,30 +108,33 @@ describe.each([
   });
 });
 
+/** A 2025-era `initialize` as a plain HTTP client sends it. */
+function initializeRequest(headers: Record<string, string> = {}, body?: string) {
+  return new Request(ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json, text/event-stream',
+      ...headers,
+    },
+    body:
+      body ??
+      JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'initialize',
+        params: {
+          protocolVersion: '2025-06-18',
+          capabilities: {},
+          clientInfo: { name: 'curl', version: '1' },
+        },
+      }),
+  });
+}
+
 describe('the MCP endpoint over HTTP', () => {
   const initialize = (headers: Record<string, string> = {}, body?: string) =>
-    handler.fetch(
-      new Request(ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json, text/event-stream',
-          ...headers,
-        },
-        body:
-          body ??
-          JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'initialize',
-            params: {
-              protocolVersion: '2025-06-18',
-              capabilities: {},
-              clientInfo: { name: 'curl', version: '1' },
-            },
-          }),
-      }),
-    );
+    handler.fetch(initializeRequest(headers, body));
 
   it('serves clients without an Origin header and pages of the site itself', async () => {
     expect((await initialize()).status).toBe(200);
@@ -139,6 +143,21 @@ describe('the MCP endpoint over HTTP', () => {
 
   it('refuses browsers on other sites', async () => {
     expect((await initialize({ Origin: 'https://evil.example' })).status).toBe(403);
+  });
+
+  it('loads the Posts once per instance, and again only after a failed load', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const loadPosts = vi
+      .fn<() => Promise<{ de: McpPost[]; en: McpPost[] }>>()
+      .mockRejectedValueOnce(new Error('collection unavailable'))
+      .mockResolvedValue({ de: POSTS, en: POSTS });
+    const fresh = createPortfolioMcpHandler(loadPosts);
+    const post = () => fresh.fetch(initializeRequest());
+
+    expect((await post()).status).toBe(500);
+    expect((await post()).status).toBe(200);
+    expect((await post()).status).toBe(200);
+    expect(loadPosts).toHaveBeenCalledTimes(2);
   });
 
   it('refuses a body far larger than any tool call', async () => {

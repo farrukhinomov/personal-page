@@ -20,11 +20,22 @@ export interface PortfolioMcpHandler {
  *
  * A request with an Origin header from another site is refused, as the MCP specification asks,
  * so no web page can use a Visitor's browser to call the tools.
+ *
+ * The Posts are bundled with the deployment and cannot change while it runs, so they are loaded
+ * once per function instance; a failed load is tried again on the next request.
  */
 export function createPortfolioMcpHandler(
   loadPosts: () => Promise<Localized<readonly McpPost[]>>,
 ): PortfolioMcpHandler {
-  const handler = createMcpHandler(async () => createPortfolioServer(await loadPosts()), {
+  let posts: Promise<Localized<readonly McpPost[]>> | undefined;
+  const loadOnce = () => {
+    posts ??= loadPosts().catch((error: unknown) => {
+      posts = undefined;
+      throw error;
+    });
+    return posts;
+  };
+  const handler = createMcpHandler(async () => createPortfolioServer(await loadOnce()), {
     responseMode: 'json',
     maxRequestBodySize: MAX_REQUEST_BYTES,
     onerror: (error) => console.error('MCP request failed.', error),
