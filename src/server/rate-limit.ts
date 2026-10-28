@@ -1,3 +1,5 @@
+import { errorResponse } from './responses';
+
 /**
  * Per-IP daily limits for everything that reaches Farrukh's calendar or inbox (issue #13).
  * The counters live in Upstash Redis; see `upstash.ts` for the connection.
@@ -8,6 +10,8 @@ export const DAILY_LIMITS = {
   booking: 3,
   message: 5,
   mcpMessage: 3,
+  /** Per recipient address, not per IP: one confirmation email a day, however many senders. */
+  confirmation: 1,
 } as const;
 
 export type RateLimitedAction = keyof typeof DAILY_LIMITS;
@@ -24,7 +28,7 @@ export type RateLimitResult =
 const IPV6_PREFIX_GROUPS = 4;
 
 /**
- * The address a limit counts against. IPv6 clients usually control a whole /64 network, so a
+ * The address a limit counts against (an email address passes through as it is). IPv6 clients usually control a whole /64 network, so a
  * limit per full address could be dodged by switching addresses; IPv4 stays as it is.
  */
 export function clientKey(ip: string): string {
@@ -85,11 +89,7 @@ export async function checkRateLimit(
 
 /** The 429 answer every limited endpoint returns, in the shared error shape. */
 export function rateLimitedResponse(retryAfterSeconds: number): Response {
-  return Response.json(
-    {
-      ok: false,
-      error: { code: 'rate_limited', message: 'Too many requests. Try again tomorrow.' },
-    },
-    { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } },
-  );
+  return errorResponse(429, 'rate_limited', 'Too many requests. Try again tomorrow.', {
+    headers: { 'Retry-After': String(retryAfterSeconds) },
+  });
 }
