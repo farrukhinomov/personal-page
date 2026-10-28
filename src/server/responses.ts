@@ -6,7 +6,10 @@ export type ErrorCode =
   | 'invalid_input'
   | 'verification_failed'
   | 'rate_limited'
-  | 'delivery_failed';
+  | 'delivery_failed'
+  | 'slots_unavailable'
+  | 'slot_unavailable'
+  | 'booking_failed';
 
 /** The error shape every API route answers with: `{ ok: false, error: { code, message, … } }`. */
 export function errorResponse(
