@@ -1,4 +1,5 @@
 ---
+import { createHash } from 'node:crypto';
 import BookingForm from '@/components/contact/BookingForm.astro';
 import MessageForm from '@/components/contact/MessageForm.astro';
 import Icon from '@/components/ui/Icon.astro';
@@ -19,16 +20,34 @@ const { locale } = Astro.props;
 
 const copy = {
   de: {
+    choose: 'Wie möchten Sie Kontakt aufnehmen?',
+    messageTab: 'Nachricht schreiben',
+    callTab: 'Intro Call buchen',
+    facts: 'Gut zu wissen',
+    replyTitle: 'Antwort',
+    reply: 'In der Regel innerhalb von zwei Werktagen.',
+    callTitle: 'Intro Call',
+    call: '30 Minuten per Google Meet, montags bis freitags zwischen 17 und 19 Uhr deutscher Zeit. Ich bestätige jede Anfrage persönlich.',
+    direct: 'Direkter Kontakt',
     email: 'E-Mail',
-    emailHint: 'Der schnellste Weg zu mir.',
+    emailHint: 'Direkt, ohne Formular.',
     linkedin: 'LinkedIn',
     linkedinHint: 'Werdegang und Empfehlungen.',
     github: 'GitHub',
     githubHint: 'Code und öffentliche Projekte.',
   },
   en: {
+    choose: 'How would you like to get in touch?',
+    messageTab: 'Write a message',
+    callTab: 'Book an intro call',
+    facts: 'Good to know',
+    replyTitle: 'Reply',
+    reply: 'Usually within two working days.',
+    callTitle: 'Intro call',
+    call: '30 minutes on Google Meet, Monday to Friday between 5 and 7 pm German time. I confirm every request personally.',
+    direct: 'Direct contact',
     email: 'Email',
-    emailHint: 'The fastest way to reach me.',
+    emailHint: 'Directly, without the form.',
     linkedin: 'LinkedIn',
     linkedinHint: 'Career history and recommendations.',
     github: 'GitHub',
@@ -43,6 +62,18 @@ const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
 Astro.csp?.insertScriptResource("'self'");
 Astro.csp?.insertScriptResource(TURNSTILE_ORIGIN);
 Astro.csp?.insertDirective(`frame-src ${TURNSTILE_ORIGIN}`);
+
+// Opens the booking tab before first paint when the URL asks for it. Astro does not hash an
+// inline script inside a page component, so its hash is added here.
+const OPEN_FROM_HASH = `if (location.hash === '#intro-call') {
+  document.getElementById('message').removeAttribute('data-active');
+  document.getElementById('intro-call').setAttribute('data-active', '');
+  document.getElementById('tab-message').setAttribute('aria-selected', 'false');
+  document.getElementById('tab-intro-call').setAttribute('aria-selected', 'true');
+}`;
+Astro.csp?.insertScriptHash(
+  `sha256-${createHash('sha256').update(OPEN_FROM_HASH).digest('base64')}`,
+);
 
 const channels: { label: string; hint: string; href: string; value: string; icon: IconName }[] = [
   {
@@ -79,97 +110,286 @@ const channels: { label: string; hint: string; href: string; value: string; icon
 >
   <PageHeader title={meta.title} lead={meta.description} />
   <div class="container layout">
-    <MessageForm locale={locale} />
-    <ul class="channels">
-      {channels.map((channel) => (
-        <li>
-          <a
-            class="channel"
-            href={channel.href}
-            rel={channel.href.startsWith('http') ? 'me noopener' : undefined}
-          >
-            <span class="label">
-              <Icon name={channel.icon} size={20} />
-              {channel.label}
-            </span>
-            <span class="value">{channel.value}</span>
-            <span class="hint">{channel.hint}</span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  </div>
-  <div class="container booking-section">
-    <BookingForm locale={locale} />
+    <div class="main">
+      <!-- With JavaScript the two ways show one at a time; without it, one below the other. -->
+      <div class="tabs" role="tablist" aria-label={copy.choose} data-tabs>
+        <button
+          type="button"
+          class="tab"
+          role="tab"
+          id="tab-message"
+          aria-controls="message"
+          aria-selected="true"
+          data-tab="message"
+        >
+          <Icon name="message" size={20} />
+          {copy.messageTab}
+        </button>
+        <button
+          type="button"
+          class="tab"
+          role="tab"
+          id="tab-intro-call"
+          aria-controls="intro-call"
+          aria-selected="false"
+          tabindex="-1"
+          data-tab="intro-call"
+        >
+          <Icon name="calendar" size={20} />
+          {copy.callTab}
+        </button>
+      </div>
+      <div class="panel" id="message" data-panel data-active>
+        <MessageForm locale={locale} />
+      </div>
+      <div class="panel" id="intro-call" data-panel>
+        <BookingForm locale={locale} />
+      </div>
+      <!--
+        Runs before first paint, so a link to #intro-call never flashes the Message form first.
+        contact-tabs-client.ts takes over from here.
+      -->
+      <script is:inline set:html={OPEN_FROM_HASH} />
+    </div>
+
+    <aside class="aside">
+      <section aria-labelledby="facts-title">
+        <h2 id="facts-title" class="aside-title">
+          {copy.facts}
+        </h2>
+        <dl class="facts">
+          <div>
+            <dt>{copy.replyTitle}</dt>
+            <dd>{copy.reply}</dd>
+          </div>
+          <div>
+            <dt>{copy.callTitle}</dt>
+            <dd>{copy.call}</dd>
+          </div>
+        </dl>
+      </section>
+      <section aria-labelledby="direct-title">
+        <h2 id="direct-title" class="aside-title">
+          {copy.direct}
+        </h2>
+        <ul class="channels">
+          {channels.map((channel) => (
+            <li>
+              <a
+                class="channel"
+                href={channel.href}
+                rel={channel.href.startsWith('http') ? 'me noopener' : undefined}
+              >
+                <span class="channel-icon">
+                  <Icon name={channel.icon} size={20} />
+                </span>
+                <span class="channel-text">
+                  <span class="label">{channel.label}</span>
+                  <span class="value">{channel.value}</span>
+                  <span class="hint">{channel.hint}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </aside>
   </div>
 </BaseLayout>
+
+<script>
+  import '@/components/contact/contact-tabs-client';
+</script>
 
 <style>
   .layout {
     display: grid;
     gap: var(--space-7);
-    margin-block-start: var(--space-7);
+    margin-block: var(--space-7);
   }
 
-  /* The form leads; the direct channels sit beside it on wide screens and below it on phones. */
+  /* The forms lead; facts and direct channels sit beside them on wide screens, below on phones. */
   @media (min-width: 60rem) {
     .layout {
-      grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+      grid-template-columns: minmax(0, 2fr) minmax(17rem, 1fr);
       align-items: start;
-    }
-
-    .channels {
-      margin-block-start: calc(var(--step-2) * 1.2 + var(--space-5));
     }
   }
 
-  .booking-section {
-    margin-block: var(--space-8) var(--space-7);
+  .main {
+    display: grid;
+    gap: var(--space-7);
+    min-width: 0;
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-1);
+    padding: var(--space-1);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface);
+  }
+
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 3rem;
+    padding: var(--space-2) var(--space-3);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--color-fg-muted);
+    font: inherit;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  /* On narrow phones the labels need the room. */
+  @media (max-width: 30rem) {
+    .tab :global(svg) {
+      display: none;
+    }
+  }
+
+  .tab:hover {
+    color: var(--color-fg);
+  }
+
+  .tab[aria-selected='true'] {
+    background: color-mix(in srgb, var(--color-signal) 14%, var(--color-bg));
+    box-shadow: inset 0 0 0 1px var(--color-signal);
+    color: var(--color-fg);
+  }
+
+  .tab:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* Without JavaScript there is nothing to switch: both ways show, each under its heading. */
+  :root:not([data-js]) .tabs {
+    display: none;
+  }
+
+  /* With it, the tabs name the panels, so the panel headings are only read out. */
+  :root[data-js] .main {
+    gap: var(--space-4);
+  }
+
+  :root[data-js] .panel:not([data-active]) {
+    display: none;
+  }
+
+  :root[data-js] .panel > :global(section > h2) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .aside {
+    display: grid;
+    gap: var(--space-6);
+    padding: var(--space-5);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface);
+  }
+
+  .aside-title {
+    margin: 0 0 var(--space-3);
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .facts {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+
+  .facts dt {
+    font-weight: 600;
+  }
+
+  .facts dd {
+    margin: var(--space-1) 0 0;
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+    line-height: 1.55;
   }
 
   .channels {
     display: grid;
-    gap: var(--space-4);
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
+  .channels li + li {
+    border-block-start: 1px solid var(--color-line);
+  }
+
   .channel {
     display: grid;
-    gap: var(--space-1);
-    height: 100%;
-    padding: var(--space-5);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-panel);
-    background: var(--color-surface);
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    color: inherit;
     text-decoration: none;
+  }
+
+  .channel-icon {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-control);
+    color: var(--color-fg-muted);
     transition:
       border-color var(--duration-base) var(--ease-out),
-      transform var(--duration-base) var(--ease-out);
+      color var(--duration-base) var(--ease-out);
   }
 
-  .channel:hover {
-    border-color: var(--color-signal);
-    transform: translateY(-2px);
+  .channel-text {
+    display: grid;
+    min-width: 0;
   }
 
-  .label {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
+  .label,
+  .hint {
     color: var(--color-fg-muted);
     font-size: var(--step--1);
   }
 
   .value {
-    font-size: var(--step-1);
     font-weight: 600;
     overflow-wrap: anywhere;
+    transition: color var(--duration-base) var(--ease-out);
   }
 
-  .hint {
-    color: var(--color-fg-muted);
-    font-size: var(--step--1);
+  .channel:hover .value,
+  .channel:focus-visible .value {
+    color: var(--color-signal);
+  }
+
+  .channel:hover .channel-icon,
+  .channel:focus-visible .channel-icon {
+    border-color: var(--color-signal);
+    color: var(--color-signal);
   }
 </style>
