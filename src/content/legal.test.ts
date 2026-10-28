@@ -38,6 +38,15 @@ describe('legal texts', () => {
     for (const page of PAGES) expect(headings(read(page, 'de'))).toBe(headings(read(page, 'en')));
   });
 
+  it('name every service the contact form uses, in both languages', () => {
+    for (const locale of LOCALES) {
+      const privacy = read('privacy', locale);
+      for (const service of ['Vercel', 'Resend', 'Cloudflare Turnstile', 'Upstash', 'Gmail']) {
+        expect(privacy).toContain(service);
+      }
+    }
+  });
+
   it('keep the claims in the privacy policy true: no cookies, no analytics', () => {
     expect(read('privacy', 'de')).toContain('keine Cookies');
     expect(read('privacy', 'en')).toContain('no cookies');
