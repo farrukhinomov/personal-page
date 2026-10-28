@@ -4,7 +4,8 @@ const PORT = 4322;
 const isCI = Boolean(process.env['CI']);
 
 /**
- * End-to-end tests against the production build (`pnpm build` first), served by `astro preview`.
+ * End-to-end tests against the production build (`pnpm build` first). `pnpm preview` serves its
+ * static files with Vercel's `serve`; the tests stub the API routes.
  *
  * Screenshots differ between operating systems, so the visual project only runs on Linux:
  * in CI and locally through `pnpm test:visual`, both in the official Playwright image.
@@ -34,7 +35,7 @@ export default defineConfig({
       : []),
   ],
   webServer: {
-    command: `pnpm preview --port ${PORT}`,
+    command: `pnpm preview --listen ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !isCI,
   },

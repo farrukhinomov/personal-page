@@ -50,6 +50,7 @@ function connect(): Connection {
       booking: create('booking'),
       message: create('message'),
       mcpMessage: create('mcpMessage'),
+      confirmation: create('confirmation'),
     },
     hashSecret: token,
   };

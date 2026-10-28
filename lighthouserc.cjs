@@ -1,6 +1,6 @@
 /**
  * Lighthouse CI: mobile audits of the production build (`pnpm build` first), served by
- * `astro preview`, which compresses like Vercel. Run with `pnpm test:lighthouse`.
+ * `pnpm preview` (Vercel's `serve`), which compresses like Vercel. Run with `pnpm test:lighthouse`.
  * Budgets from issue #16: every category ≥ 95, LCP < 2 s, ≤ 60 KB compressed JS per page.
  */
 const PORT = 4323;
@@ -15,7 +15,7 @@ const MAX_SCRIPT_BYTES = 60 * 1024;
 module.exports = {
   ci: {
     collect: {
-      startServerCommand: `pnpm preview --port ${PORT}`,
+      startServerCommand: `pnpm preview --listen ${PORT}`,
       startServerReadyPattern: 'localhost',
       url: PAGES.map((path) => `http://localhost:${PORT}${path}`),
       // The median of three runs evens out a noisy machine.
