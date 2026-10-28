@@ -9,7 +9,7 @@ export const BOOKING_LIMITS = {
 } as const;
 
 /** How many days ahead the Contact page offers Slots. */
-export const BOOKING_WINDOW_DAYS = 14;
+export const BOOKING_WINDOW_DAYS = 30;
 
 function isTimeZone(value: string): boolean {
   try {
