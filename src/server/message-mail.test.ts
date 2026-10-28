@@ -27,14 +27,34 @@ describe('notificationEmail', () => {
 
 describe('confirmationEmail', () => {
   it.each([
-    ['de', 'Ihre Nachricht an Farrukh Inomov', '„Freelance-Projekt“'],
-    ['en', 'Your message to Farrukh Inomov', '"Freelance project"'],
-  ] as const)('confirms in the page language (%s)', (locale, subject, topic) => {
+    [
+      'de',
+      'Eingangsbestätigung: Ihre Nachricht an Farrukh Inomov',
+      'Guten Tag Ada Lovelace,',
+      '„Freelance-Projekt“',
+    ],
+    [
+      'en',
+      'Confirmation: your message to Farrukh Inomov',
+      'Dear Ada Lovelace,',
+      '“Freelance project”',
+    ],
+  ] as const)('confirms in the page language (%s)', (locale, subject, greeting, topic) => {
     const email = confirmationEmail({ ...message, locale });
 
     expect(email).toMatchObject({ from: SENDER, to: 'ada@example.com', replyTo: profile.email });
     expect(email.subject).toBe(subject);
+    expect(email.text.startsWith(`${greeting}\n`)).toBe(true);
     expect(email.text).toContain(topic);
+    expect(email.text).toContain(profile.links.linkedin);
+    expect(email.html).toContain(`<html lang="${locale}">`);
+  });
+
+  it('greets neutrally when the name cannot be repeated safely', () => {
+    expect(confirmationEmail({ ...message, name: 'Visit spam.example' }).text).toMatch(
+      /^Guten Tag,\n/,
+    );
+    expect(confirmationEmail({ ...message, name: 'x1', locale: 'en' }).text).toMatch(/^Hello,\n/);
   });
 
   it('never repeats what the sender wrote, so it cannot carry spam', () => {
@@ -43,6 +63,7 @@ describe('confirmationEmail', () => {
     expect(email.text).not.toContain(message.message);
     expect(email.text).not.toContain('spam.example');
     expect(email.subject).not.toContain('spam.example');
+    expect(email.html).not.toContain('spam.example');
   });
 });
 
