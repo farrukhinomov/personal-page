@@ -13,6 +13,9 @@ pnpm dev        # http://localhost:4321
 pnpm verify     # lint, format check, tests, type check and build
 ```
 
+The pages build without secrets. The API routes for the Contact page need the server variables
+listed in `.env.example`; in production they are set in Vercel only.
+
 ## End-to-end tests
 
 Playwright runs against the production build (`pnpm build` first), in Chromium, Firefox and WebKit:
