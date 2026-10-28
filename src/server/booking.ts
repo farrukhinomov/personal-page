@@ -28,7 +28,14 @@ export const bookingSchema = z.object({
   /** Optional, e.g. the job posting the call is about. */
   link: z
     .literal('')
-    .or(z.url({ protocol: /^https?$/ }).max(BOOKING_LIMITS.link.max))
+    .or(
+      z
+        .url({ protocol: /^https?$/ })
+        .max(BOOKING_LIMITS.link.max)
+        // The URL parser skips line breaks and tabs, but the link is passed on as written and
+        // must not add lines to the booking notes.
+        .regex(/^[^\s\p{Cc}]+$/u),
+    )
     .default(''),
   /** Start of the chosen Slot, as offered by /api/slots. */
   start: z.iso.datetime({ offset: true }),

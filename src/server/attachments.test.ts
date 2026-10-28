@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ATTACHMENT_LIMITS, formatSize, parseAttachments, safeFilename } from './attachments';
-import { bytes, SAMPLE_FILES as FILES } from './attachments.fixture';
+import { bytes, SAMPLE_FILES as FILES, zip } from './attachments.fixture';
 
 const file = (name: string, content: Uint8Array<ArrayBuffer>) => new File([content], name);
 
@@ -32,12 +32,23 @@ describe('parseAttachments', () => {
     ['a file type that is not allowed', file('setup.exe', bytes('MZ'))],
     ['a file without extension', file('README', FILES.pdf)],
     ['an empty file', file('empty.pdf', new Uint8Array())],
-    ['any ZIP named as Word', file('brief.docx', bytes([0x50, 0x4b, 0x03, 0x04], 'data.csv'))],
+    ['a broken ZIP named as Word', file('brief.docx', bytes([0x50, 0x4b, 0x03, 0x04], 'x'))],
+    ['any ZIP named as Word', file('brief.docx', zip(['data.csv']))],
     [
-      'a Word document with macros',
-      file('brief.docx', bytes([...FILES.docx], 'word/vbaProject.bin')),
+      'a ZIP that only mentions a Word entry in its contents',
+      file('brief.docx', bytes([...zip(['data.csv'])], 'word/document.xml')),
     ],
-  ])('refuses %s', async (_, upload) => {
+    ...['word/vbaProject.bin', 'word/embeddings/oleObject1.bin', 'word/activeX/activeX1.xml'].map(
+      (entry) => [
+        `a Word document with ${entry}`,
+        file('brief.docx', zip(['word/document.xml', entry])),
+      ],
+    ),
+    ...['/JavaScript', '/JS (app.alert(1))', '/Launch', '/EmbeddedFile'].map((action) => [
+      `a PDF with ${action}`,
+      file('cv.pdf', bytes(`%PDF-1.7\n1 0 obj << /OpenAction << /S ${action} >> >>`)),
+    ]),
+  ] as [string, File][])('refuses %s', async (_, upload) => {
     expect(await parseAttachments([upload])).toEqual({ kind: 'invalid' });
   });
 
