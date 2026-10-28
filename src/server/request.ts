@@ -86,11 +86,13 @@ async function readLimited(
   if (!request.body) return new Uint8Array();
   const chunks: Uint8Array[] = [];
   let size = 0;
+  // Past the limit the rest is read and dropped rather than cancelled: cancelling a stream its
+  // source still writes to throws outside this function. Vercel ends the body at 4.5 MB anyway.
   for await (const chunk of request.body as unknown as AsyncIterable<Uint8Array>) {
     size += chunk.length;
-    if (size > max) return undefined;
-    chunks.push(chunk);
+    if (size <= max) chunks.push(chunk);
   }
+  if (size > max) return undefined;
   const bytes = new Uint8Array(size);
   let offset = 0;
   for (const chunk of chunks) {
