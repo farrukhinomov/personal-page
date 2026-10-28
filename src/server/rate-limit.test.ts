@@ -20,8 +20,8 @@ afterEach(() => {
 });
 
 describe('DAILY_LIMITS', () => {
-  it('matches the limits agreed in issue #13', () => {
-    expect(DAILY_LIMITS).toEqual({ booking: 3, message: 5, mcpMessage: 3, confirmation: 1 });
+  it('matches the agreed limits', () => {
+    expect(DAILY_LIMITS).toEqual({ booking: 3, message: 10, mcpMessage: 3, confirmation: 3 });
   });
 });
 

@@ -8,10 +8,10 @@ import { errorResponse } from './responses';
 /** How many times one IP may do each action per day. */
 export const DAILY_LIMITS = {
   booking: 3,
-  message: 5,
+  message: 10,
   mcpMessage: 3,
-  /** Per recipient address, not per IP: one confirmation email a day, however many senders. */
-  confirmation: 1,
+  /** Per recipient address, not per IP: at most three confirmations a day, however many senders. */
+  confirmation: 3,
 } as const;
 
 export type RateLimitedAction = keyof typeof DAILY_LIMITS;
