@@ -47,6 +47,7 @@ describe('legal texts', () => {
         'Cloudflare Turnstile',
         'Upstash',
         'Gmail',
+        'ImprovMX',
         'Cal.com',
       ]) {
         expect(privacy).toContain(service);
