@@ -1,4 +1,5 @@
 ---
+import BookingForm from '@/components/contact/BookingForm.astro';
 import MessageForm from '@/components/contact/MessageForm.astro';
 import Icon from '@/components/ui/Icon.astro';
 import type { IconName } from '@/components/ui/icons';
@@ -98,6 +99,9 @@ const channels: { label: string; hint: string; href: string; value: string; icon
       ))}
     </ul>
   </div>
+  <div class="container booking-section">
+    <BookingForm locale={locale} />
+  </div>
 </BaseLayout>
 
 <style>
@@ -117,6 +121,10 @@ const channels: { label: string; hint: string; href: string; value: string; icon
     .channels {
       margin-block-start: calc(var(--step-2) * 1.2 + var(--space-5));
     }
+  }
+
+  .booking-section {
+    margin-block: var(--space-8) var(--space-7);
   }
 
   .channels {

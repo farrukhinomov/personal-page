@@ -3,6 +3,8 @@ import { PUBLIC_TURNSTILE_SITE_KEY } from 'astro:env/client';
 import { profile } from '@/data/profile';
 import type { Locale } from '@/i18n/locales';
 import { pathFor } from '@/i18n/routes';
+import { FORM_COPY } from './form-copy';
+import '@/styles/forms.css';
 import { HONEYPOT_FIELD, MESSAGE_LIMITS, TOPIC_LABELS, TOPICS } from '@/server/message';
 
 interface Props {
@@ -11,30 +13,22 @@ interface Props {
 
 const { locale } = Astro.props;
 
+const shared = FORM_COPY[locale];
 const copy = {
   de: {
     title: 'Nachricht schreiben',
-    name: 'Name',
-    email: 'E-Mail',
     company: 'Firma (optional)',
     topic: 'Thema',
     topicPlaceholder: 'Bitte wählen',
     message: 'Nachricht',
     consentBefore:
       'Ich bin einverstanden, dass meine Angaben zur Beantwortung meiner Nachricht verwendet werden. Mehr in der ',
-    consentLink: 'Datenschutzerklärung',
     consentAfter: '.',
     submit: 'Nachricht senden',
-    noscript: 'Das Formular braucht JavaScript. Schreiben Sie mir stattdessen an',
     sentTitle: 'Nachricht gesendet',
     sentText:
       'Danke! Ihre Nachricht ist angekommen. Eine Bestätigung ist unterwegs an Ihre E-Mail-Adresse, und ich melde mich in der Regel innerhalb von zwei Werktagen.',
     errors: {
-      name: { missing: 'Bitte geben Sie Ihren Namen an.', short: 'Der Name ist zu kurz.' },
-      email: {
-        missing: 'Bitte geben Sie Ihre E-Mail-Adresse an.',
-        invalid: 'Diese E-Mail-Adresse ist ungültig.',
-      },
       company: { long: 'Der Firmenname ist zu lang.' },
       topic: { missing: 'Bitte wählen Sie ein Thema.' },
       message: {
@@ -45,10 +39,6 @@ const copy = {
     },
     status: {
       sending: 'Wird gesendet …',
-      verifying: 'Sicherheitsprüfung läuft …',
-      invalid: 'Bitte prüfen Sie die markierten Felder.',
-      verification_failed:
-        'Die Sicherheitsprüfung ist fehlgeschlagen. Bitte versuchen Sie es erneut.',
       rate_limited:
         'Für heute sind keine weiteren Nachrichten möglich. Schreiben Sie mir gern per E-Mail.',
       failed:
@@ -57,26 +47,17 @@ const copy = {
   },
   en: {
     title: 'Write a message',
-    name: 'Name',
-    email: 'Email',
     company: 'Company (optional)',
     topic: 'Topic',
     topicPlaceholder: 'Please choose',
     message: 'Message',
     consentBefore: 'I agree that my details are used to answer my message. More in the ',
-    consentLink: 'privacy policy',
     consentAfter: '.',
     submit: 'Send message',
-    noscript: 'The form needs JavaScript. Please write to me instead at',
     sentTitle: 'Message sent',
     sentText:
       'Thank you! Your message has arrived. A confirmation is on its way to your email address, and I usually reply within two working days.',
     errors: {
-      name: { missing: 'Please enter your name.', short: 'The name is too short.' },
-      email: {
-        missing: 'Please enter your email address.',
-        invalid: 'This email address is not valid.',
-      },
       company: { long: 'The company name is too long.' },
       topic: { missing: 'Please choose a topic.' },
       message: {
@@ -87,14 +68,13 @@ const copy = {
     },
     status: {
       sending: 'Sending …',
-      verifying: 'Running the security check …',
-      invalid: 'Please check the marked fields.',
-      verification_failed: 'The security check failed. Please try again.',
       rate_limited: 'No more messages are possible today. Feel free to email me instead.',
       failed: 'The message could not be sent. Please try again later or email me.',
     },
   },
 }[locale];
+const errors = { ...shared.errors, ...copy.errors };
+const status = { ...shared.status, ...copy.status };
 
 const id = (field: string) => `message-${field}`;
 const errorId = (field: string) => `message-${field}-error`;
@@ -103,8 +83,8 @@ const errorId = (field: string) => `message-${field}-error`;
 <section class="message" aria-labelledby="message-title">
   <h2 id="message-title">{copy.title}</h2>
   <noscript>
-    <p class="noscript">
-      {copy.noscript} <a href={`mailto:${profile.email}`}>{profile.email}</a>.
+    <p class="form-noscript">
+      {shared.noscript} <a href={`mailto:${profile.email}`}>{profile.email}</a>.
     </p>
   </noscript>
 
@@ -114,8 +94,8 @@ const errorId = (field: string) => `message-${field}-error`;
     data-message-form
     data-locale={locale}
     data-site-key={PUBLIC_TURNSTILE_SITE_KEY}
-    data-errors={JSON.stringify(copy.errors)}
-    data-status={JSON.stringify(copy.status)}
+    data-errors={JSON.stringify(errors)}
+    data-status={JSON.stringify(status)}
   >
     <div class="field">
       <input
@@ -129,7 +109,7 @@ const errorId = (field: string) => `message-${field}-error`;
         placeholder=" "
         aria-describedby={errorId('name')}
       />
-      <label for={id('name')}>{copy.name}</label>
+      <label for={id('name')}>{shared.name}</label>
       <p class="error" id={errorId('name')}></p>
     </div>
 
@@ -145,7 +125,7 @@ const errorId = (field: string) => `message-${field}-error`;
         placeholder=" "
         aria-describedby={errorId('email')}
       />
-      <label for={id('email')}>{copy.email}</label>
+      <label for={id('email')}>{shared.email}</label>
       <p class="error" id={errorId('email')}></p>
     </div>
 
@@ -216,7 +196,7 @@ const errorId = (field: string) => `message-${field}-error`;
       />
       <label for={id('consent')}>
         {copy.consentBefore}
-        <a href={pathFor('privacy', locale)}>{copy.consentLink}</a>
+        <a href={pathFor('privacy', locale)}>{shared.consentLink}</a>
         {copy.consentAfter}
       </label>
       <p class="error" id={errorId('consent')}></p>
@@ -232,8 +212,8 @@ const errorId = (field: string) => `message-${field}-error`;
     </div>
   </form>
 
-  <div class="sent" hidden tabindex="-1" data-sent>
-    <svg class="sent-mark" viewBox="0 0 48 48" aria-hidden="true">
+  <div class="form-sent" hidden tabindex="-1" data-sent>
+    <svg class="form-sent-mark" viewBox="0 0 48 48" aria-hidden="true">
       <circle cx="24" cy="24" r="22"></circle>
       <path d="M14 25l7 7 13-15"></path>
     </svg>
@@ -251,297 +231,5 @@ const errorId = (field: string) => `message-${field}-error`;
     margin: 0 0 var(--space-5);
     font-size: var(--step-2);
     letter-spacing: -0.02em;
-  }
-
-  /* The form needs JavaScript for the bot check; without it the noscript hint stands alone. */
-  :root:not([data-js]) .form,
-  .form[hidden] {
-    display: none;
-  }
-
-  .noscript a {
-    color: var(--color-signal);
-  }
-
-  .form {
-    display: grid;
-    gap: var(--space-4);
-    padding: var(--space-5);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-panel);
-    background: var(--color-surface);
-  }
-
-  @media (min-width: 40rem) {
-    .form {
-      grid-template-columns: 1fr 1fr;
-      column-gap: var(--space-4);
-    }
-
-    .field--wide {
-      grid-column: 1 / -1;
-    }
-  }
-
-  .field {
-    position: relative;
-    display: grid;
-  }
-
-  .field input:not([type='checkbox']),
-  .field select,
-  .field textarea {
-    width: 100%;
-    min-height: 3.5rem;
-    padding: 1.4rem var(--space-3) 0.45rem;
-    border: 1px solid var(--color-line-strong);
-    border-radius: var(--radius-control);
-    background: var(--color-bg);
-    color: var(--color-fg);
-    font: inherit;
-    transition:
-      border-color var(--duration-fast) var(--ease-out),
-      box-shadow var(--duration-base) var(--ease-out);
-  }
-
-  .field textarea {
-    min-height: 10rem;
-    padding-block-start: 1.6rem;
-    resize: vertical;
-  }
-
-  .field select {
-    appearance: none;
-    padding-inline-end: var(--space-7);
-    background-image:
-      linear-gradient(45deg, transparent 50%, var(--color-fg-muted) 50%),
-      linear-gradient(135deg, var(--color-fg-muted) 50%, transparent 50%);
-    background-position:
-      right 1.25rem top 1.6rem,
-      right 0.9rem top 1.6rem;
-    background-size: 0.35rem 0.35rem;
-    background-repeat: no-repeat;
-  }
-
-  .field input:focus-visible,
-  .field select:focus-visible,
-  .field textarea:focus-visible {
-    border-color: var(--color-signal);
-    outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-signal) 30%, transparent);
-  }
-
-  /* Floating label: sits inside the empty field, moves up once it is focused or filled. */
-  .field > label {
-    position: absolute;
-    inset-block-start: 1.05rem;
-    inset-inline-start: calc(var(--space-3) + 1px);
-    color: var(--color-fg-muted);
-    pointer-events: none;
-    transform-origin: left top;
-    transition:
-      transform var(--duration-base) var(--ease-out),
-      color var(--duration-fast) var(--ease-out);
-  }
-
-  .field input:focus + label,
-  .field input:not(:placeholder-shown) + label,
-  .field textarea:focus + label,
-  .field textarea:not(:placeholder-shown) + label,
-  .field--select > label {
-    transform: translateY(-0.6rem) scale(0.78);
-  }
-
-  .field input:focus + label,
-  .field textarea:focus + label,
-  .field select:focus + label {
-    color: var(--color-signal);
-  }
-
-  .field [aria-invalid='true'] {
-    border-color: var(--color-danger);
-  }
-
-  .error {
-    min-height: 0;
-    margin: 0;
-    color: var(--color-danger);
-    font-size: var(--step--1);
-  }
-
-  .error:not(:empty) {
-    margin-block-start: var(--space-1);
-    animation: error-in var(--duration-base) var(--ease-out);
-  }
-
-  @keyframes error-in {
-    from {
-      opacity: 0;
-      transform: translateY(-0.25rem);
-    }
-  }
-
-  .count {
-    position: absolute;
-    inset-block-start: 0.45rem;
-    inset-inline-end: var(--space-3);
-    margin: 0;
-    color: var(--color-fg-muted);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-  }
-
-  .field--check {
-    grid-template-columns: auto 1fr;
-    align-items: start;
-    column-gap: var(--space-3);
-  }
-
-  .field--check input {
-    width: 1.5rem;
-    height: 1.5rem;
-    margin: 0.15rem 0 0;
-    accent-color: var(--color-signal);
-  }
-
-  .field--check > label {
-    position: static;
-    color: var(--color-fg-muted);
-    font-size: var(--step--1);
-    pointer-events: auto;
-  }
-
-  .field--check a {
-    color: var(--color-signal);
-  }
-
-  .field--check .error {
-    grid-column: 2;
-  }
-
-  .trap {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-  }
-
-  .turnstile:empty {
-    display: none;
-  }
-
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-4);
-  }
-
-  .submit {
-    min-height: 2.875rem;
-    padding: var(--space-2) var(--space-6);
-    border: 0;
-    border-radius: var(--radius-control);
-    background: var(--color-signal);
-    color: var(--color-signal-contrast);
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-    transition:
-      transform var(--duration-fast) var(--ease-out),
-      box-shadow var(--duration-base) var(--ease-out),
-      opacity var(--duration-fast) var(--ease-out);
-  }
-
-  .submit:hover {
-    box-shadow: 0 0.5rem 1.75rem -0.5rem color-mix(in srgb, var(--color-signal) 55%, transparent);
-  }
-
-  .submit:active {
-    transform: translateY(1px) scale(0.98);
-  }
-
-  .submit[aria-busy='true'] {
-    opacity: 0.7;
-    cursor: progress;
-  }
-
-  .status {
-    margin: 0;
-    color: var(--color-fg-muted);
-    font-size: var(--step--1);
-  }
-
-  .status[data-tone='error'] {
-    color: var(--color-danger);
-  }
-
-  .sent {
-    display: grid;
-    justify-items: start;
-    gap: var(--space-3);
-    padding: var(--space-6) var(--space-5);
-    border: 1px solid var(--color-signal);
-    border-radius: var(--radius-panel);
-    background: var(--color-surface);
-    outline: none;
-    animation: sent-in 480ms var(--ease-out);
-  }
-
-  .sent[hidden] {
-    display: none;
-  }
-
-  .sent h3 {
-    margin: 0;
-    font-size: var(--step-1);
-  }
-
-  .sent p {
-    margin: 0;
-    max-width: 60ch;
-    color: var(--color-fg-muted);
-  }
-
-  .sent-mark {
-    width: 3rem;
-    height: 3rem;
-    fill: none;
-    stroke: var(--color-signal);
-    stroke-width: 2.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .sent-mark path {
-    stroke-dasharray: 32;
-    stroke-dashoffset: 32;
-    animation: draw 520ms 180ms var(--ease-out) forwards;
-  }
-
-  @keyframes sent-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.75rem) scale(0.98);
-    }
-  }
-
-  @keyframes draw {
-    to {
-      stroke-dashoffset: 0;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .sent,
-    .error:not(:empty) {
-      animation: none;
-    }
-
-    .sent-mark path {
-      animation: none;
-      stroke-dashoffset: 0;
-    }
   }
 </style>
