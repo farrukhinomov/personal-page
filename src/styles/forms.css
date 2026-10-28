@@ -1,0 +1,297 @@
+/*
+ * Contact page forms (Message and Intro Call booking): floating-label fields, inline errors,
+ * the submit row and the confirmation panel. Everything is scoped under .form or .form-sent
+ * so these generic names cannot leak into other components.
+ */
+
+/* The form needs JavaScript for the bot check; without it the noscript hint stands alone. */
+:root:not([data-js]) .form,
+.form[hidden] {
+  display: none;
+}
+
+.form-noscript a {
+  color: var(--color-signal);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+@media (min-width: 40rem) {
+  .form {
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--space-4);
+  }
+
+  .form .field--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+.form .field {
+  position: relative;
+  display: grid;
+}
+
+.form .field input:not([type='checkbox']),
+.form .field select,
+.form .field textarea {
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 1.4rem var(--space-3) 0.45rem;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font: inherit;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.form .field textarea {
+  min-height: 10rem;
+  padding-block-start: 1.6rem;
+  resize: vertical;
+}
+
+.form .field select {
+  appearance: none;
+  padding-inline-end: var(--space-7);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-fg-muted) 50%),
+    linear-gradient(135deg, var(--color-fg-muted) 50%, transparent 50%);
+  background-position:
+    right 1.25rem top 1.6rem,
+    right 0.9rem top 1.6rem;
+  background-size: 0.35rem 0.35rem;
+  background-repeat: no-repeat;
+}
+
+.form .field input:focus-visible,
+.form .field select:focus-visible,
+.form .field textarea:focus-visible {
+  border-color: var(--color-signal);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-signal) 30%, transparent);
+}
+
+/* Floating label: sits inside the empty field, moves up once it is focused or filled. */
+.form .field > label {
+  position: absolute;
+  inset-block-start: 1.05rem;
+  inset-inline-start: calc(var(--space-3) + 1px);
+  color: var(--color-fg-muted);
+  pointer-events: none;
+  transform-origin: left top;
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.form .field input:focus + label,
+.form .field input:not(:placeholder-shown) + label,
+.form .field textarea:focus + label,
+.form .field textarea:not(:placeholder-shown) + label,
+.form .field--select > label {
+  transform: translateY(-0.6rem) scale(0.78);
+}
+
+.form .field input:focus + label,
+.form .field textarea:focus + label,
+.form .field select:focus + label {
+  color: var(--color-signal);
+}
+
+.form .field [aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.form .error {
+  min-height: 0;
+  margin: 0;
+  color: var(--color-danger);
+  font-size: var(--step--1);
+}
+
+.form .error:not(:empty) {
+  margin-block-start: var(--space-1);
+  animation: error-in var(--duration-base) var(--ease-out);
+}
+
+@keyframes error-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+}
+
+.form .count {
+  position: absolute;
+  inset-block-start: 0.45rem;
+  inset-inline-end: var(--space-3);
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.form .field--check {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  column-gap: var(--space-3);
+}
+
+.form .field--check input {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0.15rem 0 0;
+  accent-color: var(--color-signal);
+}
+
+.form .field--check > label {
+  position: static;
+  color: var(--color-fg-muted);
+  font-size: var(--step--1);
+  pointer-events: auto;
+}
+
+.form .field--check a {
+  color: var(--color-signal);
+}
+
+.form .field--check .error {
+  grid-column: 2;
+}
+
+.form .trap {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.form .turnstile:empty {
+  display: none;
+}
+
+.form .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.form .submit {
+  min-height: 2.875rem;
+  padding: var(--space-2) var(--space-6);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-signal);
+  color: var(--color-signal-contrast);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+.form .submit:hover {
+  box-shadow: 0 0.5rem 1.75rem -0.5rem color-mix(in srgb, var(--color-signal) 55%, transparent);
+}
+
+.form .submit:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.form .submit[aria-busy='true'] {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.form .status {
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--step--1);
+}
+
+.form .status[data-tone='error'] {
+  color: var(--color-danger);
+}
+
+.form-sent {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-5);
+  border: 1px solid var(--color-signal);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  outline: none;
+  animation: sent-in 480ms var(--ease-out);
+}
+
+.form-sent[hidden] {
+  display: none;
+}
+
+.form-sent h3 {
+  margin: 0;
+  font-size: var(--step-1);
+}
+
+.form-sent p {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--color-fg-muted);
+}
+
+.form-sent-mark {
+  width: 3rem;
+  height: 3rem;
+  fill: none;
+  stroke: var(--color-signal);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.form-sent-mark path {
+  stroke-dasharray: 32;
+  stroke-dashoffset: 32;
+  animation: draw 520ms 180ms var(--ease-out) forwards;
+}
+
+@keyframes sent-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-sent,
+  .form .error:not(:empty) {
+    animation: none;
+  }
+
+  .form-sent-mark path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
