@@ -28,6 +28,8 @@ for (const path of sitemapPaths()) {
       await expect(page.locator('main')).toBeVisible();
       await page.waitForLoadState('networkidle');
       expect(errors).toEqual([]);
+      // The privacy policy promises no cookies, which is why there is no consent banner.
+      expect(await page.context().cookies()).toEqual([]);
     });
 
     test.describe('on the narrowest phone', () => {
