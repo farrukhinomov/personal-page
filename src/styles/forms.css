@@ -155,11 +155,17 @@
   accent-color: var(--color-signal);
 }
 
-.form .field--check > label {
+/*
+ * A plain label beside the box. As specific as the floating-label rules above and later in the
+ * file, so they no longer shrink and move it.
+ */
+.form .field--check input[type='checkbox'] + label {
   position: static;
   color: var(--color-fg-muted);
   font-size: var(--step--1);
+  line-height: 1.55;
   pointer-events: auto;
+  transform: none;
 }
 
 .form .field--check a {
