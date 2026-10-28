@@ -37,10 +37,10 @@ afterEach(() => {
 });
 
 describe('bookingWindow', () => {
-  it('spans the next 14 days', () => {
+  it('spans the next 30 days', () => {
     const now = new Date('2026-10-28T12:00:00Z');
 
-    expect(bookingWindow(now)).toEqual({ from: now, to: new Date('2026-11-11T12:00:00Z') });
+    expect(bookingWindow(now)).toEqual({ from: now, to: new Date('2026-11-27T12:00:00Z') });
   });
 });
 
