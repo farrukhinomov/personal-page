@@ -104,6 +104,19 @@ describe('handleBooking', () => {
     });
   });
 
+  it('adds an optional link, e.g. to a job posting, below the reason', async () => {
+    const book = vi
+      .fn<BookingServices['book']>()
+      .mockResolvedValue({ kind: 'requested', uid: 'x' });
+    const link = 'https://jobs.example.com/senior-dotnet';
+
+    await handleBooking({ ...validBody, link }, IP, services({ book }));
+
+    expect(book.mock.calls[0]?.[0].reason).toBe(
+      `A senior .NET role in our platform team.\n\nLink: ${link}`,
+    );
+  });
+
   it('answers a bot like a person but books nothing', async () => {
     const deps = services();
 
@@ -114,6 +127,10 @@ describe('handleBooking', () => {
   it.each([
     ['company', { company: '' }],
     ['reason', { reason: 'Hi' }],
+    ['link', { link: 'javascript:alert(1)' }],
+    ['link', { link: 'not a link' }],
+    ['link', { link: 'https://a.example/x\n\nLink: https://evil.example' }],
+    ['link', { link: 'https://a.example/ x' }],
     ['start', { start: 'tomorrow at five' }],
     ['timeZone', { timeZone: 'Mars/Olympus' }],
     ['consent', { consent: false }],

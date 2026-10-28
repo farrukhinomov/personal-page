@@ -1,9 +1,11 @@
 /** The Message form on the Contact page; shared behaviour lives in form-client.ts. */
+import { setUpAttachments } from './attachments-client';
 import { setUpContactForm } from './form-client';
 
 const form = document.querySelector<HTMLFormElement>('[data-message-form]');
 
 if (form) {
+  const picker = form.querySelector<HTMLElement>('[data-attachments]');
   setUpContactForm(form, {
     prefix: 'message',
     fields: ['name', 'email', 'company', 'topic', 'message', 'consent'],
@@ -19,6 +21,7 @@ if (form) {
         consent: data.get('consent') === 'on',
       };
     },
+    ...(picker ? { attachments: setUpAttachments(picker) } : {}),
   });
 
   const message = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]');

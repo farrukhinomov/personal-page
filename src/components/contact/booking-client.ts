@@ -70,7 +70,7 @@ function setUp(form: HTMLFormElement): void {
   // Callbacks run long after setup, when `load` below exists.
   const contactForm = setUpContactForm(form, {
     prefix: 'booking',
-    fields: ['start', 'name', 'email', 'company', 'reason', 'consent'],
+    fields: ['start', 'name', 'email', 'company', 'reason', 'link', 'consent'],
     endpoint: '/api/booking',
     values: (data) => {
       const text = (name: string) => String(data.get(name) ?? '').trim();
@@ -81,6 +81,7 @@ function setUp(form: HTMLFormElement): void {
         email: text('email'),
         company: text('company'),
         reason: text('reason'),
+        link: text('link'),
         consent: data.get('consent') === 'on',
       };
     },
@@ -95,6 +96,14 @@ function setUp(form: HTMLFormElement): void {
       showStep('pick');
       void load(status.slot_unavailable);
     },
+  });
+
+  // "example.com/jobs/42" means a web address, so the scheme is added rather than refused.
+  // `change` fires before `blur`, so the field is validated with the completed link.
+  const link = find<HTMLInputElement>('input[name="link"]');
+  link?.addEventListener('change', () => {
+    const value = link.value.trim();
+    if (value && !/^[a-z][a-z\d+.-]*:/i.test(value)) link.value = `https://${value}`;
   });
 
   // A chosen time stays chosen only while its day is shown, so "Continue" never books a time

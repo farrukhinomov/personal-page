@@ -68,6 +68,72 @@ test('sends a Message and shows the confirmation', async ({ page }) => {
   });
 });
 
+const PDF = { name: 'role.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.7') };
+const PNG = {
+  name: 'screenshot.png',
+  mimeType: 'image/png',
+  buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+};
+
+test('sends attached files with the Message as multipart', async ({ page }) => {
+  let request: { type: string; body: string } | undefined;
+  await page.route('/api/message', async (route) => {
+    request = {
+      type: (await route.request().headerValue('content-type')) ?? '',
+      body: route.request().postDataBuffer()?.toString('latin1') ?? '',
+    };
+    await route.fulfill({ json: { ok: true } });
+  });
+  const message = page.locator('.message');
+
+  await fillValid(page);
+  await message.getByLabel('Choose files').setInputFiles([PDF, PNG]);
+  await expect(message.getByRole('list', { name: 'Attachments (optional)' })).toContainText(
+    'role.pdf',
+  );
+  await message.getByRole('button', { name: 'Remove screenshot.png' }).click();
+  await expect(message.getByText('screenshot.png')).toBeHidden();
+  await expect(message.getByRole('button', { name: 'Remove role.pdf' })).toBeFocused();
+  await message.getByRole('button', { name: 'Send message' }).click();
+
+  await expect(message.getByRole('heading', { name: 'Message sent' })).toBeVisible();
+  expect(request?.type).toMatch(/^multipart\/form-data; boundary=/);
+  expect(request?.body).toContain('name="json"');
+  expect(request?.body).toContain('"topic":"job"');
+  expect(request?.body).toContain('name="attachments"; filename="role.pdf"');
+  expect(request?.body).not.toContain('screenshot.png');
+});
+
+test('explains files that cannot be sent and keeps the Message back', async ({ page }) => {
+  let requests = 0;
+  await page.route('/api/message', (route) => {
+    requests += 1;
+    return route.fulfill({ json: { ok: true } });
+  });
+  const message = page.locator('.message');
+  const picker = message.getByLabel('Choose files');
+  await fillValid(page);
+
+  await picker.setInputFiles({
+    name: 'setup.exe',
+    mimeType: 'application/x-msdownload',
+    buffer: Buffer.from('MZ'),
+  });
+  await expect(message.getByText(/This file is not possible: setup.exe/)).toBeVisible();
+  await expect(message.getByRole('list', { name: 'Attachments (optional)' })).toBeHidden();
+
+  const many = ['a', 'b', 'c', 'd'].map((name) => ({ ...PDF, name: `${name}.pdf` }));
+  await picker.setInputFiles(many);
+  await expect(message.getByText('Please attach at most 3 files.')).toBeVisible();
+  await message.getByRole('button', { name: 'Send message' }).click();
+
+  await expect(picker).toBeFocused();
+  await expect(picker).toHaveAttribute('aria-invalid', 'true');
+  await message.getByRole('button', { name: 'Remove d.pdf' }).click();
+  await expect(message.getByText('Please attach at most 3 files.')).toBeHidden();
+  expect(requests).toBe(0);
+});
+
 test('shows every problem on submit and sends nothing', async ({ page }) => {
   let requests = 0;
   await page.route('/api/message', (route) => {
@@ -162,6 +228,9 @@ test('the filled form and the confirmation have no WCAG 2.2 AA violations', asyn
   expect((await axe()).violations).toEqual([]);
 
   await fillValid(page);
+  await page.locator('.message').getByLabel('Choose files').setInputFiles(PDF);
+  expect((await axe()).violations).toEqual([]);
+
   await page.locator('.message').getByRole('button', { name: 'Send message' }).click();
   await expect(page.locator('.message [data-sent]')).toBeFocused();
   expect((await axe()).violations).toEqual([]);

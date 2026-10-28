@@ -1,4 +1,5 @@
 import { profile } from '@/data/profile';
+import { formatSize, type Attachment } from './attachments';
 import { confirmationFor, confirmationText } from './confirmation';
 import { confirmationHtml } from './confirmation-html';
 import { TOPIC_LABELS, type Message } from './message';
@@ -14,11 +15,16 @@ export interface Email {
   text: string;
   /** Optional rich version; mail apps that cannot show it fall back to `text`. */
   html?: string;
+  attachments?: readonly Attachment[];
 }
 
 /** The Message as it reaches Farrukh; replying goes straight to the sender. */
-export function notificationEmail(message: Message): Email {
+export function notificationEmail(
+  message: Message,
+  attachments: readonly Attachment[] = [],
+): Email {
   const topic = TOPIC_LABELS[message.topic].de;
+  const listed = attachments.map((file) => `${file.filename} (${formatSize(file.content.length)})`);
   return {
     from: SENDER,
     to: profile.email,
@@ -30,9 +36,11 @@ export function notificationEmail(message: Message): Email {
       `Firma: ${message.company || '–'}`,
       `Thema: ${topic}`,
       `Sprache: ${message.locale}`,
+      `Anhänge: ${listed.join(', ') || '–'}`,
       '',
       message.message,
     ].join('\n'),
+    ...(attachments.length > 0 ? { attachments } : {}),
   };
 }
 
@@ -67,6 +75,15 @@ export async function sendEmail(
       subject: email.subject,
       text: email.text,
       ...(email.html ? { html: email.html } : {}),
+      ...(email.attachments
+        ? {
+            attachments: email.attachments.map((file) => ({
+              filename: file.filename,
+              content: Buffer.from(file.content).toString('base64'),
+              content_type: file.contentType,
+            })),
+          }
+        : {}),
     }),
   });
   if (!response.ok) {

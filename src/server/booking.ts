@@ -6,6 +6,7 @@ export const BOOKING_LIMITS = {
   ...SENDER_LIMITS,
   company: { min: 2, max: 100 },
   reason: { min: 10, max: 1000 },
+  link: { max: 500 },
 } as const;
 
 /** How many days ahead the Contact page offers Slots. */
@@ -24,6 +25,18 @@ export const bookingSchema = z.object({
   ...senderFields,
   company: singleLine.min(BOOKING_LIMITS.company.min).max(BOOKING_LIMITS.company.max),
   reason: z.string().trim().min(BOOKING_LIMITS.reason.min).max(BOOKING_LIMITS.reason.max),
+  /** Optional, e.g. the job posting the call is about. */
+  link: z
+    .literal('')
+    .or(
+      z
+        .url({ protocol: /^https?$/ })
+        .max(BOOKING_LIMITS.link.max)
+        // The URL parser skips line breaks and tabs, but the link is passed on as written and
+        // must not add lines to the booking notes.
+        .regex(/^[^\s\p{Cc}]+$/u),
+    )
+    .default(''),
   /** Start of the chosen Slot, as offered by /api/slots. */
   start: z.iso.datetime({ offset: true }),
   /** The Visitor's time zone, so Cal.com writes their invitation in local time. */
