@@ -7,7 +7,7 @@ import { requiredSecret } from '@/server/secrets';
 export const prerender = false;
 
 /** Free Intro Call Slots for the Contact page (issue #10). */
-export const GET: APIRoute = () => {
+export const GET: APIRoute = ({ url }) => {
   const apiKey = requiredSecret('CALCOM_API_KEY');
-  return handleSlots((range) => fetchSlots(apiKey, range));
+  return handleSlots(url, (range) => fetchSlots(apiKey, range));
 };

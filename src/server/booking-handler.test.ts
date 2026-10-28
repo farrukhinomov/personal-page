@@ -46,7 +46,11 @@ describe('bookingWindow', () => {
 
 describe('handleSlots', () => {
   it('returns the free Slots with a short CDN cache', async () => {
-    const response = await handleSlots(async () => [SLOT], new Date('2026-10-28T12:00:00Z'));
+    const response = await handleSlots(
+      new URL('https://inomov.online/api/slots'),
+      async () => [SLOT],
+      new Date('2026-10-28T12:00:00Z'),
+    );
 
     expect(await response.json()).toEqual({ ok: true, slots: [SLOT] });
     expect(response.headers.get('Cache-Control')).toContain('s-maxage=60');
@@ -55,10 +59,22 @@ describe('handleSlots', () => {
   it('answers 502 when Cal.com is unreachable', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    const response = await handleSlots(() => Promise.reject(new Error('down')));
+    const response = await handleSlots(new URL('https://inomov.online/api/slots'), () =>
+      Promise.reject(new Error('down')),
+    );
 
     expect(response.status).toBe(502);
     expect((await errorOf(response)).code).toBe('slots_unavailable');
+    expect(response.headers.get('Cache-Control')).toContain('s-maxage=10');
+  });
+
+  it('refuses a query string, which would bypass the CDN cache, without asking Cal.com', async () => {
+    const slots = vi.fn<BookingServices['slots']>();
+
+    const response = await handleSlots(new URL('https://inomov.online/api/slots?x=1'), slots);
+
+    expect(response.status).toBe(400);
+    expect(slots).not.toHaveBeenCalled();
   });
 });
 
