@@ -11,7 +11,7 @@ This is a courtesy translation. The German text is legally binding.
 
 ## In short
 
-This website sets no cookies and uses no analytics or tracking services. Fonts are served by this website itself. When you visit, only the technically necessary data described below is processed. Third-party services only come into play when you write to me through the contact form.
+This website sets no cookies and uses no analytics or tracking services. Fonts are served by this website itself. When you visit, only the technically necessary data described below is processed. Third-party services only come into play when you write to me through the contact form or book a call.
 
 ## Controller
 
@@ -64,6 +64,14 @@ To keep automated programs from misusing the form, I use Cloudflare Turnstile (C
 ### Request limits with Upstash
 
 To prevent abuse, the number of messages per day is limited. For this, I store a counter at Upstash (Upstash, Inc., USA) under a keyed hash (HMAC) of your IP address and, for the confirmation email, of your email address. The addresses themselves are not stored, and the counters are deleted automatically after 24 hours. The legal basis is Art. 6(1)(f) GDPR (legitimate interest in protection against abuse). Where data is transferred to the USA, the transfer relies on standard contractual clauses (Art. 46 GDPR).
+
+## Booking a call (intro call)
+
+On the contact page you can request a 30-minute call with me. For this, I process your name, your email address, your company, what you would like to talk about, the chosen time and your time zone. Scheduling is handled by Cal.com (Cal.com, Inc., USA) as a processor: Cal.com stores the booking, checks it against my Google Calendar and sends you the emails about your request and, once I confirm it, the invitation with the link to Google Meet (Google Ireland Limited). The website loads the free times from Cal.com through my server; your browser does not connect to Cal.com for this.
+
+The legal basis is your consent, which you give with the checkbox in the form (Art. 6(1)(a) GDPR), and, where the call concerns a contract or preparing one, Art. 6(1)(b) GDPR. You can withdraw your consent at any time by email. The booking data stays at Cal.com and in my calendar until the call has taken place and no statutory retention duty applies. The transfer to the USA relies on standard contractual clauses (Art. 46 GDPR).
+
+The booking request is also protected by Cloudflare Turnstile and limited to three requests per day and IP address; what is said above about Turnstile and Upstash under contact form applies.
 
 ## Links to other websites
 
