@@ -1,4 +1,4 @@
-import { parseAttachments } from './attachments';
+import { checkAttachmentLimits, parseAttachments } from './attachments';
 import { confirmationEmail, notificationEmail, type Email } from './message-mail';
 import { parseMessage } from './message';
 import type { RateLimitResult } from './rate-limit';
@@ -36,13 +36,8 @@ export async function handleMessage(
   }
   const { message } = parsed;
 
-  const attachments = await parseAttachments(files);
-  if (attachments.kind === 'too_large') {
-    return errorResponse(413, 'payload_too_large', 'The attachments are too large.');
-  }
-  if (attachments.kind === 'invalid') {
-    return errorResponse(422, 'invalid_attachment', 'An attachment is not allowed.');
-  }
+  const limits = checkAttachmentLimits(files);
+  if (limits !== 'ok') return refusedAttachments(limits);
 
   if (!(await services.verifyTurnstile(message.turnstileToken, ip))) {
     return errorResponse(403, 'verification_failed', 'The bot check failed. Please try again.');
@@ -50,6 +45,10 @@ export async function handleMessage(
 
   const limit = await services.rateLimit(ip);
   if (!limit.allowed) return rateLimitedResponse(limit.retryAfterSeconds);
+
+  // The file contents are only read for someone who passed both checks.
+  const attachments = await parseAttachments(files);
+  if (attachments.kind !== 'valid') return refusedAttachments(attachments.kind);
 
   try {
     await services.send(notificationEmail(message, attachments.attachments));
@@ -66,4 +65,10 @@ export async function handleMessage(
     console.error('Sending the confirmation failed.', error);
   }
   return okResponse();
+}
+
+function refusedAttachments(kind: 'invalid' | 'too_large'): Response {
+  return kind === 'too_large'
+    ? errorResponse(413, 'payload_too_large', 'The attachments are too large.')
+    : errorResponse(422, 'invalid_attachment', 'An attachment is not allowed.');
 }

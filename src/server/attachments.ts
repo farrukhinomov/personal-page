@@ -28,11 +28,17 @@ export interface Attachment {
 export type ParsedAttachments =
   { kind: 'valid'; attachments: Attachment[] } | { kind: 'invalid' } | { kind: 'too_large' };
 
+/** The cheap check of count and total size, which needs no file contents. */
+export function checkAttachmentLimits(files: readonly File[]): 'ok' | 'invalid' | 'too_large' {
+  if (files.length > ATTACHMENT_LIMITS.files) return 'invalid';
+  const total = files.reduce((sum, file) => sum + file.size, 0);
+  return total > ATTACHMENT_LIMITS.totalBytes ? 'too_large' : 'ok';
+}
+
 /** Checks the uploaded files: count, total size, and that each one really is the type it claims. */
 export async function parseAttachments(files: readonly File[]): Promise<ParsedAttachments> {
-  if (files.length > ATTACHMENT_LIMITS.files) return { kind: 'invalid' };
-  const total = files.reduce((sum, file) => sum + file.size, 0);
-  if (total > ATTACHMENT_LIMITS.totalBytes) return { kind: 'too_large' };
+  const limits = checkAttachmentLimits(files);
+  if (limits !== 'ok') return { kind: limits };
 
   const attachments: Attachment[] = [];
   for (const file of files) {
@@ -57,11 +63,14 @@ export function extensionOf(filename: string): AttachmentExtension | undefined {
     : undefined;
 }
 
-/** Compares the first bytes with the file format, so a renamed program is refused. */
+/**
+ * Compares the first bytes with the file format, so a renamed program is refused. Documents are
+ * also refused when they carry active content; Gmail scans what passes here once more.
+ */
 function matchesType(extension: AttachmentExtension, bytes: Uint8Array): boolean {
   switch (extension) {
     case 'pdf':
-      return startsWith(bytes, ascii('%PDF-'));
+      return startsWith(bytes, ascii('%PDF-')) && !PDF_ACTIVE_CONTENT.test(latin1(bytes));
     case 'png':
       return startsWith(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     case 'jpg':
@@ -74,14 +83,58 @@ function matchesType(extension: AttachmentExtension, bytes: Uint8Array): boolean
   }
 }
 
+/** Scripts, actions that start programs, and embedded files in a PDF. */
+const PDF_ACTIVE_CONTENT = /\/(JavaScript|JS|Launch|EmbeddedFiles?)\b/;
+
+/** ZIP entries of a Word document that hold macros, ActiveX controls or embedded objects. */
+const DOCX_ACTIVE_CONTENT = /vbaProject\.bin$|(^|\/)(activeX|embeddings)\/|oleObject/i;
+
 /**
- * A DOCX is a ZIP archive. Its entry names are stored uncompressed, so a Word document shows
- * `word/document.xml`, and one with macros `vbaProject.bin`, which is refused.
+ * A DOCX is a ZIP archive with `word/document.xml` in it. The entry names are read from the
+ * archive's directory, so text that merely contains such a name does not count.
  */
 function isWordDocument(bytes: Uint8Array): boolean {
   if (!startsWith(bytes, [0x50, 0x4b, 0x03, 0x04])) return false;
-  const text = new TextDecoder('latin1').decode(bytes);
-  return text.includes('word/document.xml') && !text.includes('vbaProject.bin');
+  const names = zipEntryNames(bytes);
+  return (
+    names !== undefined &&
+    names.includes('word/document.xml') &&
+    !names.some((name) => DOCX_ACTIVE_CONTENT.test(name))
+  );
+}
+
+const ZIP_END_SIGNATURE = 0x06054b50;
+const ZIP_ENTRY_SIGNATURE = 0x02014b50;
+/** The end record is 22 bytes plus a comment of up to 64 KB. */
+const ZIP_END_SEARCH = 22 + 0xffff;
+
+/** Entry names from a ZIP's central directory, or undefined when the directory is broken. */
+export function zipEntryNames(bytes: Uint8Array): string[] | undefined {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let end = bytes.length - 22;
+  const stop = Math.max(0, bytes.length - ZIP_END_SEARCH);
+  while (end >= stop && view.getUint32(end, true) !== ZIP_END_SIGNATURE) end -= 1;
+  if (end < stop) return undefined;
+
+  const count = view.getUint16(end + 10, true);
+  let offset = view.getUint32(end + 16, true);
+  const names: string[] = [];
+  for (let index = 0; index < count; index += 1) {
+    if (offset + 46 > bytes.length || view.getUint32(offset, true) !== ZIP_ENTRY_SIGNATURE) {
+      return undefined;
+    }
+    const nameLength = view.getUint16(offset + 28, true);
+    const extraLength = view.getUint16(offset + 30, true);
+    const commentLength = view.getUint16(offset + 32, true);
+    if (offset + 46 + nameLength > bytes.length) return undefined;
+    names.push(latin1(bytes.subarray(offset + 46, offset + 46 + nameLength)));
+    offset += 46 + nameLength + extraLength + commentLength;
+  }
+  return names;
+}
+
+function latin1(bytes: Uint8Array): string {
+  return new TextDecoder('latin1').decode(bytes);
 }
 
 const MAX_FILENAME_LENGTH = 100;

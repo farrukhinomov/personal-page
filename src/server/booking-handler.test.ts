@@ -129,6 +129,8 @@ describe('handleBooking', () => {
     ['reason', { reason: 'Hi' }],
     ['link', { link: 'javascript:alert(1)' }],
     ['link', { link: 'not a link' }],
+    ['link', { link: 'https://a.example/x\n\nLink: https://evil.example' }],
+    ['link', { link: 'https://a.example/ x' }],
     ['start', { start: 'tomorrow at five' }],
     ['timeZone', { timeZone: 'Mars/Olympus' }],
     ['consent', { consent: false }],

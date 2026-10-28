@@ -57,21 +57,35 @@ describe('handleMessage', () => {
     expect(confirmation?.attachments).toBeUndefined();
   });
 
-  it.each([
-    [422, 'invalid_attachment', [new File(['MZ'], 'role.pdf')]],
-    [
-      413,
-      'payload_too_large',
-      [new File([new Uint8Array(ATTACHMENT_LIMITS.totalBytes + 1)], 'a.pdf')],
-    ],
-  ])('refuses attachments with %i %s before the bot check', async (status, code, files) => {
+  it('refuses too many or too large files before the bot check', async () => {
+    const deps = services();
+    const large = [new File([new Uint8Array(ATTACHMENT_LIMITS.totalBytes + 1)], 'a.pdf')];
+    const many = Array.from(
+      { length: ATTACHMENT_LIMITS.files + 1 },
+      (_, index) => new File([SAMPLE_FILES.pdf], `${index}.pdf`),
+    );
+
+    const tooLarge = await handleMessage(validBody, IP, deps, large);
+    const tooMany = await handleMessage(validBody, IP, deps, many);
+
+    expect(tooLarge.status).toBe(413);
+    expect((await errorOf(tooLarge)).code).toBe('payload_too_large');
+    expect(tooMany.status).toBe(422);
+    expect((await errorOf(tooMany)).code).toBe('invalid_attachment');
+    expect(deps.verifyTurnstile).not.toHaveBeenCalled();
+  });
+
+  it('reads file contents only after the bot check and the daily limit', async () => {
+    const renamed = [new File(['MZ'], 'role.pdf')];
+    const blocked = services({ verifyTurnstile: vi.fn().mockResolvedValue(false) });
     const deps = services();
 
-    const response = await handleMessage(validBody, IP, deps, files);
+    expect((await handleMessage(validBody, IP, blocked, renamed)).status).toBe(403);
+    const response = await handleMessage(validBody, IP, deps, renamed);
 
-    expect(response.status).toBe(status);
-    expect((await errorOf(response)).code).toBe(code);
-    expect(deps.verifyTurnstile).not.toHaveBeenCalled();
+    expect(response.status).toBe(422);
+    expect((await errorOf(response)).code).toBe('invalid_attachment');
+    expect(deps.rateLimit).toHaveBeenCalledOnce();
     expect(deps.send).not.toHaveBeenCalled();
   });
 
