@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig, fontProviders } from 'astro/config';
+import { defineConfig, envField, fontProviders } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
@@ -8,6 +8,13 @@ export default defineConfig({
   site: 'https://inomov.online',
   trailingSlash: 'never',
   adapter: vercel(),
+  env: {
+    // Server secrets, read at request time with getSecret(). Documented in .env.example.
+    schema: {
+      KV_REST_API_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
+      KV_REST_API_TOKEN: envField.string({ context: 'server', access: 'secret', optional: true }),
+    },
+  },
   integrations: [
     mdx(),
     // Language alternates are declared per page with <link rel="alternate" hreflang>.
