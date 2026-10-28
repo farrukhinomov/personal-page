@@ -5,7 +5,7 @@ import { loadMcpPosts } from '@/mcp/posts';
 /** Runs as a Vercel function; every other page is static. */
 export const prerender = false;
 
-const handler = createPortfolioMcpHandler(loadMcpPosts);
+const handler = createPortfolioMcpHandler(() => loadMcpPosts(new Date(__BUILT_AT__)));
 
 /** The MCP endpoint for Agents (issue #7); the MCP SDK answers every method itself. */
 export const ALL: APIRoute = ({ request }) => handler.fetch(request);

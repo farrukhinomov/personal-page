@@ -28,6 +28,10 @@ export default defineConfig({
       }),
     },
   },
+  vite: {
+    // When the site was built: server code treats Posts as published exactly as the static pages do.
+    define: { __BUILT_AT__: JSON.stringify(new Date().toISOString()) },
+  },
   integrations: [
     mdx(),
     // Language alternates are declared per page with <link rel="alternate" hreflang>.
