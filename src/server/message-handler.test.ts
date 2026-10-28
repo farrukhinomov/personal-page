@@ -145,12 +145,17 @@ describe('handleMessage', () => {
   it('skips the confirmation once the recipient’s daily limit is used up', async () => {
     const send = vi.fn<MessageServices['send']>().mockResolvedValue(undefined);
     const confirmationLimit = vi.fn().mockResolvedValue({ allowed: false, retryAfterSeconds: 60 });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     const response = await handleMessage(validBody, IP, services({ send, confirmationLimit }));
 
     expect(response.status).toBe(200);
     expect(confirmationLimit).toHaveBeenCalledWith('ada@example.com');
     expect(send.mock.calls.map(([email]: [Email]) => email.to)).toEqual([profile.email]);
+    expect(warn).toHaveBeenCalledWith(
+      'Confirmation skipped: the recipient’s daily limit is used up.',
+    );
+    expect(JSON.stringify(warn.mock.calls)).not.toContain('ada@example.com');
   });
 
   it('still succeeds when only the confirmation fails', async () => {

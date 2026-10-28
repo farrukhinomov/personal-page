@@ -59,7 +59,11 @@ export async function handleMessage(
 
   // Farrukh has the Message; a lost confirmation must not make the sender try again.
   try {
-    if (!(await services.confirmationLimit(message.email)).allowed) return okResponse();
+    if (!(await services.confirmationLimit(message.email)).allowed) {
+      // Logged without the address, so a missing confirmation can be explained later.
+      console.warn('Confirmation skipped: the recipient’s daily limit is used up.');
+      return okResponse();
+    }
     await services.send(confirmationEmail(message));
   } catch (error) {
     console.error('Sending the confirmation failed.', error);
