@@ -96,7 +96,7 @@ describe('handleMessage', () => {
     expect(deps.send).toHaveBeenCalledOnce();
   });
 
-  it('sends one confirmation per recipient a day', async () => {
+  it('skips the confirmation once the recipient’s daily limit is used up', async () => {
     const send = vi.fn<MessageServices['send']>().mockResolvedValue(undefined);
     const confirmationLimit = vi.fn().mockResolvedValue({ allowed: false, retryAfterSeconds: 60 });
 
