@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { profile } from '@/data/profile';
+import { ATTACHMENT_LIMITS } from './attachments';
+import { SAMPLE_FILES } from './attachments.fixture';
 import { handleMessage, type MessageServices } from './message-handler';
 import type { Email } from './message-mail';
 import { validBody } from './message.fixture';
@@ -41,6 +43,36 @@ describe('handleMessage', () => {
     expect(deps.rateLimit).toHaveBeenCalledWith(IP);
     const recipients = send.mock.calls.map(([email]: [Email]) => email.to);
     expect(recipients).toEqual([profile.email, 'ada@example.com']);
+  });
+
+  it('attaches the files to the notification only', async () => {
+    const send = vi.fn<MessageServices['send']>().mockResolvedValue(undefined);
+    const files = [new File([SAMPLE_FILES.pdf], 'role.pdf')];
+
+    const response = await handleMessage(validBody, IP, services({ send }), files);
+
+    expect(response.status).toBe(200);
+    const [notification, confirmation] = send.mock.calls.map(([email]: [Email]) => email);
+    expect(notification?.attachments?.map((file) => file.filename)).toEqual(['role.pdf']);
+    expect(confirmation?.attachments).toBeUndefined();
+  });
+
+  it.each([
+    [422, 'invalid_attachment', [new File(['MZ'], 'role.pdf')]],
+    [
+      413,
+      'payload_too_large',
+      [new File([new Uint8Array(ATTACHMENT_LIMITS.totalBytes + 1)], 'a.pdf')],
+    ],
+  ])('refuses attachments with %i %s before the bot check', async (status, code, files) => {
+    const deps = services();
+
+    const response = await handleMessage(validBody, IP, deps, files);
+
+    expect(response.status).toBe(status);
+    expect((await errorOf(response)).code).toBe(code);
+    expect(deps.verifyTurnstile).not.toHaveBeenCalled();
+    expect(deps.send).not.toHaveBeenCalled();
   });
 
   it('answers a bot like a person but sends nothing', async () => {

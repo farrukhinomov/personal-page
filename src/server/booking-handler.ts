@@ -88,7 +88,8 @@ export async function handleBooking(
       timeZone: booking.timeZone,
       language: booking.locale,
       company: booking.company,
-      reason: booking.reason,
+      // Cal.com only knows the fields of the event type, so the link joins the reason.
+      reason: booking.link ? `${booking.reason}\n\nLink: ${booking.link}` : booking.reason,
     });
     return outcome.kind === 'requested' ? okResponse() : slotUnavailable();
   } catch (error) {

@@ -1,6 +1,7 @@
 /**
  * Shared behaviour of the Contact page forms (Message and Intro Call booking): inline
- * validation in the page's language, the Turnstile check and sending JSON to an API route.
+ * validation in the page's language, the Turnstile check and sending JSON to an API route, as
+ * multipart when files are attached.
  * Copy comes from the form's data attributes, so no text lives in the script.
  */
 import { turnstileWidget } from './turnstile-client';
@@ -20,6 +21,14 @@ export interface ContactFormOptions {
   onSuccess?(): void;
   /** Runs after a refused submit with the server's error code. */
   onError?(code: string): void;
+  /** Files chosen in the form, checked in the browser before anything is sent. */
+  attachments?: {
+    files(): readonly File[];
+    /** Shows the problem with the files, if any, and answers whether they can be sent. */
+    validate(): boolean;
+    /** Receives focus when the files are what stops the submit. */
+    focusTarget: HTMLElement | null;
+  };
 }
 
 export interface ContactForm {
@@ -74,9 +83,11 @@ export function setUpContactForm(form: HTMLFormElement, options: ContactFormOpti
     submitted = true;
 
     const invalid = options.fields.filter((name) => !validate(name));
-    if (invalid.length > 0) {
+    const filesValid = options.attachments?.validate() ?? true;
+    if (invalid.length > 0 || !filesValid) {
       setStatus(status.invalid ?? '', 'error');
-      focusField(form, control(invalid[0] ?? ''));
+      if (invalid.length > 0) focusField(form, control(invalid[0] ?? ''));
+      else options.attachments?.focusTarget?.focus();
       return;
     }
 
@@ -86,15 +97,15 @@ export function setUpContactForm(form: HTMLFormElement, options: ContactFormOpti
       const token = await turnstile.token();
       setStatus(status.sending ?? '');
       const data = new FormData(form);
+      const body = {
+        ...options.values(data),
+        website: String(data.get('website') ?? ''),
+        locale: form.dataset.locale,
+        turnstileToken: token,
+      };
       const response = await fetch(options.endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...options.values(data),
-          website: String(data.get('website') ?? ''),
-          locale: form.dataset.locale,
-          turnstileToken: token,
-        }),
+        ...request(body, options.attachments?.files() ?? []),
       });
       if (response.ok) {
         options.onSuccess?.();
@@ -131,7 +142,21 @@ function errorFor(field: FieldControl, messages: Record<string, string>): string
     return messages.long ?? '';
   }
   if (field.type === 'email' && field.validity.typeMismatch) return messages.invalid ?? '';
+  if (field.type === 'url' && !/^https?:\/\/[^\s/]+\.[^\s]+$/i.test(value)) {
+    return messages.invalid ?? '';
+  }
   return '';
+}
+
+/** JSON on its own, or with files as multipart: the same JSON in `json`, the files beside it. */
+function request(body: Record<string, unknown>, files: readonly File[]): RequestInit {
+  if (files.length === 0) {
+    return { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
+  }
+  const multipart = new FormData();
+  multipart.append('json', JSON.stringify(body));
+  for (const file of files) multipart.append('attachments', file, file.name);
+  return { body: multipart };
 }
 
 /** Hidden fields (like a chosen Slot) name the element to focus instead, via `data-focus`. */

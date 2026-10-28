@@ -21,9 +21,24 @@ describe('notificationEmail', () => {
     expect(email).toMatchObject({ from: SENDER, to: profile.email, replyTo: 'ada@example.com' });
     expect(email.subject).toBe('Nachricht über inomov.online: Freelance-Projekt von Ada Lovelace');
     expect(email.text).toContain('Firma: –');
+    expect(email.text).toContain('Anhänge: –');
     expect(email.text).toContain(message.message);
+    expect(email.attachments).toBeUndefined();
+  });
+
+  it('lists and carries the attachments', () => {
+    const email = notificationEmail(message, [ATTACHMENT]);
+
+    expect(email.text).toContain('Anhänge: role.pdf (1 KB)');
+    expect(email.attachments).toEqual([ATTACHMENT]);
   });
 });
+
+const ATTACHMENT = {
+  filename: 'role.pdf',
+  contentType: 'application/pdf',
+  content: new TextEncoder().encode('%PDF-1.7'),
+};
 
 describe('confirmationEmail', () => {
   it.each([
@@ -81,6 +96,17 @@ describe('sendEmail', () => {
       to: [profile.email],
       reply_to: 'ada@example.com',
     });
+  });
+
+  it('sends attachments base64-encoded with their checked type', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ id: '1' }));
+
+    await sendEmail('re_test', notificationEmail(message, [ATTACHMENT]), fetcher);
+
+    const body = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body)) as Record<string, unknown>;
+    expect(body.attachments).toEqual([
+      { filename: 'role.pdf', content: btoa('%PDF-1.7'), content_type: 'application/pdf' },
+    ]);
   });
 
   it('throws with Resend’s answer when the email is refused', async () => {

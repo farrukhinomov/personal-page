@@ -93,11 +93,40 @@ test('shows free Slots in the Visitor’s time zone and books one', async ({ pag
     email: 'ada@example.com',
     company: 'Analytical Engines',
     reason: 'A senior .NET role.',
+    link: '',
     consent: true,
     website: '',
     locale: 'en',
     turnstileToken: 'stub-token',
   });
+});
+
+test('completes a link without scheme and refuses one that is not a web address', async ({
+  page,
+}) => {
+  await stubSlots(page);
+  let sent: Record<string, unknown> | undefined;
+  await page.route('/api/booking', async (route) => {
+    sent = route.request().postDataJSON() as Record<string, unknown>;
+    await route.fulfill({ json: { ok: true } });
+  });
+  const booking = await openBooking(page);
+  await chooseTime(page, '5:00 PM');
+  await fillDetails(page);
+  const link = booking.getByLabel('Link, e.g. to the job posting (optional)');
+
+  await link.fill('not a link');
+  await link.blur();
+  await expect(booking.getByText('Please enter a link that starts with https://.')).toBeVisible();
+
+  await link.fill('jobs.example.com/senior-dotnet');
+  await link.blur();
+  await expect(link).toHaveValue('https://jobs.example.com/senior-dotnet');
+  await expect(booking.getByText('Please enter a link that starts with https://.')).toBeHidden();
+  await booking.getByRole('button', { name: 'Request intro call' }).click();
+
+  await expect(booking.getByRole('heading', { name: 'Request sent' })).toBeVisible();
+  expect(sent?.link).toBe('https://jobs.example.com/senior-dotnet');
 });
 
 test('asks for a time before the details, and goes back to change it', async ({ page }) => {
