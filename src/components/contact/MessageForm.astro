@@ -3,6 +3,8 @@ import { PUBLIC_TURNSTILE_SITE_KEY } from 'astro:env/client';
 import { profile } from '@/data/profile';
 import type { Locale } from '@/i18n/locales';
 import { pathFor } from '@/i18n/routes';
+import Icon from '@/components/ui/Icon.astro';
+import { ATTACHMENT_LIMITS } from '@/server/attachments';
 import { FORM_COPY } from './form-copy';
 import '@/styles/forms.css';
 import { HONEYPOT_FIELD, MESSAGE_LIMITS, TOPIC_LABELS, TOPICS } from '@/server/message';
@@ -21,6 +23,16 @@ const copy = {
     topic: 'Thema',
     topicPlaceholder: 'Bitte wählen',
     message: 'Nachricht',
+    attachments: 'Anhänge (optional)',
+    choose: 'Dateien auswählen',
+    drop: 'oder hierher ziehen',
+    attachmentsHint: `PDF, Word, PNG, JPG oder WebP. Bis zu ${ATTACHMENT_LIMITS.files} Dateien, zusammen höchstens 4 MB.`,
+    attachmentErrors: {
+      type: 'Diese Datei ist nicht möglich: {name}. Erlaubt sind PDF, Word (DOCX), PNG, JPG und WebP.',
+      count: `Bitte hängen Sie höchstens ${ATTACHMENT_LIMITS.files} Dateien an.`,
+      size: 'Die Dateien sind zusammen größer als 4 MB. Bitte entfernen Sie eine.',
+      remove: '{name} entfernen',
+    },
     consentBefore:
       'Ich bin einverstanden, dass meine Angaben zur Beantwortung meiner Nachricht verwendet werden. Mehr in der ',
     consentAfter: '.',
@@ -41,6 +53,9 @@ const copy = {
       sending: 'Wird gesendet …',
       rate_limited:
         'Für heute sind keine weiteren Nachrichten möglich. Schreiben Sie mir gern per E-Mail.',
+      invalid_attachment:
+        'Ein Anhang konnte nicht geprüft werden. Bitte senden Sie ihn als PDF, Word, PNG, JPG oder WebP.',
+      payload_too_large: 'Die Anhänge sind zu groß. Zusammen sind höchstens 4 MB möglich.',
       failed:
         'Die Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut oder schreiben Sie mir per E-Mail.',
     },
@@ -51,6 +66,16 @@ const copy = {
     topic: 'Topic',
     topicPlaceholder: 'Please choose',
     message: 'Message',
+    attachments: 'Attachments (optional)',
+    choose: 'Choose files',
+    drop: 'or drop them here',
+    attachmentsHint: `PDF, Word, PNG, JPG or WebP. Up to ${ATTACHMENT_LIMITS.files} files, 4 MB in total.`,
+    attachmentErrors: {
+      type: 'This file is not possible: {name}. Allowed are PDF, Word (DOCX), PNG, JPG and WebP.',
+      count: `Please attach at most ${ATTACHMENT_LIMITS.files} files.`,
+      size: 'Together the files are larger than 4 MB. Please remove one.',
+      remove: 'Remove {name}',
+    },
     consentBefore: 'I agree that my details are used to answer my message. More in the ',
     consentAfter: '.',
     submit: 'Send message',
@@ -69,6 +94,9 @@ const copy = {
     status: {
       sending: 'Sending …',
       rate_limited: 'No more messages are possible today. Feel free to email me instead.',
+      invalid_attachment:
+        'An attachment could not be checked. Please send it as PDF, Word, PNG, JPG or WebP.',
+      payload_too_large: 'The attachments are too large. At most 4 MB in total are possible.',
       failed: 'The message could not be sent. Please try again later or email me.',
     },
   },
@@ -174,6 +202,49 @@ const errorId = (field: string) => `message-${field}-error`;
       <p class="error" id={errorId('message')}></p>
     </div>
 
+    <div
+      class="field field--wide attachments"
+      data-attachments
+      data-copy={JSON.stringify(copy.attachmentErrors)}
+    >
+      <p class="attachments-title" id={id('attachments-title')}>
+        {copy.attachments}
+      </p>
+      <div class="dropzone">
+        <!-- The transparent input lies over the button, so the button's size is what is tapped. -->
+        <span class="file-picker">
+          <input
+            class="file-input"
+            id={id('attachments')}
+            type="file"
+            multiple
+            accept=".pdf,.docx,.png,.jpg,.jpeg,.webp"
+            aria-describedby={`${id('attachments-hint')} ${errorId('attachments')}`}
+          />
+          <label class="file-button" for={id('attachments')}>
+            <Icon name="paperclip" />
+            {copy.choose}
+          </label>
+        </span>
+        <span class="drop-hint">{copy.drop}</span>
+        <p class="file-hint" id={id('attachments-hint')}>
+          {copy.attachmentsHint}
+        </p>
+      </div>
+      <ul class="file-list" hidden aria-labelledby={id('attachments-title')} data-file-list></ul>
+      <template data-file-template>
+        <li class="file">
+          <Icon name="file" />
+          <span class="file-name" data-file-name></span>
+          <span class="file-size" data-file-size></span>
+          <button class="file-remove" type="button" data-file-remove>
+            <Icon name="close" />
+          </button>
+        </li>
+      </template>
+      <p class="error" id={errorId('attachments')} data-file-error></p>
+    </div>
+
     <!-- People never see this field; bots that fill it are dropped without notice. -->
     <div class="trap" aria-hidden="true">
       <label for={id(HONEYPOT_FIELD)}>Website</label>
@@ -231,5 +302,163 @@ const errorId = (field: string) => `message-${field}-error`;
     margin: 0 0 var(--space-5);
     font-size: var(--step-2);
     letter-spacing: -0.02em;
+  }
+
+  .attachments {
+    gap: var(--space-2);
+  }
+
+  .attachments-title {
+    margin: 0;
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  /* The whole field takes dropped files; its edge lights up while something is dragged over. */
+  .dropzone {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3);
+    border: 1px dashed var(--color-line-strong);
+    border-radius: var(--radius-control);
+    background: var(--color-bg);
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .attachments[data-dragging] .dropzone {
+    border-color: var(--color-signal);
+    background: color-mix(in srgb, var(--color-signal) 8%, var(--color-bg));
+  }
+
+  .file-picker {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .form .field .file-input {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    width: 100%;
+    min-height: 0;
+    height: 100%;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  /* Higher than the floating-label rules in forms.css, which would move this label. */
+  .form .field .file-button {
+    position: static;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-control);
+    background: var(--color-surface);
+    color: var(--color-fg);
+    font-weight: 600;
+    pointer-events: auto;
+    cursor: pointer;
+    transform: none;
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .file-picker:hover .file-button {
+    border-color: var(--color-signal);
+    color: var(--color-signal);
+  }
+
+  .file-input:focus-visible + .file-button {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .form .field .file-input[aria-invalid='true'] + .file-button {
+    border-color: var(--color-danger);
+  }
+
+  .drop-hint,
+  .file-hint {
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+
+  .file-hint {
+    flex-basis: 100%;
+    margin: 0;
+  }
+
+  /* Dropping files needs a mouse; on touch screens the button is the only way. */
+  @media (pointer: coarse) {
+    .drop-hint {
+      display: none;
+    }
+  }
+
+  .file-list {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .file-list[hidden] {
+    display: none;
+  }
+
+  .file {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-control);
+    background: var(--color-bg);
+    color: var(--color-fg-muted);
+  }
+
+  .file-name {
+    overflow: hidden;
+    color: var(--color-fg);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-size {
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .file-remove {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--color-fg-muted);
+    cursor: pointer;
+  }
+
+  .file-remove:hover {
+    color: var(--color-danger);
+  }
+
+  .file-remove:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: -2px;
   }
 </style>
