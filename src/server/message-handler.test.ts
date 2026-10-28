@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { profile } from '@/data/profile';
+import { ATTACHMENT_LIMITS } from './attachments';
+import { SAMPLE_FILES } from './attachments.fixture';
 import { handleMessage, type MessageServices } from './message-handler';
 import type { Email } from './message-mail';
 import { validBody } from './message.fixture';
@@ -41,6 +43,50 @@ describe('handleMessage', () => {
     expect(deps.rateLimit).toHaveBeenCalledWith(IP);
     const recipients = send.mock.calls.map(([email]: [Email]) => email.to);
     expect(recipients).toEqual([profile.email, 'ada@example.com']);
+  });
+
+  it('attaches the files to the notification only', async () => {
+    const send = vi.fn<MessageServices['send']>().mockResolvedValue(undefined);
+    const files = [new File([SAMPLE_FILES.pdf], 'role.pdf')];
+
+    const response = await handleMessage(validBody, IP, services({ send }), files);
+
+    expect(response.status).toBe(200);
+    const [notification, confirmation] = send.mock.calls.map(([email]: [Email]) => email);
+    expect(notification?.attachments?.map((file) => file.filename)).toEqual(['role.pdf']);
+    expect(confirmation?.attachments).toBeUndefined();
+  });
+
+  it('refuses too many or too large files before the bot check', async () => {
+    const deps = services();
+    const large = [new File([new Uint8Array(ATTACHMENT_LIMITS.totalBytes + 1)], 'a.pdf')];
+    const many = Array.from(
+      { length: ATTACHMENT_LIMITS.files + 1 },
+      (_, index) => new File([SAMPLE_FILES.pdf], `${index}.pdf`),
+    );
+
+    const tooLarge = await handleMessage(validBody, IP, deps, large);
+    const tooMany = await handleMessage(validBody, IP, deps, many);
+
+    expect(tooLarge.status).toBe(413);
+    expect((await errorOf(tooLarge)).code).toBe('payload_too_large');
+    expect(tooMany.status).toBe(422);
+    expect((await errorOf(tooMany)).code).toBe('invalid_attachment');
+    expect(deps.verifyTurnstile).not.toHaveBeenCalled();
+  });
+
+  it('reads file contents only after the bot check and the daily limit', async () => {
+    const renamed = [new File(['MZ'], 'role.pdf')];
+    const blocked = services({ verifyTurnstile: vi.fn().mockResolvedValue(false) });
+    const deps = services();
+
+    expect((await handleMessage(validBody, IP, blocked, renamed)).status).toBe(403);
+    const response = await handleMessage(validBody, IP, deps, renamed);
+
+    expect(response.status).toBe(422);
+    expect((await errorOf(response)).code).toBe('invalid_attachment');
+    expect(deps.rateLimit).toHaveBeenCalledOnce();
+    expect(deps.send).not.toHaveBeenCalled();
   });
 
   it('answers a bot like a person but sends nothing', async () => {

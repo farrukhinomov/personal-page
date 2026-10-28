@@ -13,6 +13,11 @@ export const ICON_PATHS = {
   ],
   linkedin: ['M4 9h4v11H4z', 'M6 4.5v.01', 'M11 20v-6a3 3 0 0 1 6 0v6M11 9v11'],
   lock: ['M5 11h14v9H5z', 'M8 11V8a4 4 0 0 1 8 0v3'],
+  paperclip: [
+    'm20.5 11.5-8.3 8.3a5.3 5.3 0 0 1-7.5-7.5l8.6-8.6a3.5 3.5 0 0 1 5 5l-8.6 8.6a1.8 1.8 0 0 1-2.5-2.5l7.8-7.8',
+  ],
+  file: ['M6 3h8l4 4v14H6z', 'M14 3v4h4'],
+  close: ['M6 6l12 12', 'M18 6 6 18'],
 } as const;
 
 export type IconName = keyof typeof ICON_PATHS;
