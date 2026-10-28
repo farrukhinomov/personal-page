@@ -9,10 +9,22 @@ export default defineConfig({
   trailingSlash: 'never',
   adapter: vercel(),
   env: {
-    // Server secrets, read at request time with getSecret(). Documented in .env.example.
+    // Secrets are read at request time with getSecret(). All documented in .env.example.
     schema: {
       KV_REST_API_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
       KV_REST_API_TOKEN: envField.string({ context: 'server', access: 'secret', optional: true }),
+      RESEND_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      TURNSTILE_SECRET_KEY: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      // Cloudflare's public test key, which always passes, unless Vercel sets the real one.
+      PUBLIC_TURNSTILE_SITE_KEY: envField.string({
+        context: 'client',
+        access: 'public',
+        default: '1x00000000000000000000AA',
+      }),
     },
   },
   integrations: [

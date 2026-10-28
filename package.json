@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro check && astro build",
-    "preview": "astro preview",
+    "preview": "serve .vercel/output/static --no-clipboard",
     "cv": "tsx scripts/cv/build.ts",
     "letter": "tsx scripts/cv/letter.ts",
     "check": "astro check",
@@ -53,6 +53,7 @@
     "prettier": "^3.9.10",
     "prettier-plugin-astro": "^1.1.2",
     "satori": "^0.63.2",
+    "serve": "14.2.6",
     "sharp": "0.35.5",
     "tsx": "4.23.15",
     "typescript": "^6.0.3",

@@ -1,4 +1,5 @@
 ---
+import MessageForm from '@/components/contact/MessageForm.astro';
 import Icon from '@/components/ui/Icon.astro';
 import type { IconName } from '@/components/ui/icons';
 import PageHeader from '@/components/ui/PageHeader.astro';
@@ -35,6 +36,13 @@ const copy = {
 }[locale];
 const meta = pageMeta('contact', locale);
 
+// The Turnstile bot check of the Message form runs from Cloudflare, on this page only.
+// The form's script is large enough to ship as a file, which the hashes alone would block.
+const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com';
+Astro.csp?.insertScriptResource("'self'");
+Astro.csp?.insertScriptResource(TURNSTILE_ORIGIN);
+Astro.csp?.insertDirective(`frame-src ${TURNSTILE_ORIGIN}`);
+
 const channels: { label: string; hint: string; href: string; value: string; icon: IconName }[] = [
   {
     label: copy.email,
@@ -69,7 +77,8 @@ const channels: { label: string; hint: string; href: string; value: string; icon
   ogImage={ogImagePath(locale, 'contact')}
 >
   <PageHeader title={meta.title} lead={meta.description} />
-  <div class="container">
+  <div class="container layout">
+    <MessageForm locale={locale} />
     <ul class="channels">
       {channels.map((channel) => (
         <li>
@@ -92,18 +101,30 @@ const channels: { label: string; hint: string; href: string; value: string; icon
 </BaseLayout>
 
 <style>
+  .layout {
+    display: grid;
+    gap: var(--space-7);
+    margin-block-start: var(--space-7);
+  }
+
+  /* The form leads; the direct channels sit beside it on wide screens and below it on phones. */
+  @media (min-width: 60rem) {
+    .layout {
+      grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+      align-items: start;
+    }
+
+    .channels {
+      margin-block-start: calc(var(--step-2) * 1.2 + var(--space-5));
+    }
+  }
+
   .channels {
     display: grid;
     gap: var(--space-4);
-    margin-block-start: var(--space-7);
+    margin: 0;
     padding: 0;
     list-style: none;
-  }
-
-  @media (min-width: 60rem) {
-    .channels {
-      grid-template-columns: 2fr 1fr 1fr;
-    }
   }
 
   .channel {
