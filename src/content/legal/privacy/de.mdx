@@ -9,7 +9,7 @@ import { legal } from '@/data/legal';
 
 ## Kurz gesagt
 
-Diese Website setzt keine Cookies und verwendet keine Analyse- oder Tracking-Dienste. Schriften werden von dieser Website selbst ausgeliefert. Beim Aufruf werden nur die technisch notwendigen Daten verarbeitet, die unten beschrieben sind. Dienste von Drittanbietern kommen erst ins Spiel, wenn Sie mir über das Kontaktformular schreiben.
+Diese Website setzt keine Cookies und verwendet keine Analyse- oder Tracking-Dienste. Schriften werden von dieser Website selbst ausgeliefert. Beim Aufruf werden nur die technisch notwendigen Daten verarbeitet, die unten beschrieben sind. Dienste von Drittanbietern kommen erst ins Spiel, wenn Sie mir über das Kontaktformular schreiben oder einen Termin buchen.
 
 ## Verantwortlicher
 
@@ -62,6 +62,14 @@ Damit das Formular nicht von automatisierten Programmen missbraucht wird, nutze 
 ### Begrenzung der Anfragen mit Upstash
 
 Um Missbrauch zu verhindern, ist die Zahl der Nachrichten pro Tag begrenzt. Dafür speichere ich bei Upstash (Upstash, Inc., USA) einen Zähler unter einem pseudonymisierten Prüfwert (HMAC) Ihrer IP-Adresse und, für die Eingangsbestätigung, Ihrer E-Mail-Adresse. Die Adressen selbst werden nicht gespeichert, und die Zähler werden nach 24 Stunden automatisch gelöscht. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am Schutz vor Missbrauch). Soweit Daten in die USA übermittelt werden, stützt sich das auf Standardvertragsklauseln (Art. 46 DSGVO).
+
+## Terminbuchung (Intro Call)
+
+Auf der Kontaktseite können Sie ein 30-minütiges Gespräch mit mir anfragen. Dafür verarbeite ich Ihren Namen, Ihre E-Mail-Adresse, Ihre Firma, Ihr Anliegen, den gewählten Termin und Ihre Zeitzone. Die Terminverwaltung übernimmt Cal.com (Cal.com, Inc., USA) als Auftragsverarbeiter: Cal.com speichert die Buchung, gleicht sie mit meinem Google-Kalender ab und schickt Ihnen die E-Mails zur Anfrage und, nach meiner Bestätigung, die Einladung mit dem Link zu Google Meet (Google Ireland Limited). Die freien Termine lädt die Website bei Cal.com über meinen Server; Ihr Browser verbindet sich dafür nicht mit Cal.com.
+
+Rechtsgrundlage ist Ihre Einwilligung, die Sie mit dem Kontrollkästchen im Formular erteilen (Art. 6 Abs. 1 lit. a DSGVO), und, soweit es um ein Vertragsverhältnis oder dessen Anbahnung geht, Art. 6 Abs. 1 lit. b DSGVO. Sie können Ihre Einwilligung jederzeit per E-Mail widerrufen. Die Buchungsdaten bleiben bei Cal.com und in meinem Kalender, bis das Gespräch stattgefunden hat und keine gesetzlichen Aufbewahrungspflichten entgegenstehen. Die Übermittlung in die USA stützt sich auf Standardvertragsklauseln (Art. 46 DSGVO).
+
+Auch die Terminanfrage ist durch Cloudflare Turnstile geschützt und auf drei Anfragen pro Tag und IP-Adresse begrenzt; dafür gilt, was oben unter Kontaktformular zu Turnstile und Upstash steht.
 
 ## Links zu anderen Websites
 

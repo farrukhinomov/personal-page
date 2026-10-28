@@ -41,7 +41,14 @@ describe('legal texts', () => {
   it('name every service the contact form uses, in both languages', () => {
     for (const locale of LOCALES) {
       const privacy = read('privacy', locale);
-      for (const service of ['Vercel', 'Resend', 'Cloudflare Turnstile', 'Upstash', 'Gmail']) {
+      for (const service of [
+        'Vercel',
+        'Resend',
+        'Cloudflare Turnstile',
+        'Upstash',
+        'Gmail',
+        'Cal.com',
+      ]) {
         expect(privacy).toContain(service);
       }
     }
