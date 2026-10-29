@@ -23,6 +23,7 @@ import {
   skillsOutput,
 } from './schemas';
 import { SERVER_NAME, SERVER_VERSION } from './discovery';
+import { toolTitle } from './tool-info';
 import { registerWriteTools, type WriteServices } from './write-tools';
 
 /** The same name and version as the Server Card (discovery.ts), as the specification asks. */
@@ -72,7 +73,7 @@ export function createPortfolioServer(
   server.registerTool(
     'get_profile',
     {
-      title: 'Profile',
+      title: toolTitle('get_profile'),
       description:
         'Who Farrukh Inomov is: headline, summary, location, contact email, languages, awards and links to the site, the CV (PDF), GitHub and LinkedIn.',
       inputSchema: lang,
@@ -85,7 +86,7 @@ export function createPortfolioServer(
   server.registerTool(
     'get_experience',
     {
-      title: 'Experience',
+      title: toolTitle('get_experience'),
       description:
         'Work history and education, newest first, with role, period, summary, highlights and the technologies used.',
       inputSchema: lang.extend({
@@ -103,7 +104,7 @@ export function createPortfolioServer(
   server.registerTool(
     'get_skills',
     {
-      title: 'Skills',
+      title: toolTitle('get_skills'),
       description:
         'Skills grouped by where they come from: professional work, own projects, and how Farrukh works.',
       inputSchema: lang,
@@ -116,7 +117,7 @@ export function createPortfolioServer(
   server.registerTool(
     'list_projects',
     {
-      title: 'Projects',
+      title: toolTitle('list_projects'),
       description:
         'All projects with tagline, stack, year and links. Use get_project with a slug for the details.',
       inputSchema: lang,
@@ -129,7 +130,7 @@ export function createPortfolioServer(
   server.registerTool(
     'get_project',
     {
-      title: 'Project',
+      title: toolTitle('get_project'),
       description: 'One project with its description and what has been built so far.',
       inputSchema: lang.extend({ slug: z.enum(PROJECT_SLUGS).describe('Slug from list_projects') }),
       outputSchema: projectOutput,
@@ -144,7 +145,7 @@ export function createPortfolioServer(
   server.registerTool(
     'list_posts',
     {
-      title: 'Blog posts',
+      title: toolTitle('list_posts'),
       description:
         'All blog posts, newest first, with title, description, date, tags and reading time.',
       inputSchema: lang,
@@ -157,7 +158,7 @@ export function createPortfolioServer(
   server.registerTool(
     'get_post',
     {
-      title: 'Blog post',
+      title: toolTitle('get_post'),
       description: 'One blog post with its full text as Markdown.',
       inputSchema: lang.extend({
         slug: (postSlugs.length > 0 ? z.enum(postSlugs) : z.string()).describe(

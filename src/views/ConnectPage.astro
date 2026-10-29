@@ -1,0 +1,484 @@
+---
+import CopyButton from '@/components/connect/CopyButton.astro';
+import ButtonLink from '@/components/ui/ButtonLink.astro';
+import PageHeader from '@/components/ui/PageHeader.astro';
+import type { Locale } from '@/i18n/locales';
+import { pageMeta } from '@/i18n/pages';
+import { alternatesFor, pathFor } from '@/i18n/routes';
+import { AI_CATALOG_PATH, MCP_ENDPOINT_URL, SERVER_CARD_PATH } from '@/mcp/discovery';
+import { TOOLS } from '@/mcp/tool-info';
+import { ogImagePath } from '@/seo/og';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const meta = pageMeta('connect', locale);
+
+/** The name the setup steps suggest; it only labels the connector in the assistant. */
+const CONNECTOR_NAME = 'inomov';
+
+const claudeCode = `claude mcp add --transport http ${CONNECTOR_NAME} ${MCP_ENDPOINT_URL}`;
+const cursorConfig = JSON.stringify(
+  { mcpServers: { [CONNECTOR_NAME]: { url: MCP_ENDPOINT_URL } } },
+  null,
+  2,
+);
+// Cursor's install link carries the server's entry from mcp.json, base64-encoded.
+const cursorInstall = `cursor://anysphere.cursor-deeplink/mcp/install?name=${CONNECTOR_NAME}&config=${Buffer.from(
+  JSON.stringify({ url: MCP_ENDPOINT_URL }),
+).toString('base64')}`;
+
+const copy = {
+  de: {
+    endpointTitle: 'Die Adresse',
+    endpointText:
+      'Fügen Sie diese Adresse in Ihrem KI-Assistenten als Connector hinzu. Sie brauchen weder ein Konto noch einen Schlüssel.',
+    discoveryBefore: 'Assistenten, die selbst suchen, finden sie auch über die ',
+    discoveryBetween: ' und den ',
+    discoveryAfter: ' dieser Website.',
+    setupTitle: 'Einrichten',
+    uiNote: 'Menüs heißen hier so wie in der englischen Oberfläche der Apps.',
+    claude: [
+      'In Claude im Web oder in der Desktop-App „Customize“ → „Connectors“ öffnen.',
+      '„+ Add“ → „Add custom connector“ wählen.',
+      `Als Namen zum Beispiel „${CONNECTOR_NAME}“ eingeben, die Adresse einfügen und „Continue“ klicken.`,
+      'Unter „Authentication“ „No sign in“ wählen und „Add“ klicken.',
+      'Im Chat über „+“ → „Connectors“ den Connector einschalten.',
+    ],
+    claudeNote:
+      'In allen Tarifen möglich, im kostenlosen mit einem eigenen Connector. In Team und Enterprise fügt ihn ein Admin hinzu.',
+    claudeCode: 'In Claude Code genügt ein Befehl:',
+    chatgpt: [
+      'chatgpt.com/plugins öffnen.',
+      '„+“ → „Add custom MCP server“ wählen.',
+      'Namen und Beschreibung eingeben und unter „Connection“ die Adresse einfügen.',
+      'Ohne Anmeldung fortfahren, den Hinweis mit „I understand and want to continue“ bestätigen und „Create as a plugin“ wählen.',
+      'Das Plugin installieren, einen neuen Chat beginnen, @ tippen und es auswählen.',
+    ],
+    chatgptNote:
+      'Ob eigene MCP-Server möglich sind, hängt von Ihrem Tarif und den Regeln Ihres Workspace ab.',
+    cursorInstall: 'In Cursor hinzufügen',
+    cursorInstallNote: 'Öffnet Cursor und fragt, ob der Server hinzugefügt werden soll.',
+    cursorManual:
+      'Oder von Hand: in ~/.cursor/mcp.json für alle Projekte oder in .cursor/mcp.json für ein Projekt.',
+    toolsTitle: 'Was Ihr Assistent damit kann',
+    toolsText:
+      'Die Werkzeuge kommen direkt aus der Definition des Servers. Werkzeuge, die etwas senden, sind gekennzeichnet; Assistenten fragen vor ihrem Aufruf in der Regel nach.',
+    read: 'Lesen',
+    send: 'Senden',
+    limits:
+      'Über Assistenten sind pro Tag höchstens drei Nachrichten und drei Terminanfragen möglich. Eine Eingangsbestätigung per E-Mail gibt es dabei nicht, die Bestätigung sehen Sie im Chat.',
+    promptsTitle: 'Zum Ausprobieren',
+    prompts: [
+      'Was hat Farrukh Inomov beruflich mit C# und .NET gemacht?',
+      'Fasse Farrukhs Projekte zusammen und nenne die Technologien dazu.',
+      'Passt Farrukh zu dieser Stelle? Begründe es mit seiner Erfahrung: [Stellenanzeige einfügen]',
+      'Welche Termine für einen Intro Call mit Farrukh sind nächste Woche frei?',
+      'Schreib Farrukh, dass wir ihn für eine Senior-.NET-Stelle sprechen möchten.',
+    ],
+    privacyBefore: 'Was mit Ihren Angaben geschieht, steht in der ',
+    privacyLink: 'Datenschutzerklärung',
+    privacyAfter: '.',
+    privacyAnchor: 'kontakt-über-ki-assistenten-mcp',
+  },
+  en: {
+    endpointTitle: 'The address',
+    endpointText:
+      'Add this address as a connector in your AI assistant. You need no account and no key.',
+    discoveryBefore: 'Assistants that look for themselves find it through this site’s ',
+    discoveryBetween: ' and ',
+    discoveryAfter: ' too.',
+    setupTitle: 'Set up',
+    uiNote: 'Menu names are as in the apps’ English interface.',
+    claude: [
+      'In Claude on the web or in the desktop app, open “Customize” → “Connectors”.',
+      'Choose “+ Add” → “Add custom connector”.',
+      `Enter a name such as “${CONNECTOR_NAME}”, paste the address and click “Continue”.`,
+      'Under “Authentication”, choose “No sign in” and click “Add”.',
+      'In a chat, turn the connector on under “+” → “Connectors”.',
+    ],
+    claudeNote:
+      'Available on every plan; the free plan allows one custom connector. On Team and Enterprise, an admin adds it.',
+    claudeCode: 'In Claude Code, one command does it:',
+    chatgpt: [
+      'Open chatgpt.com/plugins.',
+      'Choose “+” → “Add custom MCP server”.',
+      'Enter a name and description, and paste the address under “Connection”.',
+      'Continue without sign-in, confirm the notice with “I understand and want to continue” and choose “Create as a plugin”.',
+      'Install the plugin, start a new chat, type @ and choose it.',
+    ],
+    chatgptNote: 'Whether custom MCP servers are available depends on your plan and workspace.',
+    cursorInstall: 'Add to Cursor',
+    cursorInstallNote: 'Opens Cursor and asks whether to add the server.',
+    cursorManual:
+      'Or by hand: in ~/.cursor/mcp.json for all projects, or in .cursor/mcp.json for one project.',
+    toolsTitle: 'What your assistant can do',
+    toolsText:
+      'The tools come straight from the server’s definition. Tools that send something are marked; assistants usually ask before calling them.',
+    read: 'Read',
+    send: 'Send',
+    limits:
+      'Through assistants, at most three messages and three call requests a day are possible. There is no confirmation email; you see the confirmation in the chat.',
+    promptsTitle: 'Try it',
+    prompts: [
+      'What has Farrukh Inomov done professionally with C# and .NET?',
+      'Summarize Farrukh’s projects and the technologies behind them.',
+      'Is Farrukh a good fit for this role? Back it up with his experience: [paste the job posting]',
+      'Which times for an intro call with Farrukh are free next week?',
+      'Write to Farrukh that we would like to talk to him about a senior .NET role.',
+    ],
+    privacyBefore: 'What happens to your details is explained in the ',
+    privacyLink: 'privacy policy',
+    privacyAfter: '.',
+    privacyAnchor: 'contact-through-ai-assistants-mcp',
+  },
+}[locale];
+
+const groups = [
+  { title: copy.read, tools: TOOLS.filter((tool) => !tool.sends) },
+  { title: copy.send, tools: TOOLS.filter((tool) => tool.sends) },
+];
+---
+
+<BaseLayout
+  locale={locale}
+  route="connect"
+  alternates={alternatesFor('connect')}
+  title={meta.title}
+  description={meta.description}
+  ogImage={ogImagePath(locale, 'connect')}
+>
+  <PageHeader title={meta.title} lead={meta.description} />
+  <div class="container connect">
+    <section class="endpoint" aria-labelledby="endpoint-title">
+      <h2 id="endpoint-title">{copy.endpointTitle}</h2>
+      <p>{copy.endpointText}</p>
+      <div class="field">
+        <code id="endpoint-url">{MCP_ENDPOINT_URL}</code>
+        <CopyButton locale={locale} text={MCP_ENDPOINT_URL} describedBy="endpoint-url" />
+      </div>
+      <p class="muted">
+        {copy.discoveryBefore}
+        <a href={SERVER_CARD_PATH}>Server Card</a>
+        {copy.discoveryBetween}
+        <a href={AI_CATALOG_PATH}>AI Catalog</a>
+        {copy.discoveryAfter}
+      </p>
+    </section>
+
+    <section aria-labelledby="setup-title">
+      <h2 id="setup-title">{copy.setupTitle}</h2>
+      <p class="muted">{copy.uiNote}</p>
+      <div class="clients">
+        <article class="client" aria-labelledby="claude-title">
+          <h3 id="claude-title">Claude</h3>
+          <ol>
+            {copy.claude.map((step) => (
+              <li>{step}</li>
+            ))}
+          </ol>
+          <p class="muted">{copy.claudeNote}</p>
+          <p>{copy.claudeCode}</p>
+          <div class="field field--code">
+            <code id="claude-code">{claudeCode}</code>
+            <CopyButton locale={locale} text={claudeCode} describedBy="claude-code" />
+          </div>
+        </article>
+
+        <article class="client" aria-labelledby="chatgpt-title">
+          <h3 id="chatgpt-title">ChatGPT</h3>
+          <ol>
+            {copy.chatgpt.map((step) => (
+              <li>{step}</li>
+            ))}
+          </ol>
+          <p class="muted">{copy.chatgptNote}</p>
+        </article>
+
+        <article class="client" aria-labelledby="cursor-title">
+          <h3 id="cursor-title">Cursor</h3>
+          <div class="install">
+            <ButtonLink href={cursorInstall}>{copy.cursorInstall}</ButtonLink>
+            <p class="muted">{copy.cursorInstallNote}</p>
+          </div>
+          <p>{copy.cursorManual}</p>
+          <div class="field field--code">
+            <pre id="cursor-config" tabindex="0"><code>{cursorConfig}</code></pre>
+            <CopyButton locale={locale} text={cursorConfig} describedBy="cursor-config" />
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="tools-title">
+      <h2 id="tools-title">{copy.toolsTitle}</h2>
+      <p>{copy.toolsText}</p>
+      <div class="tool-groups">
+        {groups.map((group) => (
+          <div class:list={['tool-group', { 'tool-group--send': group.tools[0]?.sends }]}>
+            <h3>{group.title}</h3>
+            <dl class="tools">
+              {group.tools.map((tool) => (
+                <div class="tool">
+                  <dt>
+                    <span class="tool-title">{tool.title[locale]}</span>
+                    <code>{tool.name}</code>
+                  </dt>
+                  <dd>{tool.summary[locale]}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))}
+      </div>
+      <p class="muted">{copy.limits}</p>
+    </section>
+
+    <section aria-labelledby="prompts-title">
+      <h2 id="prompts-title">{copy.promptsTitle}</h2>
+      <ul class="prompts">
+        {copy.prompts.map((prompt, index) => (
+          <li class="prompt">
+            <p id={`prompt-${index}`}>{prompt}</p>
+            <CopyButton locale={locale} text={prompt} describedBy={`prompt-${index}`} />
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <p class="privacy">
+      {copy.privacyBefore}
+      <a href={`${pathFor('privacy', locale)}#${copy.privacyAnchor}`}>{copy.privacyLink}</a>
+      {copy.privacyAfter}
+    </p>
+
+    <p class="sr-only" role="status" aria-live="polite" data-copy-status></p>
+  </div>
+</BaseLayout>
+
+<script>
+  import '@/components/connect/copy-client';
+</script>
+
+<style>
+  .connect {
+    display: grid;
+    gap: var(--space-8);
+    margin-block: var(--space-7) var(--space-8);
+  }
+
+  section {
+    display: grid;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: var(--step-2);
+    letter-spacing: -0.02em;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: var(--step-1);
+  }
+
+  p {
+    margin: 0;
+    max-width: var(--measure);
+  }
+
+  .muted {
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+
+  a {
+    color: var(--color-signal);
+  }
+
+  code,
+  pre {
+    font-family: var(--font-mono);
+  }
+
+  /* The address leads the page: one line, large, beside its copy button. */
+  .field {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+    border: 1px solid var(--color-signal);
+    border-radius: var(--radius-panel);
+    background: color-mix(in srgb, var(--color-signal) 6%, var(--color-surface));
+  }
+
+  .field > code {
+    flex: 1 1 16rem;
+    min-width: 0;
+    font-size: var(--step-1);
+    overflow-wrap: anywhere;
+  }
+
+  .field--code {
+    align-items: flex-start;
+    padding: var(--space-3);
+    border-color: var(--color-line);
+    background: var(--color-bg);
+  }
+
+  .field--code > code,
+  .field--code > pre {
+    flex: 1 1 14rem;
+    min-width: 0;
+    margin: 0;
+    font-size: var(--step--1);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  /* JSON keeps its indentation; on a narrow card it scrolls instead of breaking inside a value. */
+  .field--code > pre {
+    flex-basis: 100%;
+    overflow-x: auto;
+    white-space: pre;
+    overflow-wrap: normal;
+  }
+
+  .field--code > pre:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .clients {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+    gap: var(--space-5);
+    align-items: start;
+  }
+
+  .client {
+    display: grid;
+    /* One column that may shrink below its content, so wide code scrolls inside it. */
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    min-width: 0;
+    padding: var(--space-5);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface);
+  }
+
+  .client ol {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding-inline-start: 1.25rem;
+  }
+
+  .client li::marker {
+    color: var(--color-signal);
+    font-weight: 700;
+  }
+
+  .install {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-2);
+  }
+
+  .tool-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    gap: var(--space-5);
+    align-items: start;
+  }
+
+  .tool-group {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .tools {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .tool {
+    display: grid;
+    gap: var(--space-1);
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .tool dt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .tool-title {
+    font-weight: 600;
+  }
+
+  .tool code {
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
+  }
+
+  .tool dd {
+    margin: 0;
+    color: var(--color-fg-muted);
+  }
+
+  /* Tools that send something carry the accent, so they stand apart from the reading ones. */
+  .tool-group--send .tool {
+    padding-inline-start: var(--space-3);
+    border-inline-start: 2px solid var(--color-signal);
+  }
+
+  .prompts {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .prompt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface);
+  }
+
+  .prompt p {
+    flex: 1 1 18rem;
+  }
+
+  .privacy {
+    color: var(--color-fg-muted);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>
