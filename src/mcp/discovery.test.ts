@@ -12,6 +12,7 @@ import {
   serverCard,
 } from './discovery';
 import { CALLER_IP, connectClient, ENDPOINT, portfolioHandler } from './mcp.fixture';
+import { TOOLS } from './tool-info';
 
 let client: Client | undefined;
 
@@ -90,6 +91,19 @@ describe('the Server Card matches the running server', () => {
       version: serverCard().version,
     });
     expect(tools.map((tool) => tool.name)).toEqual([...MCP_TOOLS]);
+  });
+
+  it('registers each tool with the title and kind the Connect page shows', async () => {
+    client = await connectClient(portfolioHandler());
+    const { tools } = await client.listTools();
+
+    expect(
+      tools.map((tool) => ({
+        name: tool.name,
+        title: tool.title,
+        sends: tool.annotations?.readOnlyHint === false,
+      })),
+    ).toEqual(TOOLS.map((tool) => ({ name: tool.name, title: tool.title.en, sends: tool.sends })));
   });
 
   it('serves the newest protocol revision it advertises', async () => {

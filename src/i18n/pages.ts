@@ -58,6 +58,18 @@ const PAGES: Record<RouteKey, Localized<PageMeta>> = {
         'Notes on architecture, .NET, operations and tooling – from work on real business software.',
     },
   },
+  connect: {
+    de: {
+      title: 'Mit KI-Assistenten verbinden',
+      description:
+        'Verbinden Sie Claude, ChatGPT oder Cursor mit meinem Portfolio: Fragen zu Erfahrung und Projekten stellen, eine Nachricht senden, einen Intro Call anfragen.',
+    },
+    en: {
+      title: 'Connect your AI assistant',
+      description:
+        'Connect Claude, ChatGPT or Cursor to my portfolio: ask about my experience and projects, send a message, request an intro call.',
+    },
+  },
   imprint: {
     de: {
       title: 'Impressum',

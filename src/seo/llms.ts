@@ -73,6 +73,7 @@ export function buildLlmsTxt(posts: readonly PostSummary[]): string {
     '',
     `Connect to the MCP server at ${MCP_ENDPOINT_URL} (Streamable HTTP, no sign-up) to query the profile, experience, skills, projects and posts, send Farrukh a message or request an intro call.`,
     '',
+    link('Setup guide', pathFor('connect', 'en'), 'connecting Claude, ChatGPT or Cursor'),
     link('Server Card', SERVER_CARD_PATH, 'how to connect, as an MCP Server Card'),
     link('AI Catalog', AI_CATALOG_PATH, 'the AI artifacts this site offers'),
     `- Tools: ${MCP_TOOLS.join(', ')}`,
