@@ -1,4 +1,4 @@
-import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
+import type { Client } from '@modelcontextprotocol/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   experienceView,
@@ -12,11 +12,11 @@ import {
 } from './catalog';
 import { POSTS } from './catalog.fixture';
 import { createPortfolioMcpHandler } from './handler';
+import { CALLER_IP, connectClient, ENDPOINT, fakeServices, portfolioHandler } from './mcp.fixture';
 
-const ENDPOINT = 'https://inomov.online/api/mcp';
-const handler = createPortfolioMcpHandler(async () => ({ de: POSTS, en: POSTS }));
+const handler = portfolioHandler();
 
-const TOOLS = [
+const READ_ONLY_TOOLS = [
   'get_profile',
   'get_experience',
   'get_skills',
@@ -26,6 +26,8 @@ const TOOLS = [
   'get_post',
 ];
 
+const WRITE_TOOLS = ['get_available_slots', 'send_message', 'book_call'];
+
 let client: Client | undefined;
 
 afterEach(async () => {
@@ -33,13 +35,8 @@ afterEach(async () => {
   client = undefined;
 });
 
-/** A real MCP client whose requests reach the handler in process, never the network. */
 async function connect(mode: 'auto' | 'legacy') {
-  client = new Client({ name: 'test', version: '1.0.0' }, { versionNegotiation: { mode } });
-  const transport = new StreamableHTTPClientTransport(new URL(ENDPOINT), {
-    fetch: (url, init) => handler.fetch(new Request(url, init)),
-  });
-  await client.connect(transport);
+  client = await connectClient(handler, mode);
   return client;
 }
 
@@ -56,11 +53,11 @@ describe.each([
     expect(mcp.getInstructions()).toContain('Farrukh Inomov');
   });
 
-  it('lists the read-only tools with their schemas', async () => {
+  it('lists the tools, the read-only ones marked as such, with their schemas', async () => {
     const { tools } = await (await connect(mode)).listTools();
 
-    expect(tools.map((tool) => tool.name)).toEqual(TOOLS);
-    for (const tool of tools) {
+    expect(tools.map((tool) => tool.name)).toEqual([...READ_ONLY_TOOLS, ...WRITE_TOOLS]);
+    for (const tool of tools.filter((candidate) => READ_ONLY_TOOLS.includes(candidate.name))) {
       expect(tool.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false });
       expect(tool.outputSchema).toBeDefined();
       expect(tool.inputSchema.properties?.lang).toMatchObject({ enum: ['de', 'en'] });
@@ -134,7 +131,7 @@ function initializeRequest(headers: Record<string, string> = {}, body?: string) 
 
 describe('the MCP endpoint over HTTP', () => {
   const initialize = (headers: Record<string, string> = {}, body?: string) =>
-    handler.fetch(initializeRequest(headers, body));
+    handler.fetch(initializeRequest(headers, body), CALLER_IP);
 
   it('serves clients without an Origin header and pages of the site itself', async () => {
     expect((await initialize()).status).toBe(200);
@@ -151,8 +148,8 @@ describe('the MCP endpoint over HTTP', () => {
       .fn<() => Promise<{ de: McpPost[]; en: McpPost[] }>>()
       .mockRejectedValueOnce(new Error('collection unavailable'))
       .mockResolvedValue({ de: POSTS, en: POSTS });
-    const fresh = createPortfolioMcpHandler(loadPosts);
-    const post = () => fresh.fetch(initializeRequest());
+    const fresh = createPortfolioMcpHandler({ loadPosts, services: fakeServices() });
+    const post = () => fresh.fetch(initializeRequest(), CALLER_IP);
 
     expect((await post()).status).toBe(500);
     expect((await post()).status).toBe(200);
