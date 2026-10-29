@@ -11,6 +11,7 @@ import {
   type McpPost,
 } from './catalog';
 import { POSTS } from './catalog.fixture';
+import { SERVER_NAME, SERVER_VERSION } from './discovery';
 import { createPortfolioMcpHandler } from './handler';
 import { CALLER_IP, connectClient, ENDPOINT, fakeServices, portfolioHandler } from './mcp.fixture';
 
@@ -49,7 +50,7 @@ describe.each([
     const mcp = await connect(mode);
 
     expect(mcp.getNegotiatedProtocolVersion()).toMatch(revision);
-    expect(mcp.getServerVersion()).toMatchObject({ name: 'inomov-online', version: '1.0.0' });
+    expect(mcp.getServerVersion()).toMatchObject({ name: SERVER_NAME, version: SERVER_VERSION });
     expect(mcp.getInstructions()).toContain('Farrukh Inomov');
   });
 

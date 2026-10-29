@@ -5,6 +5,7 @@ import { projects } from '@/data/projects';
 import { skills } from '@/data/skills';
 import type { Locale } from '@/i18n/locales';
 import { childPathFor, pathFor, type RouteKey } from '@/i18n/routes';
+import { MCP_ENDPOINT_URL, MCP_TOOLS, SERVER_CARD_PATH } from '@/mcp/discovery';
 
 export interface TerminalLine {
   /** `input` echoes what was typed. */
@@ -35,6 +36,7 @@ const COPY = {
       projects: 'meine Projekte',
       skills: 'womit ich arbeite',
       contact: 'wie Sie mich erreichen',
+      mcp: 'Schnittstelle für KI-Assistenten',
       open: 'Seite öffnen: about, projects, contact',
       lang: 'Switch to English',
       clear: 'Ausgabe leeren',
@@ -44,6 +46,8 @@ const COPY = {
     openUsage: 'Verwendung: open about | projects | contact',
     opening: (page: string) => `Öffne ${page} …`,
     switching: 'Wechsle zu Englisch …',
+    mcpIntro: 'MCP-Server für KI-Assistenten, ohne Anmeldung:',
+    mcpTools: 'Werkzeuge:',
   },
   en: {
     help: 'Available commands:',
@@ -53,6 +57,7 @@ const COPY = {
       projects: 'my projects',
       skills: 'what I work with',
       contact: 'how to reach me',
+      mcp: 'interface for AI assistants',
       open: 'open a page: about, projects, contact',
       lang: 'Auf Deutsch wechseln',
       clear: 'clear the output',
@@ -62,6 +67,8 @@ const COPY = {
     openUsage: 'Usage: open about | projects | contact',
     opening: (page: string) => `Opening ${page} …`,
     switching: 'Switching to German …',
+    mcpIntro: 'MCP server for AI assistants, no sign-up:',
+    mcpTools: 'Tools:',
   },
 } as const;
 
@@ -117,6 +124,15 @@ const HANDLERS: Record<CommandName, Handler> = {
       link(profile.email, `mailto:${profile.email}`),
       link('LinkedIn', profile.links.linkedin),
       link('GitHub', profile.links.github),
+    ],
+  }),
+  mcp: (_, { locale }) => ({
+    lines: [
+      muted(COPY[locale].mcpIntro),
+      text(`  ${MCP_ENDPOINT_URL}`),
+      muted(COPY[locale].mcpTools),
+      ...MCP_TOOLS.map((tool) => text(`  ${tool}`)),
+      link('Server Card', SERVER_CARD_PATH),
     ],
   }),
   open: ([page], { locale }) => {
