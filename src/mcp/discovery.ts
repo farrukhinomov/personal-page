@@ -1,6 +1,7 @@
 import { SUPPORTED_PROTOCOL_VERSIONS } from '@modelcontextprotocol/server';
 import { pathFor } from '@/i18n/routes';
 import { SITE_URL } from '@/seo/structured-data';
+import { TOOLS } from './tool-info';
 
 /**
  * How Agents find the MCP endpoint without being told: an AI Catalog at the site's well-known
@@ -25,18 +26,7 @@ const MODERN_PROTOCOL_VERSION = '2026-07-28';
 export const PROTOCOL_VERSIONS = [MODERN_PROTOCOL_VERSION, ...SUPPORTED_PROTOCOL_VERSIONS];
 
 /** The tools in the order the server registers them; a test keeps both in step. */
-export const MCP_TOOLS = [
-  'get_profile',
-  'get_experience',
-  'get_skills',
-  'list_projects',
-  'get_project',
-  'list_posts',
-  'get_post',
-  'get_available_slots',
-  'send_message',
-  'book_call',
-] as const;
+export const MCP_TOOLS = TOOLS.map((tool) => tool.name);
 
 const absolute = (path: string) => new URL(path, SITE_URL).href;
 

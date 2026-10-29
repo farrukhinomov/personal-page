@@ -18,6 +18,8 @@ export const ICON_PATHS = {
   ],
   file: ['M6 3h8l4 4v14H6z', 'M14 3v4h4'],
   close: ['M6 6l12 12', 'M18 6 6 18'],
+  copy: ['M9 9h11v11H9z', 'M15 9V4H4v11h5'],
+  check: ['m5 12.5 4.5 4.5L19 7.5'],
 } as const;
 
 export type IconName = keyof typeof ICON_PATHS;

@@ -9,6 +9,7 @@ export const ROUTES = {
   about: { de: '/ueber-mich', en: '/en/about' },
   projects: { de: '/projekte', en: '/en/projects' },
   blog: { de: '/blog', en: '/en/blog' },
+  connect: { de: '/verbinden', en: '/en/connect' },
   contact: { de: '/kontakt', en: '/en/contact' },
   imprint: { de: '/impressum', en: '/en/imprint' },
   privacy: { de: '/datenschutz', en: '/en/privacy' },

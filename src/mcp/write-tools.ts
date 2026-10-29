@@ -12,6 +12,7 @@ import { notificationEmail, type Email } from '@/server/message-mail';
 import { ALL_CLIENTS, type RateLimitedAction, type RateLimitResult } from '@/server/rate-limit';
 import { SITE_URL } from '@/seo/structured-data';
 import { langInput } from './schemas';
+import { toolTitle } from './tool-info';
 
 /** The outside world the write tools touch, injected so tests run without network. */
 export interface WriteServices {
@@ -140,7 +141,7 @@ export function registerWriteTools(server: McpServer, services: WriteServices): 
   server.registerTool(
     'get_available_slots',
     {
-      title: 'Free intro call times',
+      title: toolTitle('get_available_slots'),
       description: `Free times for a 30-minute intro call on Google Meet in the next ${BOOKING_WINDOW_DAYS} days. Pass one as start to book_call.`,
       inputSchema: z.object({ lang: langInput, timeZone: timeZoneInput.default(HOST_TIME_ZONE) }),
       outputSchema: slotsOutput,
@@ -169,7 +170,7 @@ export function registerWriteTools(server: McpServer, services: WriteServices): 
   server.registerTool(
     'send_message',
     {
-      title: 'Send Farrukh a message',
+      title: toolTitle('send_message'),
       description:
         'Sends a message to Farrukh by email, e.g. a job offer or a project inquiry. He replies to the given address, usually within two working days. Confirm the content with the user first.',
       inputSchema: messageInput,
@@ -198,7 +199,7 @@ export function registerWriteTools(server: McpServer, services: WriteServices): 
   server.registerTool(
     'book_call',
     {
-      title: 'Request an intro call',
+      title: toolTitle('book_call'),
       description:
         'Requests a 30-minute intro call at a free time from get_available_slots. Farrukh confirms every request; Cal.com then emails the Google Meet invitation. Confirm the details with the user first.',
       inputSchema: bookingInput,

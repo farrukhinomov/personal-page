@@ -1,0 +1,87 @@
+---
+import Icon from '@/components/ui/Icon.astro';
+import type { Locale } from '@/i18n/locales';
+
+interface Props {
+  locale: Locale;
+  /** The text copied to the clipboard. */
+  text: string;
+  /** Id of the element showing the text, so the button's purpose is announced with it. */
+  describedBy: string;
+}
+
+const { locale, text, describedBy } = Astro.props;
+
+const copy = {
+  de: { copy: 'Kopieren', copied: 'Kopiert', failed: 'Kopieren nicht möglich – bitte markieren.' },
+  en: { copy: 'Copy', copied: 'Copied', failed: 'Copying is not possible – please select it.' },
+}[locale];
+---
+
+<button
+  class="copy"
+  type="button"
+  data-copy={text}
+  data-copied={copy.copied}
+  data-copy-failed={copy.failed}
+  aria-describedby={describedBy}
+>
+  <span class="copy-icon">
+    <Icon name="copy" size={16} />
+  </span>
+  <span class="copied-icon">
+    <Icon name="check" size={16} />
+  </span>
+  <span data-copy-label>{copy.copy}</span>
+</button>
+
+<style>
+  .copy {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--target-size);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-control);
+    background: var(--color-surface);
+    color: var(--color-fg);
+    font: inherit;
+    font-size: var(--step--1);
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out);
+  }
+
+  .copy:hover {
+    border-color: var(--color-signal);
+    color: var(--color-signal);
+  }
+
+  .copy:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .copy-icon,
+  .copied-icon {
+    display: inline-flex;
+  }
+
+  .copied-icon,
+  .copy[data-state='copied'] .copy-icon {
+    display: none;
+  }
+
+  .copy[data-state='copied'] .copied-icon {
+    display: inline-flex;
+  }
+
+  .copy[data-state='copied'] {
+    border-color: var(--color-signal);
+    color: var(--color-signal);
+  }
+</style>

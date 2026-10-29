@@ -45,6 +45,7 @@ describe('runCommand', () => {
     expect(lines.map((line) => line.text.trim())).toEqual(
       expect.arrayContaining(['https://inomov.online/api/mcp', 'get_profile', 'book_call']),
     );
+    expect(lines.at(-2)).toEqual({ kind: 'link', text: 'Anleitung', href: '/verbinden' });
     expect(lines.at(-1)).toEqual({
       kind: 'link',
       text: 'Server Card',
