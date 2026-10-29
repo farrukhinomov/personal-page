@@ -8,6 +8,12 @@ import type { WriteServices } from './write-tools';
 /** The largest call is a Message of 5000 characters; nothing legitimate comes near this. */
 const MAX_REQUEST_BYTES = 64 * 1024;
 
+/**
+ * Carries the caller's address to the per-request server. The SDK may clone the Request on its way
+ * to the factory, which keeps headers; any value a client sends is overwritten.
+ */
+const CLIENT_IP_HEADER = 'x-portfolio-client-ip';
+
 /** Browsers may call the endpoint from the site itself; other clients send no Origin. */
 const ALLOWED_ORIGINS = [new URL(SITE_URL).hostname];
 
@@ -43,11 +49,9 @@ export function createPortfolioMcpHandler({
     });
     return posts;
   };
-  // The SDK hands the factory the Request it was given, which carries no client address.
-  const callers = new WeakMap<Request, string>();
   const handler = createMcpHandler(
     async ({ requestInfo }) => {
-      const ip = (requestInfo && callers.get(requestInfo)) ?? '';
+      const ip = requestInfo?.headers.get(CLIENT_IP_HEADER) ?? '';
       return createPortfolioServer(await loadOnce(), { ...services, ip });
     },
     {
@@ -60,8 +64,9 @@ export function createPortfolioMcpHandler({
     fetch: async (request, ip) => {
       const refused = originValidationResponse(request, ALLOWED_ORIGINS);
       if (refused) return refused;
-      callers.set(request, ip);
-      return handler.fetch(request);
+      const headers = new Headers(request.headers);
+      headers.set(CLIENT_IP_HEADER, ip);
+      return handler.fetch(new Request(request, { headers }));
     },
   };
 }

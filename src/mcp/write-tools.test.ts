@@ -1,8 +1,15 @@
-import type { Client } from '@modelcontextprotocol/client';
+import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { profile } from '@/data/profile';
 import type { Email } from '@/server/message-mail';
-import { CALLER_IP, connectClient, fakeServices, portfolioHandler, SLOTS } from './mcp.fixture';
+import {
+  CALLER_IP,
+  connectClient,
+  ENDPOINT,
+  fakeServices,
+  portfolioHandler,
+  SLOTS,
+} from './mcp.fixture';
 
 let client: Client | undefined;
 
@@ -132,6 +139,50 @@ describe('send_message', () => {
     ]);
   });
 
+  it.each(['auto', 'legacy'] as const)(
+    'counts the caller by their own address with a %s client',
+    async (mode) => {
+      const services = fakeServices();
+      client = await connectClient(portfolioHandler(services), mode);
+
+      await client.callTool({ name: 'send_message', arguments: MESSAGE });
+
+      expect(vi.mocked(services.rateLimit)).toHaveBeenCalledWith('mcpMessage', CALLER_IP);
+    },
+  );
+
+  it('ignores an address a client claims for itself', async () => {
+    const services = fakeServices();
+    const handler = portfolioHandler(services);
+    client = new Client({ name: 'test', version: '1.0.0' });
+    await client.connect(
+      new StreamableHTTPClientTransport(new URL(ENDPOINT), {
+        requestInit: { headers: { 'x-portfolio-client-ip': '198.51.100.1' } },
+        fetch: (url, init) => handler.fetch(new Request(url, init), CALLER_IP),
+      }),
+    );
+
+    await client.callTool({ name: 'send_message', arguments: MESSAGE });
+
+    expect(vi.mocked(services.rateLimit)).toHaveBeenCalledWith('mcpMessage', CALLER_IP);
+  });
+
+  it('refuses to send when the caller’s address is unknown', async () => {
+    const services = fakeServices();
+    const handler = portfolioHandler(services);
+    client = new Client({ name: 'test', version: '1.0.0' });
+    await client.connect(
+      new StreamableHTTPClientTransport(new URL(ENDPOINT), {
+        fetch: (url, init) => handler.fetch(new Request(url, init), ''),
+      }),
+    );
+
+    const result = await client.callTool({ name: 'send_message', arguments: MESSAGE });
+
+    expect(result.isError).toBe(true);
+    expect(services.send).not.toHaveBeenCalled();
+  });
+
   it.each([
     ['the caller', [false, true]],
     ['all assistants', [true, false]],
@@ -245,7 +296,22 @@ describe('book_call', () => {
 
     expect(result.isError).toBe(true);
     expect(text(result)).toContain('get_available_slots');
-    expect(services.listSlots).not.toHaveBeenCalled();
+    expect(services.slots).toHaveBeenCalledOnce();
+    expect(services.book).not.toHaveBeenCalled();
+  });
+
+  it('refuses a time that is not offered before it counts against a limit', async () => {
+    const services = fakeServices();
+
+    const result = await (
+      await connect(services)
+    ).callTool({
+      name: 'book_call',
+      arguments: { ...BOOKING, start: '2026-10-29T03:00:00.000Z' },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(services.rateLimit).not.toHaveBeenCalled();
     expect(services.book).not.toHaveBeenCalled();
   });
 

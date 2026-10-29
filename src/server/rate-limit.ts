@@ -23,6 +23,16 @@ export const DAILY_LIMITS = {
 /** The key of limits that count every client together. */
 export const ALL_CLIENTS = 'all';
 
+/**
+ * Limits that refuse while Redis is unreachable. The forms' limits let requests through, since
+ * Turnstile still guards them; the MCP tools have nothing behind their limits.
+ */
+export const FAIL_CLOSED: ReadonlySet<RateLimitedAction> = new Set([
+  'mcpMessage',
+  'mcpMessageTotal',
+  'mcpBookingTotal',
+]);
+
 export type RateLimitedAction = keyof typeof DAILY_LIMITS;
 
 /** The part of an Upstash `Ratelimit` this module uses, so tests can pass a fake. */
@@ -76,21 +86,25 @@ export async function hashClient(ip: string, secret: string): Promise<string> {
 }
 
 /**
- * Counts one attempt for this client. When Redis fails or times out, the request is let through
- * and the error logged: an outage must not lock every Visitor out, and Turnstile and Cal.com
- * approval remain.
+ * Counts one attempt for this client. When Redis fails or times out, the error is logged and the
+ * request let through, since an outage must not lock every Visitor out and Turnstile and Cal.com
+ * approval remain; with `failClosed` it is refused instead (see FAIL_CLOSED).
  */
 export async function checkRateLimit(
   limiter: Limiter,
   ip: string,
   secret: string,
-  now: number = Date.now(),
+  { now = Date.now(), failClosed = false }: { now?: number; failClosed?: boolean } = {},
 ): Promise<RateLimitResult> {
   try {
     const { success, remaining, reset } = await limiter.limit(await hashClient(ip, secret));
     if (success) return { allowed: true, remaining };
     return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((reset - now) / 1000)) };
   } catch (error) {
+    if (failClosed) {
+      console.error('Rate limit check failed; refusing the request.', error);
+      return { allowed: false, retryAfterSeconds: 60 };
+    }
     console.error('Rate limit check failed; letting the request through.', error);
     return { allowed: true, remaining: 0 };
   }

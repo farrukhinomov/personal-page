@@ -3,6 +3,7 @@ import {
   checkRateLimit,
   clientKey,
   DAILY_LIMITS,
+  FAIL_CLOSED,
   hashClient,
   rateLimitedResponse,
   type Limiter,
@@ -82,7 +83,7 @@ describe('checkRateLimit', () => {
   it('counts the attempt under the hashed client key', async () => {
     const limiter = limiterReturning({ success: true, remaining: 2, reset: NOW + 1000 });
 
-    const result = await checkRateLimit(limiter, '203.0.113.7', SECRET, NOW);
+    const result = await checkRateLimit(limiter, '203.0.113.7', SECRET, { now: NOW });
 
     expect(result).toEqual({ allowed: true, remaining: 2 });
     expect(limiter.limit).toHaveBeenCalledWith(await hashClient('203.0.113.7', SECRET));
@@ -91,7 +92,7 @@ describe('checkRateLimit', () => {
   it('rejects with the seconds until the window frees up, rounded up', async () => {
     const limiter = limiterReturning({ success: false, remaining: 0, reset: NOW + 90_500 });
 
-    expect(await checkRateLimit(limiter, '203.0.113.7', SECRET, NOW)).toEqual({
+    expect(await checkRateLimit(limiter, '203.0.113.7', SECRET, { now: NOW })).toEqual({
       allowed: false,
       retryAfterSeconds: 91,
     });
@@ -100,7 +101,7 @@ describe('checkRateLimit', () => {
   it('never asks to retry in less than a second', async () => {
     const limiter = limiterReturning({ success: false, remaining: 0, reset: NOW - 5 });
 
-    expect(await checkRateLimit(limiter, '203.0.113.7', SECRET, NOW)).toEqual({
+    expect(await checkRateLimit(limiter, '203.0.113.7', SECRET, { now: NOW })).toEqual({
       allowed: false,
       retryAfterSeconds: 1,
     });
@@ -110,11 +111,24 @@ describe('checkRateLimit', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     const limiter = { limit: vi.fn<Limiter['limit']>().mockRejectedValue(new Error('down')) };
 
-    expect(await checkRateLimit(limiter, '203.0.113.7', SECRET, NOW)).toEqual({
+    expect(await checkRateLimit(limiter, '203.0.113.7', SECRET, { now: NOW })).toEqual({
       allowed: true,
       remaining: 0,
     });
     expect(error).toHaveBeenCalledOnce();
+  });
+
+  it('refuses when Redis fails for a limit that must fail closed', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const limiter = { limit: vi.fn<Limiter['limit']>().mockRejectedValue(new Error('down')) };
+
+    expect(
+      await checkRateLimit(limiter, '203.0.113.7', SECRET, { now: NOW, failClosed: true }),
+    ).toEqual({ allowed: false, retryAfterSeconds: 60 });
+  });
+
+  it('fails closed only for the limits behind which nothing else guards', () => {
+    expect([...FAIL_CLOSED].sort()).toEqual(['mcpBookingTotal', 'mcpMessage', 'mcpMessageTotal']);
   });
 });
 
