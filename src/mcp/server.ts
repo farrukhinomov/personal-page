@@ -22,6 +22,7 @@ import {
   projectOutput,
   skillsOutput,
 } from './schemas';
+import { registerWriteTools, type WriteServices } from './write-tools';
 
 export const SERVER_INFO = { name: 'inomov-online', title: 'Farrukh Inomov', version: '1.0.0' };
 
@@ -29,9 +30,10 @@ const INSTRUCTIONS = [
   'The portfolio of Farrukh Inomov, a senior full-stack developer for C#/.NET, React and TypeScript in Saarbrücken, Germany.',
   'Start with get_profile; get_experience, get_skills and the project and blog tools add detail.',
   'Every tool answers in German or English (lang: "de" or "en") with links to the matching pages.',
+  'To get in touch, send_message writes to Farrukh, and get_available_slots and book_call request a 30-minute intro call; confirm the details with the user before calling them.',
 ].join(' ');
 
-/** Every tool here only reads public Portfolio data. */
+/** The tools in this file only read public Portfolio data. */
 const READ_ONLY: ToolAnnotations = {
   readOnlyHint: true,
   destructiveHint: false,
@@ -55,9 +57,13 @@ function notFound(what: string) {
 
 /**
  * Builds the Portfolio's MCP server. It runs once per request (see handler.ts), so it holds no
- * state; the Posts are passed in because they come from the content collection.
+ * state; the Posts are passed in because they come from the content collection, and the services
+ * of the write tools because they reach Resend, Cal.com and Upstash.
  */
-export function createPortfolioServer(posts: Localized<readonly McpPost[]>): McpServer {
+export function createPortfolioServer(
+  posts: Localized<readonly McpPost[]>,
+  services: WriteServices,
+): McpServer {
   const server = new McpServer(SERVER_INFO, { instructions: INSTRUCTIONS });
   const postSlugs = posts.en.map((post) => post.slug);
 
@@ -165,5 +171,6 @@ export function createPortfolioServer(posts: Localized<readonly McpPost[]>): Mcp
     },
   );
 
+  registerWriteTools(server, services);
   return server;
 }

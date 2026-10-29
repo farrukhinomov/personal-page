@@ -1,7 +1,7 @@
 ---
 title: Datenschutzerklärung
 description: Welche Daten beim Besuch von inomov.online verarbeitet werden und welche Rechte Sie haben.
-updated: 2026-10-28
+updated: 2026-10-29
 ---
 
 import { profile } from '@/data/profile';
@@ -9,7 +9,7 @@ import { legal } from '@/data/legal';
 
 ## Kurz gesagt
 
-Diese Website setzt keine Cookies und verwendet keine Analyse- oder Tracking-Dienste. Schriften werden von dieser Website selbst ausgeliefert. Beim Aufruf werden nur die technisch notwendigen Daten verarbeitet, die unten beschrieben sind. Dienste von Drittanbietern kommen erst ins Spiel, wenn Sie mir über das Kontaktformular schreiben oder einen Termin buchen.
+Diese Website setzt keine Cookies und verwendet keine Analyse- oder Tracking-Dienste. Schriften werden von dieser Website selbst ausgeliefert. Beim Aufruf werden nur die technisch notwendigen Daten verarbeitet, die unten beschrieben sind. Dienste von Drittanbietern kommen erst ins Spiel, wenn Sie mir über das Kontaktformular oder einen KI-Assistenten schreiben oder einen Termin buchen.
 
 ## Verantwortlicher
 
@@ -72,6 +72,14 @@ Auf der Kontaktseite können Sie ein 30-minütiges Gespräch mit mir anfragen. D
 Rechtsgrundlage ist Ihre Einwilligung, die Sie mit dem Kontrollkästchen im Formular erteilen (Art. 6 Abs. 1 lit. a DSGVO), und, soweit es um ein Vertragsverhältnis oder dessen Anbahnung geht, Art. 6 Abs. 1 lit. b DSGVO. Sie können Ihre Einwilligung jederzeit per E-Mail widerrufen. Die Buchungsdaten bleiben bei Cal.com und in meinem Kalender, bis das Gespräch stattgefunden hat und keine gesetzlichen Aufbewahrungspflichten entgegenstehen. Die Übermittlung in die USA stützt sich auf Standardvertragsklauseln (Art. 46 DSGVO).
 
 Auch die Terminanfrage ist durch Cloudflare Turnstile geschützt und auf drei Anfragen pro Tag und IP-Adresse begrenzt; dafür gilt, was oben unter Kontaktformular zu Turnstile und Upstash steht.
+
+## Kontakt über KI-Assistenten (MCP)
+
+Über die Schnittstelle `https://inomov.online/api/mcp` (Model Context Protocol) können KI-Assistenten wie Claude, ChatGPT oder Cursor die öffentlichen Angaben dieser Website abrufen. Dabei werden nur die technisch notwendigen Daten verarbeitet, die unter Hosting beschrieben sind. Zum Schutz vor Überlastung begrenzt die Firewall von Vercel die Anfragen je IP-Adresse.
+
+Ein Assistent kann in Ihrem Auftrag auch eine Nachricht an mich senden oder einen Intro Call anfragen. Er übermittelt dafür die Angaben, die Sie ihm geben: für eine Nachricht Ihren Namen, Ihre E-Mail-Adresse, optional Ihre Firma, das Thema und die Nachricht; für eine Terminanfrage dieselben Angaben wie im Formular unter Terminbuchung. Die Nachricht stellt mir Resend per E-Mail zu, die Terminanfrage verwaltet Cal.com, jeweils wie oben beschrieben. Eine Eingangsbestätigung per E-Mail verschickt die Website für Nachrichten über einen Assistenten nicht; die Bestätigung sehen Sie in Ihrem Assistenten. Gegen Missbrauch zählt Upstash diese Anfragen je IP-Adresse, wie unter Kontaktformular beschrieben, und zusätzlich für alle Assistenten zusammen, ohne Bezug zu Ihrer Person.
+
+Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, soweit es um ein Vertragsverhältnis oder dessen Anbahnung geht, sonst Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse, Anfragen zu beantworten, die Sie mir über Ihren Assistenten schicken). Wie der Anbieter Ihres Assistenten Ihre Angaben verarbeitet, regelt dessen eigene Datenschutzerklärung.
 
 ## Links zu anderen Websites
 

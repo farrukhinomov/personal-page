@@ -4,6 +4,7 @@ import { getSecret } from 'astro:env/server';
 import {
   checkRateLimit,
   DAILY_LIMITS,
+  FAIL_CLOSED,
   type Limiter,
   type RateLimitedAction,
   type RateLimitResult,
@@ -28,7 +29,9 @@ let connection: Connection | undefined;
  */
 export function rateLimit(action: RateLimitedAction, ip: string): Promise<RateLimitResult> {
   connection ??= connect();
-  return checkRateLimit(connection.limiters[action], ip, connection.hashSecret);
+  return checkRateLimit(connection.limiters[action], ip, connection.hashSecret, {
+    failClosed: FAIL_CLOSED.has(action),
+  });
 }
 
 function connect(): Connection {
@@ -45,13 +48,12 @@ function connect(): Connection {
       prefix: `ratelimit:${action}`,
       timeout: REDIS_TIMEOUT_MS,
     });
+  const actions = Object.keys(DAILY_LIMITS) as RateLimitedAction[];
   return {
-    limiters: {
-      booking: create('booking'),
-      message: create('message'),
-      mcpMessage: create('mcpMessage'),
-      confirmation: create('confirmation'),
-    },
+    limiters: Object.fromEntries(actions.map((action) => [action, create(action)])) as Record<
+      RateLimitedAction,
+      Limiter
+    >,
     hashSecret: token,
   };
 }

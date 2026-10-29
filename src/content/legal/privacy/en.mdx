@@ -1,7 +1,7 @@
 ---
 title: Privacy policy
 description: Which data is processed when you visit inomov.online and what rights you have.
-updated: 2026-10-28
+updated: 2026-10-29
 ---
 
 import { profile } from '@/data/profile';
@@ -11,7 +11,7 @@ This is a courtesy translation. The German text is legally binding.
 
 ## In short
 
-This website sets no cookies and uses no analytics or tracking services. Fonts are served by this website itself. When you visit, only the technically necessary data described below is processed. Third-party services only come into play when you write to me through the contact form or book a call.
+This website sets no cookies and uses no analytics or tracking services. Fonts are served by this website itself. When you visit, only the technically necessary data described below is processed. Third-party services only come into play when you write to me through the contact form or an AI assistant, or book a call.
 
 ## Controller
 
@@ -74,6 +74,14 @@ On the contact page you can request a 30-minute call with me. For this, I proces
 The legal basis is your consent, which you give with the checkbox in the form (Art. 6(1)(a) GDPR), and, where the call concerns a contract or preparing one, Art. 6(1)(b) GDPR. You can withdraw your consent at any time by email. The booking data stays at Cal.com and in my calendar until the call has taken place and no statutory retention duty applies. The transfer to the USA relies on standard contractual clauses (Art. 46 GDPR).
 
 The booking request is also protected by Cloudflare Turnstile and limited to three requests per day and IP address; what is said above about Turnstile and Upstash under contact form applies.
+
+## Contact through AI assistants (MCP)
+
+Through the interface `https://inomov.online/api/mcp` (Model Context Protocol), AI assistants such as Claude, ChatGPT or Cursor can read the public information on this website. Only the technically necessary data described under hosting is processed for this. To protect against overload, Vercel's firewall limits the requests per IP address.
+
+An assistant can also send me a message or request an intro call on your behalf. For this, it transmits the details you give it: for a message, your name, your email address, optionally your company, the topic and the message; for a call request, the same details as in the form under booking a call. Resend delivers the message to me by email, and Cal.com manages the call request, each as described above. The website sends no confirmation email for messages from an assistant; you see the confirmation in your assistant. To prevent abuse, Upstash counts these requests per IP address, as described under contact form, and also for all assistants together, without any link to you.
+
+The legal basis is Art. 6(1)(b) GDPR where the request concerns a contract or preparing one, and otherwise Art. 6(1)(f) GDPR (legitimate interest in answering requests you send me through your assistant). How the provider of your assistant processes your details is governed by its own privacy policy.
 
 ## Links to other websites
 
