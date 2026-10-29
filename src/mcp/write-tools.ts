@@ -42,6 +42,8 @@ const SENDS: ToolAnnotations = {
   openWorldHint: true,
 };
 
+const SLOT_TAKEN = 'This time is not free. Call get_available_slots and pick another.';
+
 /** Shown to Farrukh below the reason, so he knows who filled in the details. */
 const ASSISTANT_NOTE = 'Angefragt über einen KI-Assistenten (MCP).';
 
@@ -114,12 +116,16 @@ function slotLabel(start: string, locale: Locale, timeZone: string): string {
   }).format(new Date(start));
 }
 
-/** Both limits must allow the request: the caller's own and the one for all assistants. */
+/**
+ * Both limits must allow the request: the caller's own and the one for all assistants. Without a
+ * known address the caller's limit cannot count, so the request is refused.
+ */
 async function withinLimits(
   services: WriteServices,
   perClient: RateLimitedAction,
   total: RateLimitedAction,
 ): Promise<boolean> {
+  if (!services.ip) return false;
   if (!(await services.rateLimit(perClient, services.ip)).allowed) return false;
   return (await services.rateLimit(total, ALL_CLIENTS)).allowed;
 }
@@ -201,6 +207,11 @@ export function registerWriteTools(server: McpServer, services: WriteServices): 
     },
     async ({ lang, ...booking }) => {
       try {
+        // A time that is not even offered is refused before it uses up a daily limit.
+        const offered = await services.listSlots();
+        if (!offered.includes(new Date(booking.start).toISOString())) {
+          return failure(SLOT_TAKEN);
+        }
         if (!(await withinLimits(services, 'booking', 'mcpBookingTotal'))) {
           return failure(
             `No more calls can be requested through assistants today. ${fallback(lang)}`,
@@ -210,9 +221,7 @@ export function registerWriteTools(server: McpServer, services: WriteServices): 
           { ...booking, language: lang, note: ASSISTANT_NOTE },
           services,
         );
-        if (outcome === 'slot_unavailable') {
-          return failure('This time is no longer free. Call get_available_slots and pick another.');
-        }
+        if (outcome === 'slot_unavailable') return failure(SLOT_TAKEN);
       } catch (error) {
         console.error('Booking an Intro Call for an assistant failed.', error);
         return failure(`The call could not be requested. ${fallback(lang)}`);
