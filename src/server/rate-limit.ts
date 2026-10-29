@@ -12,7 +12,16 @@ export const DAILY_LIMITS = {
   mcpMessage: 3,
   /** Per recipient address, not per IP: at most three confirmations a day, however many senders. */
   confirmation: 3,
+  /**
+   * For all AI assistants together, keyed by `ALL_CLIENTS`: assistants of one provider share
+   * IPs, and without Turnstile these caps bound what reaches Farrukh and Cal.com's emails.
+   */
+  mcpMessageTotal: 20,
+  mcpBookingTotal: 10,
 } as const;
+
+/** The key of limits that count every client together. */
+export const ALL_CLIENTS = 'all';
 
 export type RateLimitedAction = keyof typeof DAILY_LIMITS;
 

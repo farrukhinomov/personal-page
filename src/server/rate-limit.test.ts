@@ -21,7 +21,14 @@ afterEach(() => {
 
 describe('DAILY_LIMITS', () => {
   it('matches the agreed limits', () => {
-    expect(DAILY_LIMITS).toEqual({ booking: 3, message: 10, mcpMessage: 3, confirmation: 3 });
+    expect(DAILY_LIMITS).toEqual({
+      booking: 3,
+      message: 10,
+      mcpMessage: 3,
+      confirmation: 3,
+      mcpMessageTotal: 20,
+      mcpBookingTotal: 10,
+    });
   });
 });
 
