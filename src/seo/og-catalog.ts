@@ -19,6 +19,7 @@ const NAV_KEY = {
   about: 'nav.about',
   projects: 'nav.projects',
   blog: 'nav.blog',
+  connect: 'nav.connect',
   contact: 'nav.contact',
   imprint: 'nav.imprint',
   privacy: 'nav.privacy',

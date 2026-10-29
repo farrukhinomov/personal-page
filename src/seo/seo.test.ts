@@ -114,6 +114,7 @@ describe('llms.txt', () => {
     const text = buildLlmsTxt([post]);
     expect(text).toContain('## For AI assistants (MCP)');
     expect(text).toContain('https://inomov.online/api/mcp (Streamable HTTP, no sign-up)');
+    expect(text).toContain('[Setup guide](https://inomov.online/en/connect)');
     expect(text).toContain('(https://inomov.online/api/mcp/server-card)');
     expect(text).toContain('(https://inomov.online/.well-known/ai-catalog.json)');
     expect(text).toContain('send_message');

@@ -48,6 +48,7 @@ const COPY = {
     switching: 'Wechsle zu Englisch …',
     mcpIntro: 'MCP-Server für KI-Assistenten, ohne Anmeldung:',
     mcpTools: 'Werkzeuge:',
+    mcpGuide: 'Anleitung',
   },
   en: {
     help: 'Available commands:',
@@ -69,6 +70,7 @@ const COPY = {
     switching: 'Switching to German …',
     mcpIntro: 'MCP server for AI assistants, no sign-up:',
     mcpTools: 'Tools:',
+    mcpGuide: 'Setup guide',
   },
 } as const;
 
@@ -132,6 +134,7 @@ const HANDLERS: Record<CommandName, Handler> = {
       text(`  ${MCP_ENDPOINT_URL}`),
       muted(COPY[locale].mcpTools),
       ...MCP_TOOLS.map((tool) => text(`  ${tool}`)),
+      link(COPY[locale].mcpGuide, pathFor('connect', locale)),
       link('Server Card', SERVER_CARD_PATH),
     ],
   }),
