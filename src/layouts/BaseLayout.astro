@@ -1,4 +1,5 @@
 ---
+import { AI_CATALOG_PATH, AI_CATALOG_TYPE } from '@/mcp/discovery';
 import { Font, getImage } from 'astro:assets';
 import portrait from '@/assets/portrait/farrukh-inomov.jpg';
 import SiteFooter from '@/components/site/SiteFooter.astro';
@@ -127,6 +128,8 @@ const rssUrl = `${pathFor('blog', locale)}/rss.xml`;
       href={rssUrl}
     />
     <link rel="sitemap" href="/sitemap-index.xml" />
+    <!-- Lets AI agents find the MCP endpoint (AI Catalog link relation). -->
+    <link rel="ai-catalog" href={AI_CATALOG_PATH} type={AI_CATALOG_TYPE} />
     <script is:inline type="application/ld+json" set:html={jsonLd} />
     <!-- Follows the page theme; the theme scripts keep it in sync. -->
     <meta

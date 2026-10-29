@@ -110,6 +110,15 @@ describe('llms.txt', () => {
     expect(text).toContain('(https://inomov.online/api/resume.json)');
   });
 
+  it('tells AI assistants where the MCP server, its Server Card and the AI Catalog are', () => {
+    const text = buildLlmsTxt([post]);
+    expect(text).toContain('## For AI assistants (MCP)');
+    expect(text).toContain('https://inomov.online/api/mcp (Streamable HTTP, no sign-up)');
+    expect(text).toContain('(https://inomov.online/api/mcp/server-card)');
+    expect(text).toContain('(https://inomov.online/.well-known/ai-catalog.json)');
+    expect(text).toContain('send_message');
+  });
+
   it('says so when there are no posts', () => {
     expect(buildLlmsTxt([])).toContain('- No posts yet.');
     expect(buildLlmsFullTxt([])).toContain('No posts yet.');
