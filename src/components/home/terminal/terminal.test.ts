@@ -38,6 +38,20 @@ describe('runCommand', () => {
     expect(runCommand('availability', en).lines[0]?.kind).toBe('error');
   });
 
+  it('shows the MCP endpoint, its tools and the Server Card', () => {
+    const lines = runCommand('mcp', de).lines;
+
+    expect(lines[0]?.text).toBe('MCP-Server für KI-Assistenten, ohne Anmeldung:');
+    expect(lines.map((line) => line.text.trim())).toEqual(
+      expect.arrayContaining(['https://inomov.online/api/mcp', 'get_profile', 'book_call']),
+    );
+    expect(lines.at(-1)).toEqual({
+      kind: 'link',
+      text: 'Server Card',
+      href: '/api/mcp/server-card',
+    });
+  });
+
   it('switches language to the alternate path', () => {
     expect(runCommand('lang', de).effect).toEqual({ type: 'navigate', href: '/en' });
   });

@@ -6,6 +6,7 @@ import { projects } from '@/data/projects';
 import { skills } from '@/data/skills';
 import { LOCALES } from '@/i18n/locales';
 import { pageMeta } from '@/i18n/pages';
+import { AI_CATALOG_PATH, MCP_ENDPOINT_URL, MCP_TOOLS, SERVER_CARD_PATH } from '@/mcp/discovery';
 import { childPathFor, pathFor, ROUTES, type RouteKey } from '@/i18n/routes';
 import { SITE_URL } from './structured-data';
 
@@ -67,6 +68,14 @@ export function buildLlmsTxt(posts: readonly PostSummary[]): string {
     ...(posts.length > 0
       ? posts.map((post) => link(post.title, post.path, post.description))
       : ['- No posts yet.']),
+    '',
+    '## For AI assistants (MCP)',
+    '',
+    `Connect to the MCP server at ${MCP_ENDPOINT_URL} (Streamable HTTP, no sign-up) to query the profile, experience, skills, projects and posts, send Farrukh a message or request an intro call.`,
+    '',
+    link('Server Card', SERVER_CARD_PATH, 'how to connect, as an MCP Server Card'),
+    link('AI Catalog', AI_CATALOG_PATH, 'the AI artifacts this site offers'),
+    `- Tools: ${MCP_TOOLS.join(', ')}`,
     '',
     '## Machine-readable',
     '',
