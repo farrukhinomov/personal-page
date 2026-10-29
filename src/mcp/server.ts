@@ -22,9 +22,11 @@ import {
   projectOutput,
   skillsOutput,
 } from './schemas';
+import { SERVER_NAME, SERVER_VERSION } from './discovery';
 import { registerWriteTools, type WriteServices } from './write-tools';
 
-export const SERVER_INFO = { name: 'inomov-online', title: 'Farrukh Inomov', version: '1.0.0' };
+/** The same name and version as the Server Card (discovery.ts), as the specification asks. */
+export const SERVER_INFO = { name: SERVER_NAME, title: 'Farrukh Inomov', version: SERVER_VERSION };
 
 const INSTRUCTIONS = [
   'The portfolio of Farrukh Inomov, a senior full-stack developer for C#/.NET, React and TypeScript in Saarbrücken, Germany.',
