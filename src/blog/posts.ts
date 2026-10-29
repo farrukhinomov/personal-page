@@ -41,9 +41,11 @@ export function selectPosts<Entry extends BlogEntry>(
 /**
  * All Posts in one locale. Drafts and Posts dated in the future are listed while developing;
  * a production build leaves them out (the monthly rebuild publishes scheduled Posts).
+ * Server code passes the build time as `now`, so it lists the same Posts as the static pages.
  */
-export async function getPosts(locale: Locale): Promise<Post[]> {
+export async function getPosts(locale: Locale, now = new Date()): Promise<Post[]> {
   return selectPosts(await getCollection('blog'), locale, {
     includeUnpublished: import.meta.env.DEV,
+    now,
   });
 }
