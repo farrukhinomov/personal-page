@@ -18,24 +18,41 @@ export interface Email {
   attachments?: readonly Attachment[];
 }
 
+/** What a notification needs of a Message, from the Contact page form or an AI assistant. */
+export type MessageContent = Pick<
+  Message,
+  'name' | 'email' | 'company' | 'topic' | 'message' | 'locale'
+>;
+
+/** Where a Message came from: the Contact page form, or an AI assistant through /api/mcp. */
+export type MessageChannel = 'form' | 'assistant';
+
+const CHANNEL_LABELS: Record<MessageChannel, string> = {
+  form: 'Kontaktformular',
+  assistant: 'KI-Assistent (MCP); Name und E-Mail-Adresse sind nicht bestätigt',
+};
+
 /** The Message as it reaches Farrukh; replying goes straight to the sender. */
 export function notificationEmail(
-  message: Message,
+  message: MessageContent,
   attachments: readonly Attachment[] = [],
+  channel: MessageChannel = 'form',
 ): Email {
   const topic = TOPIC_LABELS[message.topic].de;
   const listed = attachments.map((file) => `${file.filename} (${formatSize(file.content.length)})`);
+  const via = channel === 'assistant' ? 'einen KI-Assistenten' : 'inomov.online';
   return {
     from: SENDER,
     to: profile.email,
     replyTo: message.email,
-    subject: `Nachricht über inomov.online: ${topic} von ${message.name}`,
+    subject: `Nachricht über ${via}: ${topic} von ${message.name}`,
     text: [
       `Name: ${message.name}`,
       `E-Mail: ${message.email}`,
       `Firma: ${message.company || '–'}`,
       `Thema: ${topic}`,
       `Sprache: ${message.locale}`,
+      `Eingang: ${CHANNEL_LABELS[channel]}`,
       `Anhänge: ${listed.join(', ') || '–'}`,
       '',
       message.message,

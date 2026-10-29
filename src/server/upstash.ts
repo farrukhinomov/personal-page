@@ -45,13 +45,12 @@ function connect(): Connection {
       prefix: `ratelimit:${action}`,
       timeout: REDIS_TIMEOUT_MS,
     });
+  const actions = Object.keys(DAILY_LIMITS) as RateLimitedAction[];
   return {
-    limiters: {
-      booking: create('booking'),
-      message: create('message'),
-      mcpMessage: create('mcpMessage'),
-      confirmation: create('confirmation'),
-    },
+    limiters: Object.fromEntries(actions.map((action) => [action, create(action)])) as Record<
+      RateLimitedAction,
+      Limiter
+    >,
     hashSecret: token,
   };
 }

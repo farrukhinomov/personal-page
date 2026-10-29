@@ -76,26 +76,56 @@ export async function handleBooking(
   const limit = await services.rateLimit(ip);
   if (!limit.allowed) return rateLimitedResponse(limit.retryAfterSeconds);
 
-  const start = new Date(booking.start);
   try {
-    const free = await services.slots({ from: start, to: new Date(start.getTime() + DAY_MS) });
-    if (!free.includes(start.toISOString())) return slotUnavailable();
-
-    const outcome = await services.book({
-      start: start.toISOString(),
-      name: booking.name,
-      email: booking.email,
-      timeZone: booking.timeZone,
-      language: booking.locale,
-      company: booking.company,
-      // Cal.com only knows the fields of the event type, so the link joins the reason.
-      reason: booking.link ? `${booking.reason}\n\nLink: ${booking.link}` : booking.reason,
-    });
-    return outcome.kind === 'requested' ? okResponse() : slotUnavailable();
+    const outcome = await requestIntroCall({ ...booking, language: booking.locale }, services);
+    return outcome === 'requested' ? okResponse() : slotUnavailable();
   } catch (error) {
     console.error('Booking an Intro Call failed.', error);
     return errorResponse(502, 'booking_failed', 'The Intro Call could not be booked.');
   }
+}
+
+export interface IntroCallRequest {
+  /** Start of the chosen Slot, as an ISO date with offset. */
+  start: string;
+  name: string;
+  email: string;
+  timeZone: string;
+  language: string;
+  company: string;
+  reason: string;
+  link: string;
+  /** A line Farrukh sees below the reason, e.g. that an AI assistant sent the request. */
+  note?: string;
+}
+
+/**
+ * Books a checked request with Cal.com, for the Contact page and the MCP tool alike. The Slot is
+ * checked against Cal.com again, so only times Cal.com itself offers can be booked. Throws when
+ * Cal.com fails.
+ */
+export async function requestIntroCall(
+  booking: IntroCallRequest,
+  services: Pick<BookingServices, 'slots' | 'book'>,
+): Promise<'requested' | 'slot_unavailable'> {
+  const start = new Date(booking.start);
+  const free = await services.slots({ from: start, to: new Date(start.getTime() + DAY_MS) });
+  if (!free.includes(start.toISOString())) return 'slot_unavailable';
+
+  // Cal.com only knows the fields of the event type, so the link and the note join the reason.
+  const reason = [booking.reason, booking.link && `Link: ${booking.link}`, booking.note].filter(
+    Boolean,
+  );
+  const outcome = await services.book({
+    start: start.toISOString(),
+    name: booking.name,
+    email: booking.email,
+    timeZone: booking.timeZone,
+    language: booking.language,
+    company: booking.company,
+    reason: reason.join('\n\n'),
+  });
+  return outcome.kind === 'requested' ? 'requested' : 'slot_unavailable';
 }
 
 function slotUnavailable(): Response {
