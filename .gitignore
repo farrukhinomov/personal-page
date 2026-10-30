@@ -34,3 +34,6 @@ _docs/
 
 # crash dumps
 *.stackdump
+
+.vercel
+.env*
