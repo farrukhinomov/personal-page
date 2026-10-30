@@ -1,5 +1,6 @@
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 import { pathFor } from '@/i18n/routes';
+import { HEALTH_CHECK_AGENT } from '@/mcp/handler';
 import {
   AI_CATALOG_PATH,
   AI_CATALOG_TYPE,
@@ -31,7 +32,7 @@ export interface HealthOptions {
 type Fetch = typeof fetch;
 type Check = { name: string; run: () => Promise<string> };
 
-const USER_AGENT = 'inomov-health-check';
+const USER_AGENT = HEALTH_CHECK_AGENT;
 const RETRY_DELAY_MS = 10_000;
 const TIMEOUT_MS = 20_000;
 

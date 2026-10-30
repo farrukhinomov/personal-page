@@ -15,6 +15,7 @@ export default defineConfig({
       KV_REST_API_TOKEN: envField.string({ context: 'server', access: 'secret', optional: true }),
       RESEND_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
       CALCOM_API_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      CRON_SECRET: envField.string({ context: 'server', access: 'secret', optional: true }),
       TURNSTILE_SECRET_KEY: envField.string({
         context: 'server',
         access: 'secret',
