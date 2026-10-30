@@ -19,7 +19,8 @@ const t = useTranslations(locale);
   lang={LANG_TAG[target]}
 >
   <!-- The name starts with the visible label, so voice control users can say what they see. -->
-  {t('lang.short')}<span class="visually-hidden"> – {t('a11y.switchLanguage')}</span>
+  {t('lang.short')}
+  <span class="visually-hidden"> – {t('a11y.switchLanguage')}</span>
 </a>
 
 <style>
