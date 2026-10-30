@@ -1,0 +1,32 @@
+# Checks the live site every morning: pages, MCP endpoint, discovery documents and the
+# Intro Call slots. A failure opens one `incident` issue (GitHub emails the Owner); the
+# issue closes itself once every check passes again. The checks only read.
+name: Health check
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: health-check
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm health-check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
