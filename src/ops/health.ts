@@ -10,6 +10,7 @@ import {
   SERVER_CARD_TYPE,
   SERVER_NAME,
 } from '@/mcp/discovery';
+import { parseSecurityTxtExpiry, SECURITY_TXT_PATH } from '@/seo/security-txt';
 
 /**
  * The daily health check of the live site. Every check only reads: none sends a message or
@@ -27,6 +28,7 @@ export interface HealthOptions {
   /** Waits before a failed check runs again; injectable so tests do not wait. */
   sleep?: (ms: number) => Promise<void>;
   timeoutMs?: number;
+  now?: () => Date;
 }
 
 type Fetch = typeof fetch;
@@ -35,6 +37,9 @@ type Check = { name: string; run: () => Promise<string> };
 const USER_AGENT = HEALTH_CHECK_AGENT;
 const RETRY_DELAY_MS = 10_000;
 const TIMEOUT_MS = 20_000;
+/** Warns while a month is left, so a failing monthly rebuild is noticed before security.txt lapses. */
+const SECURITY_TXT_MIN_DAYS = 30;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const PAGES = [
   pathFor('home', 'de'),
@@ -51,7 +56,7 @@ export async function runHealthChecks(
   const sleep = options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
   const timeoutMs = options.timeoutMs ?? TIMEOUT_MS;
   const request = identified(options.fetch ?? fetch);
-  const checks = healthChecks(baseUrl, request);
+  const checks = healthChecks(baseUrl, request, options.now ?? (() => new Date()));
 
   const first = await Promise.all(checks.map((check) => attempt(check, timeoutMs)));
   if (first.every((result) => result.ok)) return first;
@@ -62,7 +67,7 @@ export async function runHealthChecks(
   );
 }
 
-function healthChecks(baseUrl: string, request: Fetch): Check[] {
+function healthChecks(baseUrl: string, request: Fetch, now: () => Date): Check[] {
   const url = (path: string) => new URL(path, baseUrl);
   return [
     ...PAGES.map((path) => ({ name: `Page ${path}`, run: () => checkPage(request, url(path)) })),
@@ -84,6 +89,7 @@ function healthChecks(baseUrl: string, request: Fetch): Check[] {
             : 'does not point to the Server Card';
         }),
     },
+    { name: 'security.txt', run: () => checkSecurityTxt(request, url(SECURITY_TXT_PATH), now()) },
     { name: 'MCP tools', run: () => checkTools(request, url(MCP_ENDPOINT_PATH)) },
     { name: 'Intro Call slots', run: () => checkSlots(request, url(MCP_ENDPOINT_PATH)) },
   ];
@@ -120,6 +126,16 @@ async function checkJson(
   const found = problem((await response.json()) as Record<string, unknown>);
   if (found) throw new Error(found);
   return 'HTTP 200';
+}
+
+async function checkSecurityTxt(request: Fetch, url: URL, now: Date): Promise<string> {
+  const response = await request(url);
+  expectStatus(response);
+  const expires = parseSecurityTxtExpiry(await response.text());
+  if (!expires) throw new Error('no valid Expires field');
+  const days = Math.floor((expires.getTime() - now.getTime()) / DAY_MS);
+  if (days < SECURITY_TXT_MIN_DAYS) throw new Error(`expires in ${days} days; rebuild the site`);
+  return `expires in ${days} days`;
 }
 
 async function checkTools(request: Fetch, endpoint: URL): Promise<string> {
