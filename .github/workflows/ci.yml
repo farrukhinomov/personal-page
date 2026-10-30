@@ -55,7 +55,7 @@ jobs:
     # The image `pnpm test:visual` uses, so screenshots match pixel for pixel.
     # Its version must equal @playwright/test (checked by src/tooling.test.ts).
     container:
-      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
       options: --ipc=host
     env:
       # Firefox refuses to start when $HOME belongs to another user than the runner's.
