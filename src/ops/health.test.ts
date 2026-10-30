@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { GET as getCatalog } from '@/pages/.well-known/ai-catalog.json';
 import { GET as getServerCard } from '@/pages/api/mcp/server-card';
 import { CALLER_IP, fakeServices, portfolioHandler } from '@/mcp/mcp.fixture';
+import { buildSecurityTxt } from '@/seo/security-txt';
 import { runHealthChecks, type HealthOptions } from './health';
 
 const BASE = 'https://inomov.online';
 const HTML = { 'Content-Type': 'text/html; charset=utf-8' };
+const NOW = new Date('2026-10-30T06:00:00Z');
 
 type Route = (request: Request) => Response | Promise<Response> | undefined;
 
@@ -22,13 +24,14 @@ function site(services = fakeServices(), override: Route = () => undefined) {
     if (pathname === '/api/mcp/server-card') return getServerCard({} as never);
     if (pathname === '/.well-known/ai-catalog.json') return getCatalog({} as never);
     if (pathname === '/api/mcp') return handler.fetch(request, CALLER_IP);
+    if (pathname === '/.well-known/security.txt') return new Response(buildSecurityTxt(NOW));
     return new Response('<main><h1>Farrukh Inomov</h1></main>', { headers: HTML });
   });
   return { fetch: fetch as unknown as typeof globalThis.fetch, requests, services };
 }
 
 function run(fetch: typeof globalThis.fetch, options: HealthOptions = {}) {
-  return runHealthChecks(BASE, { fetch, sleep: async () => undefined, ...options });
+  return runHealthChecks(BASE, { fetch, sleep: async () => undefined, now: () => NOW, ...options });
 }
 
 const failed = (results: { name: string; ok: boolean; detail: string }[]) =>
@@ -47,6 +50,7 @@ describe('runHealthChecks', () => {
       'Page /en/connect',
       'Server Card',
       'AI Catalog',
+      'security.txt',
       'MCP tools',
       'Intro Call slots',
     ]);
@@ -140,6 +144,26 @@ describe('runHealthChecks', () => {
 
     expect(failed(await run(fetch))).toEqual([
       { name: 'AI Catalog', detail: 'does not point to the Server Card' },
+    ]);
+  });
+
+  it('reports a security.txt that is missing or about to expire', async () => {
+    const security = (status: number) =>
+      site(fakeServices(), (request) =>
+        new URL(request.url).pathname === '/.well-known/security.txt'
+          ? new Response('Contact: mailto:x@example.com', { status })
+          : undefined,
+      ).fetch;
+
+    expect(failed(await run(security(404)))).toEqual([
+      { name: 'security.txt', detail: 'HTTP 404' },
+    ]);
+    expect(failed(await run(security(200)))).toEqual([
+      { name: 'security.txt', detail: 'no valid Expires field' },
+    ]);
+    const fiveMonthsLater = new Date('2027-03-30T06:00:00Z');
+    expect(failed(await run(site().fetch, { now: () => fiveMonthsLater }))).toEqual([
+      { name: 'security.txt', detail: 'expires in 28 days; rebuild the site' },
     ]);
   });
 

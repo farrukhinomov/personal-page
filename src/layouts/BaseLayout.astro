@@ -139,7 +139,9 @@ const rssUrl = `${pathFor('blog', locale)}/rss.xml`;
       data-light={THEME_COLOR.light}
     />
     {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <!-- Not preloaded: a preload competes with the render-blocking CSS on slow connections
          (measured: LCP 1.9 s with, 1.5 s without). Text paints at once in the metric-matched
