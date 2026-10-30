@@ -4,7 +4,7 @@ import { createBooking, fetchSlots } from '@/server/calcom';
 import { readJson } from '@/server/request';
 import { requiredSecret } from '@/server/secrets';
 import { verifyTurnstile } from '@/server/turnstile';
-import { rateLimit } from '@/server/upstash';
+import { countUsage, rateLimit } from '@/server/upstash';
 
 /** Runs as a Vercel function; every other page is static. */
 export const prerender = false;
@@ -21,5 +21,6 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     rateLimit: (ip) => rateLimit('booking', ip),
     slots: (range) => fetchSlots(calcomKey, range),
     book: (booking) => createBooking(calcomKey, booking),
+    count: countUsage,
   });
 };

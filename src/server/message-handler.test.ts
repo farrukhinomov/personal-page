@@ -18,6 +18,7 @@ function services(overrides: Partial<MessageServices> = {}) {
       .fn<MessageServices['confirmationLimit']>()
       .mockResolvedValue({ allowed: true, remaining: 0 }),
     send: vi.fn<MessageServices['send']>().mockResolvedValue(undefined),
+    count: vi.fn<MessageServices['count']>().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -169,5 +170,46 @@ describe('handleMessage', () => {
 
     expect(response.status).toBe(200);
     expect(error).toHaveBeenCalledOnce();
+  });
+});
+
+describe('usage counts for the weekly summary', () => {
+  it('counts a delivered Message and its confirmation', async () => {
+    const deps = services();
+
+    await handleMessage(validBody, IP, deps);
+
+    expect(vi.mocked(deps.count).mock.calls).toEqual([['message:form'], ['confirmation:sent']]);
+  });
+
+  it('counts a Message that could not be delivered', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const deps = services({ send: vi.fn().mockRejectedValue(new Error('Resend down')) });
+
+    await handleMessage(validBody, IP, deps);
+
+    expect(vi.mocked(deps.count).mock.calls).toEqual([['message:failed']]);
+  });
+
+  it('counts a confirmation that could not be sent', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const send = vi
+      .fn<MessageServices['send']>()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('Resend down'));
+    const deps = services({ send });
+
+    await handleMessage(validBody, IP, deps);
+
+    expect(vi.mocked(deps.count).mock.calls).toEqual([['message:form'], ['confirmation:failed']]);
+  });
+
+  it('counts nothing for a bot or a refused request', async () => {
+    const deps = services({ verifyTurnstile: vi.fn().mockResolvedValue(false) });
+
+    await handleMessage({ ...validBody, website: 'x' }, IP, deps);
+    await handleMessage(validBody, IP, deps);
+
+    expect(deps.count).not.toHaveBeenCalled();
   });
 });

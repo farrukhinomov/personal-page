@@ -21,6 +21,7 @@ export function fakeServices(overrides: Partial<Omit<WriteServices, 'ip'>> = {})
     listSlots: vi.fn<WriteServices['listSlots']>().mockResolvedValue(SLOTS),
     slots: vi.fn<WriteServices['slots']>().mockResolvedValue(SLOTS),
     book: vi.fn<WriteServices['book']>().mockResolvedValue({ kind: 'requested', uid: 'abc' }),
+    count: vi.fn<WriteServices['count']>().mockResolvedValue(undefined),
     ...overrides,
   };
 }

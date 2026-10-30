@@ -11,7 +11,10 @@ export type ErrorCode =
   | 'delivery_failed'
   | 'slots_unavailable'
   | 'slot_unavailable'
-  | 'booking_failed';
+  | 'booking_failed'
+  | 'unauthorized'
+  | 'not_configured'
+  | 'summary_failed';
 
 /** The error shape every API route answers with: `{ ok: false, error: { code, message, … } }`. */
 export function errorResponse(

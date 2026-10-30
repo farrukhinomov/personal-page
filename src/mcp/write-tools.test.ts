@@ -344,3 +344,79 @@ describe('book_call', () => {
     expect(text(result)).toContain('https://inomov.online/kontakt');
   });
 });
+
+describe('usage counts for the weekly summary', () => {
+  it('counts each tool call and a sent Message', async () => {
+    const services = fakeServices();
+    const assistant = await connect(services);
+
+    await assistant.callTool({ name: 'get_profile', arguments: {} });
+    await assistant.callTool({ name: 'send_message', arguments: MESSAGE });
+
+    expect(vi.mocked(services.count).mock.calls).toEqual([
+      ['mcp:get_profile'],
+      ['message:assistant'],
+      ['mcp:send_message'],
+    ]);
+  });
+
+  it('counts a requested Intro Call', async () => {
+    const services = fakeServices();
+
+    await (await connect(services)).callTool({ name: 'book_call', arguments: BOOKING });
+
+    expect(vi.mocked(services.count).mock.calls).toEqual([
+      ['booking:assistant'],
+      ['mcp:book_call'],
+    ]);
+  });
+
+  it('counts a Message or call that failed', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const services = fakeServices({
+      send: vi.fn().mockRejectedValue(new Error('Resend down')),
+      book: vi.fn().mockRejectedValue(new Error('Cal.com down')),
+    });
+    const assistant = await connect(services);
+
+    await assistant.callTool({ name: 'send_message', arguments: MESSAGE });
+    await assistant.callTool({ name: 'book_call', arguments: BOOKING });
+
+    expect(vi.mocked(services.count).mock.calls).toEqual([
+      ['message:failed'],
+      ['mcp:send_message'],
+      ['booking:failed'],
+      ['mcp:book_call'],
+    ]);
+  });
+
+  it('does not count listing tools, unknown tools or the health check', async () => {
+    const services = fakeServices();
+    const handler = portfolioHandler(services);
+    const call = (name: string, userAgent = 'test') =>
+      handler.fetch(
+        new Request(ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json, text/event-stream',
+            'MCP-Protocol-Version': '2025-06-18',
+            'User-Agent': userAgent,
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'tools/call',
+            params: { name, arguments: {} },
+          }),
+        }),
+        CALLER_IP,
+      );
+
+    await (await connect(services)).listTools();
+    await call('drop_tables');
+    await call('get_profile', 'inomov-health-check');
+
+    expect(services.count).not.toHaveBeenCalled();
+  });
+});
