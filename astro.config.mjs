@@ -7,7 +7,9 @@ import vercel from '@astrojs/vercel';
 export default defineConfig({
   site: 'https://inomov.online',
   trailingSlash: 'never',
-  adapter: vercel(),
+  // Cookieless page views (issue #76). The script comes from the site's own domain, but only
+  // Vercel serves it, so local and CI builds (VERCEL unset) leave it out instead of a 404.
+  adapter: vercel({ webAnalytics: { enabled: process.env.VERCEL === '1' } }),
   env: {
     // Secrets are read at request time with getSecret(). All documented in .env.example.
     schema: {

@@ -55,8 +55,15 @@ describe('legal texts', () => {
     }
   });
 
-  it('keep the claims in the privacy policy true: no cookies, no analytics', () => {
+  it('keep the claims in the privacy policy true: no cookies, Vercel Web Analytics only', () => {
     expect(read('privacy', 'de')).toContain('keine Cookies');
     expect(read('privacy', 'en')).toContain('no cookies');
+    // The adapter adds the analytics script; the policy must say so as long as it does.
+    const config = readFileSync(join(__dirname, '..', '..', 'astro.config.mjs'), 'utf-8');
+    expect(config).toContain('webAnalytics');
+    for (const locale of LOCALES) {
+      expect(read('privacy', locale)).toContain('Vercel Web Analytics');
+      expect(read('privacy', locale)).toContain('/_vercel/insights/script.js');
+    }
   });
 });
