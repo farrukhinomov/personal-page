@@ -10,6 +10,7 @@ import { HOST_TIME_ZONE } from '@/server/calcom';
 import { messageSchema, TOPICS } from '@/server/message';
 import { notificationEmail, type Email } from '@/server/message-mail';
 import { ALL_CLIENTS, type RateLimitedAction, type RateLimitResult } from '@/server/rate-limit';
+import type { CountUsage } from '@/server/usage';
 import { SITE_URL } from '@/seo/structured-data';
 import { langInput } from './schemas';
 import { toolTitle } from './tool-info';
@@ -25,6 +26,8 @@ export interface WriteServices {
   /** Free Slots in a range, fresh from Cal.com, to check a chosen Slot before booking it. */
   slots(range: { from: Date; to: Date }): Promise<string[]>;
   book(booking: BookingRequest): Promise<BookingOutcome>;
+  /** Counts outcomes and tool calls for the weekly summary; never throws. */
+  count: CountUsage;
 }
 
 /** Calls Cal.com, but changes nothing. */
@@ -187,8 +190,10 @@ export function registerWriteTools(server: McpServer, services: WriteServices): 
         await services.send(notificationEmail({ ...message, locale: lang }, [], 'assistant'));
       } catch (error) {
         console.error('Delivering a Message from an assistant failed.', error);
+        await services.count('message:failed');
         return failure(`The message could not be sent. ${fallback(lang)}`);
       }
+      await services.count('message:assistant');
       return result(
         { status: 'sent' as const },
         `Sent. Farrukh replies to ${message.email}, usually within two working days.`,
@@ -225,8 +230,10 @@ export function registerWriteTools(server: McpServer, services: WriteServices): 
         if (outcome === 'slot_unavailable') return failure(SLOT_TAKEN);
       } catch (error) {
         console.error('Booking an Intro Call for an assistant failed.', error);
+        await services.count('booking:failed');
         return failure(`The call could not be requested. ${fallback(lang)}`);
       }
+      await services.count('booking:assistant');
       const label = slotLabel(booking.start, lang, booking.timeZone);
       return result(
         { status: 'requested' as const, start: booking.start, label },

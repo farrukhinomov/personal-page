@@ -9,12 +9,14 @@ import {
   type RateLimitedAction,
   type RateLimitResult,
 } from './rate-limit';
+import { redisUsageStore, usageCounter, type DayUsage, type UsageStore } from './usage';
 
 /** Give up on Redis after this long and let the request through (see checkRateLimit). */
 const REDIS_TIMEOUT_MS = 1000;
 
 interface Connection {
   limiters: Record<RateLimitedAction, Limiter>;
+  usage: UsageStore;
   /** The Redis token doubles as the HMAC secret for client keys: no extra secret to manage. */
   hashSecret: string;
 }
@@ -29,9 +31,23 @@ let connection: Connection | undefined;
  */
 export function rateLimit(action: RateLimitedAction, ip: string): Promise<RateLimitResult> {
   connection ??= connect();
-  return checkRateLimit(connection.limiters[action], ip, connection.hashSecret, {
+  const checked = checkRateLimit(connection.limiters[action], ip, connection.hashSecret, {
     failClosed: FAIL_CLOSED.has(action),
   });
+  // Refusals are counted here, once for every limit, for the weekly summary.
+  return checked.then(async (result) => {
+    if (!result.allowed) await countUsage(`limited:${action}`);
+    return result;
+  });
+}
+
+/** Counts one event for the weekly summary; never throws (see usageCounter). */
+export const countUsage = usageCounter(() => (connection ??= connect()).usage);
+
+/** One day's counters, for the weekly summary. */
+export function readUsage(day: string): Promise<DayUsage> {
+  connection ??= connect();
+  return connection.usage.read(day);
 }
 
 function connect(): Connection {
@@ -54,6 +70,7 @@ function connect(): Connection {
       RateLimitedAction,
       Limiter
     >,
+    usage: redisUsageStore(redis),
     hashSecret: token,
   };
 }

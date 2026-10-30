@@ -9,6 +9,20 @@ vi.mock('astro:env/server', () => ({
   getSecret: (name: string) => secrets.get(name),
 }));
 
+const redis = vi.hoisted(() => ({
+  hincrby: vi.fn().mockResolvedValue(1),
+  expire: vi.fn().mockResolvedValue(1),
+  hgetall: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock('@upstash/redis', () => ({
+  Redis: class {
+    hincrby = redis.hincrby;
+    expire = redis.expire;
+    hgetall = redis.hgetall;
+  },
+}));
+
 vi.mock('@upstash/ratelimit', () => {
   class Ratelimit {
     static slidingWindow = (tokens: number, window: string) => ({ tokens, window });
@@ -60,5 +74,55 @@ describe('rateLimit', () => {
       }),
       key,
     );
+  });
+});
+
+describe('usage counters', () => {
+  function configure() {
+    secrets.set('KV_REST_API_URL', 'https://example.upstash.io');
+    secrets.set('KV_REST_API_TOKEN', 'test-token');
+  }
+
+  it('counts a refused request against its limit', async () => {
+    configure();
+    limit.mockResolvedValue({ success: false, remaining: 0, reset: Date.now() + 60_000 });
+    const { rateLimit } = await import('./upstash');
+
+    await rateLimit('mcpMessage', '203.0.113.7');
+
+    expect(redis.hincrby).toHaveBeenCalledWith(
+      expect.stringMatching(/^usage:\d{4}-\d{2}-\d{2}$/),
+      'limited:mcpMessage',
+      1,
+    );
+  });
+
+  it('counts nothing for an allowed request', async () => {
+    configure();
+    redis.hincrby.mockClear();
+    limit.mockResolvedValue({ success: true, remaining: 2, reset: 0 });
+    const { rateLimit } = await import('./upstash');
+
+    await rateLimit('message', '203.0.113.7');
+
+    expect(redis.hincrby).not.toHaveBeenCalled();
+  });
+
+  it('reads a day of counters', async () => {
+    configure();
+    redis.hgetall.mockResolvedValueOnce({ 'message:form': 4 });
+    const { readUsage } = await import('./upstash');
+
+    expect(await readUsage('2026-10-30')).toEqual({ 'message:form': 4 });
+    expect(redis.hgetall).toHaveBeenCalledWith('usage:2026-10-30');
+  });
+
+  it('logs instead of failing when Upstash is not configured', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { countUsage } = await import('./upstash');
+
+    await expect(countUsage('message:form')).resolves.toBeUndefined();
+    expect(error).toHaveBeenCalledOnce();
+    error.mockRestore();
   });
 });

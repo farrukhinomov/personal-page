@@ -24,6 +24,7 @@ function services(overrides: Partial<BookingServices> = {}) {
       .mockResolvedValue({ allowed: true, remaining: 2 }),
     slots: vi.fn<BookingServices['slots']>().mockResolvedValue([SLOT]),
     book: vi.fn<BookingServices['book']>().mockResolvedValue({ kind: 'requested', uid: 'abc' }),
+    count: vi.fn<BookingServices['count']>().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -181,5 +182,32 @@ describe('handleBooking', () => {
 
     expect(response.status).toBe(502);
     expect((await errorOf(response)).code).toBe('booking_failed');
+  });
+});
+
+describe('usage counts for the weekly summary', () => {
+  it('counts a requested Intro Call', async () => {
+    const deps = services();
+
+    await handleBooking(validBody, IP, deps);
+
+    expect(vi.mocked(deps.count).mock.calls).toEqual([['booking:form']]);
+  });
+
+  it('counts a booking Cal.com could not take', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const deps = services({ book: vi.fn().mockRejectedValue(new Error('Cal.com down')) });
+
+    await handleBooking(validBody, IP, deps);
+
+    expect(vi.mocked(deps.count).mock.calls).toEqual([['booking:failed']]);
+  });
+
+  it('counts nothing when the time is no longer free', async () => {
+    const deps = services({ slots: vi.fn().mockResolvedValue([]) });
+
+    await handleBooking(validBody, IP, deps);
+
+    expect(deps.count).not.toHaveBeenCalled();
   });
 });

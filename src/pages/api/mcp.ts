@@ -6,7 +6,7 @@ import { bookingWindow } from '@/server/booking-handler';
 import { createBooking, fetchSlots } from '@/server/calcom';
 import { sendEmail } from '@/server/message-mail';
 import { requiredSecret } from '@/server/secrets';
-import { rateLimit } from '@/server/upstash';
+import { countUsage, rateLimit } from '@/server/upstash';
 
 /** Runs as a Vercel function; every other page is static. */
 export const prerender = false;
@@ -25,6 +25,7 @@ const handler = createPortfolioMcpHandler({
     ),
     slots: (range) => fetchSlots(requiredSecret('CALCOM_API_KEY'), range),
     book: (booking) => createBooking(requiredSecret('CALCOM_API_KEY'), booking),
+    count: countUsage,
   },
 });
 
