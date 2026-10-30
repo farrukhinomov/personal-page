@@ -125,12 +125,12 @@ test('theme toggle switches the theme and remembers it', async ({ page }) => {
 
 test('language switch opens the same page in the other language', async ({ page }) => {
   await page.goto('/projekte/kritis-grc');
-  await page.locator('.language-switch').click();
+  await page.getByRole('link', { name: 'EN – Switch to English' }).click();
 
   await expect(page).toHaveURL('/en/projects/kritis-grc');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
 
-  await page.locator('.language-switch').click();
+  await page.getByRole('link', { name: 'DE – Auf Deutsch lesen' }).click();
   await expect(page).toHaveURL('/projekte/kritis-grc');
 });
 
