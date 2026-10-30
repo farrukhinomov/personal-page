@@ -17,9 +17,9 @@ const t = useTranslations(locale);
   href={alternates[target]}
   hreflang={LANG_TAG[target]}
   lang={LANG_TAG[target]}
-  aria-label={t('a11y.switchLanguage')}
 >
-  {t('lang.short')}
+  <!-- The name starts with the visible label, so voice control users can say what they see. -->
+  {t('lang.short')}<span class="visually-hidden"> – {t('a11y.switchLanguage')}</span>
 </a>
 
 <style>
