@@ -1,8 +1,11 @@
 import { createMcpHandler, originValidationResponse } from '@modelcontextprotocol/server';
 import type { Localized } from '@/i18n/locales';
 import { SITE_URL } from '@/seo/structured-data';
+import { readLimited } from '@/server/request';
 import type { McpPost } from './catalog';
+import { MCP_TOOLS } from './discovery';
 import { createPortfolioServer } from './server';
+import type { ToolName } from './tool-info';
 import type { WriteServices } from './write-tools';
 
 /** The largest call is a Message of 5000 characters; nothing legitimate comes near this. */
@@ -13,6 +16,9 @@ const MAX_REQUEST_BYTES = 64 * 1024;
  * to the factory, which keeps headers; any value a client sends is overwritten.
  */
 const CLIENT_IP_HEADER = 'x-portfolio-client-ip';
+
+/** The daily health check names itself with this User-Agent; its calls are not usage. */
+export const HEALTH_CHECK_AGENT = 'inomov-health-check';
 
 /** Browsers may call the endpoint from the site itself; other clients send no Origin. */
 const ALLOWED_ORIGINS = [new URL(SITE_URL).hostname];
@@ -66,7 +72,32 @@ export function createPortfolioMcpHandler({
       if (refused) return refused;
       const headers = new Headers(request.headers);
       headers.set(CLIENT_IP_HEADER, ip);
-      return handler.fetch(new Request(request, { headers }));
+      const tool = await calledTool(request);
+      const response = await handler.fetch(new Request(request, { headers }));
+      if (tool) await services.count(`mcp:${tool}`);
+      return response;
     },
   };
+}
+
+/**
+ * The tool a request calls, for the weekly summary. It reads a copy, so the SDK still gets the
+ * body, and stops at the SDK's size limit, past which the SDK refuses the request anyway.
+ */
+async function calledTool(request: Request): Promise<ToolName | undefined> {
+  if (request.method !== 'POST') return undefined;
+  if (request.headers.get('User-Agent') === HEALTH_CHECK_AGENT) return undefined;
+  try {
+    const raw = await readLimited(request.clone(), MAX_REQUEST_BYTES);
+    if (!raw) return undefined;
+    const body = JSON.parse(new TextDecoder().decode(raw)) as {
+      method?: unknown;
+      params?: { name?: unknown };
+    };
+    const name = body.method === 'tools/call' ? body.params?.name : undefined;
+    return MCP_TOOLS.find((tool) => tool === name);
+  } catch {
+    // Not JSON-RPC: the SDK answers with the error.
+    return undefined;
+  }
 }

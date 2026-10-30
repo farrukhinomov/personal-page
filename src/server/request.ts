@@ -79,7 +79,7 @@ function isSameHost(request: Request): boolean {
 }
 
 /** The whole body, or undefined as soon as it grows past `max` bytes. */
-async function readLimited(
+export async function readLimited(
   request: Request,
   max: number,
 ): Promise<Uint8Array<ArrayBuffer> | undefined> {

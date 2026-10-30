@@ -3,6 +3,7 @@ import type { BookingOutcome, BookingRequest } from './calcom';
 import type { RateLimitResult } from './rate-limit';
 import { rateLimitedResponse } from './rate-limit';
 import { errorResponse, okResponse } from './responses';
+import type { CountUsage } from './usage';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -12,6 +13,8 @@ export interface BookingServices {
   rateLimit(ip: string): Promise<RateLimitResult>;
   slots(range: { from: Date; to: Date }): Promise<string[]>;
   book(booking: BookingRequest): Promise<BookingOutcome>;
+  /** Counts outcomes for the weekly summary; never throws. */
+  count: CountUsage;
 }
 
 /** The days the Contact page offers: from today for the booking window. */
@@ -78,11 +81,14 @@ export async function handleBooking(
 
   try {
     const outcome = await requestIntroCall({ ...booking, language: booking.locale }, services);
-    return outcome === 'requested' ? okResponse() : slotUnavailable();
+    if (outcome !== 'requested') return slotUnavailable();
   } catch (error) {
     console.error('Booking an Intro Call failed.', error);
+    await services.count('booking:failed');
     return errorResponse(502, 'booking_failed', 'The Intro Call could not be booked.');
   }
+  await services.count('booking:form');
+  return okResponse();
 }
 
 export interface IntroCallRequest {

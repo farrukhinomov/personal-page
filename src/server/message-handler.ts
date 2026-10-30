@@ -4,6 +4,7 @@ import { parseMessage } from './message';
 import type { RateLimitResult } from './rate-limit';
 import { rateLimitedResponse } from './rate-limit';
 import { errorResponse, okResponse } from './responses';
+import type { CountUsage } from './usage';
 
 /** The outside world a Message touches, injected so tests run without network. */
 export interface MessageServices {
@@ -12,6 +13,8 @@ export interface MessageServices {
   /** Limits confirmations per recipient, so the form cannot flood one inbox from many IPs. */
   confirmationLimit(email: string): Promise<RateLimitResult>;
   send(email: Email): Promise<void>;
+  /** Counts outcomes for the weekly summary; never throws. */
+  count: CountUsage;
 }
 
 /**
@@ -54,8 +57,10 @@ export async function handleMessage(
     await services.send(notificationEmail(message, attachments.attachments));
   } catch (error) {
     console.error('Delivering a Message failed.', error);
+    await services.count('message:failed');
     return errorResponse(502, 'delivery_failed', 'The message could not be sent.');
   }
+  await services.count('message:form');
 
   // Farrukh has the Message; a lost confirmation must not make the sender try again.
   try {
@@ -65,8 +70,10 @@ export async function handleMessage(
       return okResponse();
     }
     await services.send(confirmationEmail(message));
+    await services.count('confirmation:sent');
   } catch (error) {
     console.error('Sending the confirmation failed.', error);
+    await services.count('confirmation:failed');
   }
   return okResponse();
 }
