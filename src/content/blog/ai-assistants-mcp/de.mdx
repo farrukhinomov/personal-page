@@ -1,0 +1,105 @@
+---
+title: Wie KI-Assistenten mit meinem Portfolio sprechen
+description: Was der MCP-Endpunkt dieser Website bietet, wie er die beiden Werkzeuge absichert, die mich erreichen, und wie Assistenten ihn von selbst finden.
+published: 2026-11-09
+tags: [MCP, KI, Architektur, Sicherheit]
+---
+
+Mein [erster Artikel](/blog/portfolio-for-humans-and-agents) endete mit einem Plan:
+ein MCP-Endpunkt, damit Agenten mein Profil abfragen können, ohne HTML zu lesen. Er
+läuft unter `https://inomov.online/api/mcp`. Hier steht, was er kann und warum er so
+gebaut ist.
+
+## MCP in zwei Absätzen
+
+Das Model Context Protocol ist ein offener Standard, über den KI-Assistenten Werkzeuge
+und Daten nutzen. Ein Server beschreibt seine Werkzeuge mit Namen, Beschreibung und
+einem JSON-Schema für Ein- und Ausgabe. Der Assistent entscheidet, wann er eines
+aufruft.
+
+Für ein Portfolio heißt das: Eine Recruiterin muss ihren Assistenten nicht Seiten
+auslesen lassen. Sie fragt „Kennt er .NET 8?“, und der Assistent ruft `get_skills`
+auf. Die Antwort sind strukturierte Daten, keine Vermutung anhand des Seitenlayouts.
+
+## Zehn Werkzeuge: sieben lesen, eines prüft, zwei handeln
+
+Sieben Werkzeuge lesen öffentliche Daten: `get_profile`, `get_experience`,
+`get_skills`, `list_projects`, `get_project`, `list_posts` und `get_post`. Jedes nimmt
+`lang: "de"` oder `"en"` und liefert JSON, dazu denselben Inhalt als Text für Clients,
+die nur Text lesen. Sie sind als rein lesend gekennzeichnet, Assistenten können sie
+also als unbedenklich behandeln.
+
+`get_available_slots` liest über Cal.com meinen Kalender und nennt freie Zeiten für
+einen 30-minütigen Intro Call in den nächsten 30 Tagen, beschriftet in der Zeitzone,
+die der Assistent übergibt.
+
+Zwei Werkzeuge erreichen mich: `send_message` schickt mir eine E-Mail, `book_call`
+fragt einen Intro Call an. Sie sind als Werkzeuge gekennzeichnet, die außerhalb des
+Chats etwas verändern. Außerdem weisen die Anweisungen des Servers den Assistenten
+an, die Angaben vor dem Aufruf mit seinem Nutzer abzustimmen. Meist fragen Assistenten
+ohnehin nach.
+
+Namen und Titel der Werkzeuge stehen in einer einzigen Liste im Code. Die Seite
+„Verbinden“, das Terminal auf der Startseite und `llms.txt` lesen daraus, und ein Test
+schlägt fehl, sobald die Werkzeuge des Servers und diese Liste voneinander abweichen.
+
+## Absicherung der beiden Werkzeuge, die handeln
+
+Das Kontaktformular schützt Cloudflare Turnstile. Diese Prüfung kann ein Assistent
+nicht bestehen, deshalb gelten für die MCP-Werkzeuge strengere Grenzen:
+
+- Drei Nachrichten und drei Terminanfragen pro Tag von einer IP-Adresse.
+- Zwanzig Nachrichten und zehn Terminanfragen pro Tag von allen Assistenten zusammen.
+  Viele Nutzer eines Anbieters teilen sich IP-Adressen, eine Grenze pro IP allein
+  würde also nicht begrenzen, was in meinem Postfach landet.
+- `book_call` nimmt nur einen Termin an, den `get_available_slots` noch anbietet, und
+  prüft das, bevor die Anfrage auf ein Tageslimit angerechnet wird.
+- Jede Terminanfrage wartet auf meine Bestätigung. Erst dann verschickt Cal.com die
+  Einladung zu Google Meet.
+
+Nachrichten über einen Assistenten bekommen keine Eingangsbestätigung per E-Mail. Ein
+Assistent kann jede beliebige Adresse übergeben, und die Bestätigung des Formulars
+würde in meinem Namen Mails an Fremde schicken. Das Ergebnis sieht der Nutzer
+stattdessen im Chat.
+
+Darüber hinaus lehnt der Endpunkt Anfragen von Seiten fremder Websites ab (die
+MCP-Spezifikation verlangt, den `Origin`-Header zu prüfen), weist Anfragen über 64 KB
+zurück und steht hinter einer Firewall-Regel, die Anfragen pro IP begrenzt.
+
+## Wie Assistenten ihn finden
+
+Niemand soll einen Blogartikel lesen müssen, um sich zu verbinden. Vier Stellen
+verweisen auf den Endpunkt:
+
+1. Eine **Server Card** unter `/api/mcp/server-card` sagt, was der Server ist und wie
+   man sich verbindet, im Format des Vorschlags für MCP Server Cards.
+2. Ein **AI Catalog** unter `/.well-known/ai-catalog.json` verweist auf diese Karte,
+   und jede Seite verlinkt den Katalog in ihrem `<head>`.
+3. Die **offizielle MCP Registry** führt den Server als `online.inomov/portfolio`. Die
+   Registry prüft einen Schlüssel, der auf dieser Domain veröffentlicht ist, deshalb
+   kann niemand sonst unter diesem Namen veröffentlichen.
+4. **`llms.txt`** nennt die Werkzeuge für Crawler, die einfachen Text lesen.
+
+Der Eintrag in der Registry wird aus der Server Card erzeugt, und ein Test schlägt
+fehl, wenn beide voneinander abweichen.
+
+## Eine Beispielsitzung
+
+Einmal eingerichtet ([Anleitung für Claude, ChatGPT und Cursor](/verbinden)), kann
+eine Sitzung so aussehen:
+
+> **Nutzer:** Passt Farrukh auf eine .NET-Backend-Stelle mit etwas React? Wenn ja,
+> such einen Termin für ein Gespräch nächste Woche.
+
+Der Assistent ruft `get_profile`, `get_experience` und `get_skills` auf, antwortet
+anhand der Ergebnisse und ruft dann `get_available_slots` mit der Zeitzone des Nutzers
+auf. Er schlägt drei Termine vor. Nachdem der Nutzer einen gewählt und Name, E-Mail,
+Firma und Anliegen bestätigt hat, ruft er `book_call` auf. Ich bekomme die Anfrage und
+bestätige sie.
+
+## Damit es läuft
+
+Der Endpunkt ist zustandslos: Jede Anfrage bekommt einen neuen Server, er läuft also
+als einfache Serverless-Funktion. Ein Health Check ruft ihn jeden Morgen auf, listet
+die Werkzeuge und fragt freie Termine ab. Schlägt etwas fehl, öffnet er ein
+GitHub-Issue, das sich von selbst schließt, sobald alle Prüfungen wieder bestehen.
