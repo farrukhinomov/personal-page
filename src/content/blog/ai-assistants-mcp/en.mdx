@@ -1,0 +1,99 @@
+---
+title: How AI assistants talk to my portfolio
+description: What the MCP endpoint of this site offers, how it guards the two tools that reach me, and how assistants find it without being told.
+published: 2026-11-09
+tags: [MCP, AI, Architecture, Security]
+---
+
+My [first post](/en/blog/portfolio-for-humans-and-agents) ended with a plan: an MCP
+endpoint, so agents can query my profile without reading HTML. It is live at
+`https://inomov.online/api/mcp`. Here is what it does and why it is built this way.
+
+## MCP in two paragraphs
+
+The Model Context Protocol is an open standard for connecting AI assistants to tools
+and data. A server describes its tools with a name, a description and a JSON schema
+for input and output. The assistant decides when to call one.
+
+For a portfolio, that means a recruiter does not have to send their assistant to
+scrape pages. They ask "Does he know .NET 8?" and the assistant calls `get_skills`.
+The answer is structured data, not a guess based on page layout.
+
+## Ten tools: seven read, one checks, two act
+
+Seven tools read public data: `get_profile`, `get_experience`, `get_skills`,
+`list_projects`, `get_project`, `list_posts` and `get_post`. Each takes `lang: "de"` or
+`"en"` and returns JSON together with the same content as text, for clients that only
+read text. They are annotated as read-only, so assistants can treat them as safe to
+call.
+
+`get_available_slots` reads my calendar via Cal.com and lists free times for a
+30-minute intro call in the next 30 days, labelled in the time zone the assistant
+passes.
+
+Two tools reach me: `send_message` emails me, and `book_call` requests an intro call.
+They are annotated as tools that change something outside the chat. The server's
+instructions also tell the assistant to confirm the details with its user before
+calling them. Assistants usually ask anyway.
+
+The tool names and titles come from one list in the code. The Connect page, the
+terminal on the start page and `llms.txt` read from it, and a test fails if the
+server's tools and that list ever differ.
+
+## Guarding the two tools that act
+
+The contact form is protected by Cloudflare Turnstile. An assistant cannot solve that
+check, so the MCP tools get stricter limits instead:
+
+- Three messages and three call requests per day from one IP address.
+- Twenty messages and ten call requests per day from all assistants together. Many
+  users of one provider share IP addresses, so a per-IP limit alone would not cap
+  what reaches my inbox.
+- `book_call` only accepts a time that `get_available_slots` still offers, and checks
+  that before it counts against a limit.
+- Every call request waits for my confirmation. Only then does Cal.com send the
+  Google Meet invitation.
+
+Messages sent through an assistant get no confirmation email. An assistant can pass
+any address, and the form's confirmation would let it send mail to strangers in my
+name. The user sees the result in the chat instead.
+
+Beyond that, the endpoint refuses requests from other websites' pages (the MCP
+specification asks servers to check the `Origin` header), rejects bodies over 64 KB,
+and sits behind a firewall rule that limits requests per IP.
+
+## How assistants find it
+
+Nobody should need to read a blog post to connect. Four places point to the endpoint:
+
+1. A **Server Card** at `/api/mcp/server-card` says what the server is and how to
+   connect, in the format of the MCP Server Card proposal.
+2. An **AI Catalog** at `/.well-known/ai-catalog.json` points to that card, and every
+   page links to the catalog in its `<head>`.
+3. The **official MCP Registry** lists the server as `online.inomov/portfolio`. The
+   registry checks a key published on this domain, so nobody else can publish under
+   that name.
+4. **`llms.txt`** lists the tools for crawlers that read plain text.
+
+The registry entry is generated from the Server Card, and a test fails if they
+disagree.
+
+## An example session
+
+Set up once ([instructions for Claude, ChatGPT and Cursor](/en/connect)), a session
+can look like this:
+
+> **User:** Is Farrukh a fit for a .NET backend role with React on the side? If so,
+> find a time for a call next week.
+
+The assistant calls `get_profile`, `get_experience` and `get_skills`, answers from the
+results, then calls `get_available_slots` with the user's time zone. It proposes three
+times. After the user picks one and confirms name, email, company and reason, it calls
+`book_call`. I get the request and confirm it.
+
+## Keeping it working
+
+The endpoint is stateless: every request gets a fresh server, so it runs as a plain
+serverless function. A health check calls it every morning, lists the tools and asks
+for free times. If anything fails, it opens a GitHub issue, and the issue closes
+itself once the checks pass again.
