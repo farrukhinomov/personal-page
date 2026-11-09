@@ -21,6 +21,8 @@
   --color-danger: #ff9b8f;
   --color-focus: #8be6f0;
   --color-selection: rgb(92 214 229 / 0.28);
+  /* Behind the animated code portrait in both themes: its glyph colours are baked into the SVG. */
+  --color-screen: #0e161d;
 
   /* Type: 1.25 modular scale, fluid between 360px and 1280px viewports. */
   --step--1: clamp(0.84rem, 0.82rem + 0.1vw, 0.9rem);
