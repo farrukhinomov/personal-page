@@ -282,9 +282,10 @@ const groups = [
     letter-spacing: -0.02em;
   }
 
+  /* Card titles: body size, bold, so they stay below the section headings. */
   h3 {
     margin: 0;
-    font-size: var(--step-1);
+    font-size: var(--step-0);
   }
 
   p {
@@ -306,7 +307,7 @@ const groups = [
     font-family: var(--font-mono);
   }
 
-  /* The address leads the page: one line, large, beside its copy button. */
+  /* The address leads the section: one line, beside its copy button. */
   .field {
     display: flex;
     min-width: 0;
@@ -322,7 +323,7 @@ const groups = [
   .field > code {
     flex: 1 1 16rem;
     min-width: 0;
-    font-size: var(--step-1);
+    font-size: var(--step-0);
     overflow-wrap: anywhere;
   }
 
@@ -373,6 +374,8 @@ const groups = [
     border: 1px solid var(--color-line);
     border-radius: var(--radius-panel);
     background: var(--color-surface);
+    /* The cards are narrow, so their steps use the interface size; notes stay smaller. */
+    font-size: var(--text-ui);
   }
 
   .client ol {
@@ -437,6 +440,7 @@ const groups = [
   .tool dd {
     margin: 0;
     color: var(--color-fg-muted);
+    font-size: var(--text-ui);
   }
 
   /* Tools that send something carry the accent, so they stand apart from the reading ones. */
