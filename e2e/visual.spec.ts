@@ -6,7 +6,13 @@ import { useTheme, type Theme } from './support';
  * Linux only (see playwright.config.ts); update them with `pnpm test:visual --update-snapshots`.
  */
 
-const PAGES = { home: '/', project: '/projekte/kritis-grc', about: '/ueber-mich' };
+const PAGES = {
+  home: '/',
+  project: '/projekte/kritis-grc',
+  about: '/ueber-mich',
+  contact: '/kontakt',
+  connect: '/verbinden',
+};
 const WIDTHS = [375, 768, 1440];
 const THEMES: Theme[] = ['light', 'dark'];
 
