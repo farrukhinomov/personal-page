@@ -15,6 +15,7 @@
     "cv": "tsx scripts/cv/build.ts",
     "letter": "tsx scripts/cv/letter.ts",
     "health-check": "tsx scripts/health-check.ts",
+    "mcp:server-json": "tsx scripts/mcp-server-json.ts",
     "check": "astro check",
     "lint": "eslint .",
     "format": "prettier --write .",

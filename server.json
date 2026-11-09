@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "online.inomov/portfolio",
+  "version": "1.1.0",
+  "title": "Farrukh Inomov",
+  "description": "Farrukh Inomov's portfolio: profile, experience, projects, blog, messages and intro calls.",
+  "websiteUrl": "https://inomov.online/en",
+  "repository": {
+    "url": "https://github.com/farrukhinomov/personal-page",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://inomov.online/favicon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"]
+    },
+    {
+      "src": "https://inomov.online/apple-touch-icon.png",
+      "mimeType": "image/png",
+      "sizes": ["180x180"]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://inomov.online/api/mcp"
+    }
+  ]
+}
