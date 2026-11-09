@@ -98,7 +98,7 @@ const SUGGESTED = ['whoami', 'projects', 'skills', 'contact', 'help'] as const;
       0 1px 0 0 color-mix(in srgb, var(--color-fg) 6%, transparent) inset,
       0 2rem 4rem -2rem rgb(0 0 0 / 0.55);
     font-family: var(--font-mono);
-    font-size: 0.85rem;
+    font-size: var(--step--1);
     overflow: hidden;
   }
 
@@ -114,7 +114,7 @@ const SUGGESTED = ['whoami', 'projects', 'skills', 'contact', 'help'] as const;
     padding: var(--space-3) var(--space-4);
     border-block-end: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
     color: #93a7b3;
-    font-size: 0.75rem;
+    font-size: var(--step--2);
   }
 
   /* Amber marks the terminal as live. */
@@ -179,7 +179,7 @@ const SUGGESTED = ['whoami', 'projects', 'skills', 'contact', 'help'] as const;
     background: transparent;
     color: #e4ecf0;
     font: inherit;
-    font-size: max(16px, 0.85rem); /* 16px prevents iOS zoom on focus */
+    font-size: var(--text-ui); /* 16px prevents iOS zoom on focus */
     caret-color: #5cd6e5;
   }
 
@@ -211,7 +211,7 @@ const SUGGESTED = ['whoami', 'projects', 'skills', 'contact', 'help'] as const;
     background: transparent;
     color: #c3d2da;
     font: inherit;
-    font-size: 0.75rem;
+    font-size: var(--step--2);
     white-space: nowrap;
     cursor: pointer;
     transition:

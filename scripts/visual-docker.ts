@@ -16,10 +16,14 @@ const { version } = JSON.parse(
   readFileSync(join(ROOT, 'node_modules/@playwright/test/package.json'), 'utf8'),
 ) as { version: string };
 const IMAGE = `mcr.microsoft.com/playwright:v${version}-noble`;
+// The image's Node no longer ships corepack, so pnpm is installed at the pinned version.
+const { packageManager } = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as {
+  packageManager: string;
+};
 
 const forwarded = process.argv.slice(2).join(' ');
 const steps = [
-  'corepack enable',
+  `npm install --global --silent ${packageManager}`,
   'pnpm install --frozen-lockfile',
   'pnpm build',
   `pnpm exec playwright test --project=visual ${forwarded}`,
@@ -32,7 +36,6 @@ execFileSync(
     '--rm',
     '--ipc=host',
     '--env=CI=1',
-    '--env=COREPACK_ENABLE_DOWNLOAD_PROMPT=0',
     `--volume=${ROOT}:/work`,
     '--volume=inomov-online-node-modules:/work/node_modules',
     '--workdir=/work',

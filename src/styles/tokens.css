@@ -30,6 +30,10 @@
   --step-3: clamp(1.95rem, 1.72rem + 1.05vw, 2.75rem);
   --step-4: clamp(2.44rem, 2.03rem + 1.8vw, 3.9rem);
   --step-5: clamp(3.05rem, 2.35rem + 3.1vw, 5.6rem);
+  /* Fixed, not fluid: the smallest labels (12px), and controls, cards and dense lists (16px,
+     which also keeps iOS from zooming into form fields). Reading text stays on --step-0. */
+  --step--2: 0.75rem;
+  --text-ui: 1rem;
 
   --leading-tight: 1.05;
   --leading-snug: 1.25;
