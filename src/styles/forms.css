@@ -21,6 +21,7 @@
   border: 1px solid var(--color-line);
   border-radius: var(--radius-panel);
   background: var(--color-surface);
+  font-size: var(--text-ui);
 }
 
 @media (min-width: 40rem) {
@@ -43,13 +44,14 @@
 .form .field select,
 .form .field textarea {
   width: 100%;
-  min-height: 3.5rem;
-  padding: 1.4rem var(--space-3) 0.45rem;
+  min-height: 3rem;
+  padding: 1.3rem var(--space-3) 0.3rem;
   border: 1px solid var(--color-line-strong);
   border-radius: var(--radius-control);
   background: var(--color-bg);
   color: var(--color-fg);
   font: inherit;
+  line-height: var(--leading-snug);
   transition:
     border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-base) var(--ease-out);
@@ -57,7 +59,8 @@
 
 .form .field textarea {
   min-height: 10rem;
-  padding-block-start: 1.6rem;
+  padding-block-start: 1.5rem;
+  line-height: var(--leading-body);
   resize: vertical;
 }
 
@@ -68,8 +71,8 @@
     linear-gradient(45deg, transparent 50%, var(--color-fg-muted) 50%),
     linear-gradient(135deg, var(--color-fg-muted) 50%, transparent 50%);
   background-position:
-    right 1.25rem top 1.6rem,
-    right 0.9rem top 1.6rem;
+    right 1.25rem top 1.4rem,
+    right 0.9rem top 1.4rem;
   background-size: 0.35rem 0.35rem;
   background-repeat: no-repeat;
 }
@@ -85,7 +88,8 @@
 /* Floating label: sits inside the empty field, moves up once it is focused or filled. */
 .form .field > label {
   position: absolute;
-  inset-block-start: 1.05rem;
+  inset-block-start: 0.85rem;
+  line-height: var(--leading-snug);
   inset-inline-start: calc(var(--space-3) + 1px);
   color: var(--color-fg-muted);
   pointer-events: none;
@@ -100,7 +104,7 @@
 .form .field textarea:focus + label,
 .form .field textarea:not(:placeholder-shown) + label,
 .form .field--select > label {
-  transform: translateY(-0.6rem) scale(0.78);
+  transform: translateY(-0.55rem) scale(0.78);
 }
 
 .form .field input:focus + label,
@@ -139,7 +143,7 @@
   margin: 0;
   color: var(--color-fg-muted);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--step--2);
 }
 
 .form .field--check {
