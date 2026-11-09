@@ -1,0 +1,58 @@
+# Publishes server.json to the official MCP Registry. Started by hand after the Server Card
+# changes (bump SERVER_VERSION, run `pnpm mcp:server-json`, merge, then run this).
+# The registry checks /.well-known/mcp-registry-auth on inomov.online against the private key
+# in the secret MCP_REGISTRY_PRIVATE_KEY, so the key's public half must be deployed first.
+name: Publish to MCP Registry
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: mcp-registry
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Pinned on purpose: update deliberately, the signature check below names this tag.
+      MCP_PUBLISHER_VERSION: v1.8.5
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Download and verify mcp-publisher
+        run: |
+          set -euo pipefail
+          archive="mcp-publisher_linux_amd64.tar.gz"
+          base_url="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
+          curl --fail --location --silent --show-error --output "$archive" "$base_url/$archive"
+          curl --fail --location --silent --show-error --output "$archive.sigstore.json" "$base_url/$archive.sigstore.json"
+          cosign verify-blob \
+            --bundle "$archive.sigstore.json" \
+            --certificate-identity "https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/${MCP_PUBLISHER_VERSION}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "$archive"
+          tar xzf "$archive" mcp-publisher
+          rm -f "$archive" "$archive.sigstore.json"
+
+      - name: Sign in with the domain key
+        env:
+          PRIVATE_KEY: ${{ secrets.MCP_REGISTRY_PRIVATE_KEY }}
+        run: |
+          if [ -z "$PRIVATE_KEY" ]; then
+            echo "::error::Secret MCP_REGISTRY_PRIVATE_KEY is not set."
+            exit 1
+          fi
+          ./mcp-publisher login http --domain inomov.online --private-key "$PRIVATE_KEY"
+
+      - name: Publish server.json
+        run: ./mcp-publisher publish
+
+      - name: Show the registry entry
+        run: curl --fail --silent --show-error "https://registry.modelcontextprotocol.io/v0.1/servers?search=online.inomov/portfolio"
