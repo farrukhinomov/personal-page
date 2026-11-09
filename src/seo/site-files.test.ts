@@ -50,11 +50,12 @@ describe('icons', () => {
     expect(iconSvg('square')).not.toContain('rx=');
   });
 
+  // The first render loads resvg's native module, which is slow while every test file runs.
   it('renders the iOS icon as a 180×180 PNG', () => {
     const png = renderIconPng(APPLE_TOUCH_ICON_SIZE, 'square');
     expect([...png.slice(0, 4)]).toEqual(PNG_SIGNATURE);
     expect(pngSize(png)).toEqual([180, 180]);
-  });
+  }, 20_000);
 
   it('packs 16, 32 and 48 px PNGs into favicon.ico', () => {
     const ico = renderFaviconIco();
