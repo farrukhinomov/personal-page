@@ -3,7 +3,6 @@ import ButtonLink from '@/components/ui/ButtonLink.astro';
 import Icon from '@/components/ui/Icon.astro';
 import backdropDark from '@/assets/portrait/farrukh-inomov-code-dark.svg?url';
 import backdropLight from '@/assets/portrait/farrukh-inomov-code-light.svg?url';
-import Portrait from '@/components/ui/Portrait.astro';
 import { cvPath } from '@/cv/paths';
 import { yearsSince } from '@/data/dates';
 import { profile } from '@/data/profile';
@@ -55,9 +54,6 @@ const titleWords = pageMeta('home', locale).title.split(' ');
     style={`--backdrop-dark: url(${backdropDark}); --backdrop-light: url(${backdropLight})`}
   ></div>
   <div class="container hero-inner">
-    <div class="portrait enter" style="--delay: 200ms">
-      <Portrait locale={locale} phoneOnly />
-    </div>
     <div class="copy">
       <p class="intro enter" style="--delay: 0ms">
         {copy.intro}
@@ -132,97 +128,64 @@ const titleWords = pageMeta('home', locale).title.split(' ');
     opacity: 0.55;
   }
 
-  /*
-   * Phones: one grid, the portrait as a small circle beside the intro line, everything else
-   * full width below (.copy steps aside with display: contents).
-   * From 56rem (the breakpoint in Portrait): text in one column, the portrait beside it.
-   */
   .hero-inner {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    justify-items: start;
-    gap: var(--space-5) var(--space-4);
   }
 
   .copy {
-    display: contents;
-  }
-
-  .copy > * {
-    grid-column: 1 / -1;
-  }
-
-  .copy > .intro {
-    grid-column: 2;
+    display: grid;
+    justify-items: start;
+    gap: var(--space-5);
   }
 
   .intro {
     color: var(--color-fg-muted);
   }
 
-  @media (min-width: 56rem) {
-    .hero-inner {
-      grid-template-columns: minmax(0, 1fr) auto;
-      column-gap: var(--space-7);
-    }
-
-    .copy {
-      display: grid;
-      justify-items: start;
-      gap: var(--space-5);
-    }
-
-    .copy > .intro {
-      grid-column: auto;
-    }
-
-    .copy {
-      max-inline-size: 46rem;
-    }
-
-    /* The code portrait below takes the photo's place on wide screens. */
-    .portrait {
-      display: none;
-    }
-  }
-
   /*
-   * Wide screens: the portrait drawn from code glyphs fills the right of the hero, its soft
-   * diagonal edge fading in behind the text. Decorative (the photo stays on phones and About);
-   * the SVG animates itself and holds still under prefers-reduced-motion. A background image,
-   * so only the current theme's file is downloaded. Screen/multiply let the grid show through.
+   * The portrait drawn from code glyphs (decorative here: the hero is about the text). It never
+   * sits under the face-height of the text: below 72rem it stands above the text in the flow,
+   * its faded shoulders tucked under the intro line; from 72rem it fills the right of the hero
+   * beside a narrower text column, fading in along a diagonal. A background image, so only the
+   * current theme's file loads; screen/multiply let the grid show through. The SVG rains in on
+   * first load, animates itself, and holds still under prefers-reduced-motion.
    */
   .backdrop {
-    display: none;
+    --overlap: clamp(2.5rem, 12vw, 5rem);
+    inline-size: min(100% - 2 * var(--gutter), 24rem);
+    aspect-ratio: 1;
+    margin: 0 auto calc(-1 * var(--overlap));
+    pointer-events: none;
+    background: var(--backdrop-dark) center / contain no-repeat;
+    mix-blend-mode: screen;
   }
 
-  @media (min-width: 56rem) {
+  :global([data-theme='light']) .backdrop {
+    background-image: var(--backdrop-light);
+    mix-blend-mode: multiply;
+  }
+
+  .hero-inner {
+    position: relative;
+  }
+
+  @media (min-width: 72rem) {
+    .copy {
+      max-inline-size: min(46rem, 54%);
+    }
+
     .backdrop {
-      display: block;
       position: absolute;
       z-index: -1;
       inset-block: 0;
-      /* Hangs past the container's right edge, so the face stays clear of the text column. */
+      /* Hangs past the container's right edge on wide screens, away from the text column. */
       inset-inline-end: max(0px, (100% - var(--container)) / 2 - 12rem);
-      inline-size: min(52%, 50rem);
-      pointer-events: none;
-      background: var(--backdrop-dark) 60% 40% / cover no-repeat;
-      mix-blend-mode: screen;
-      mask-image: linear-gradient(100deg, transparent 24%, #000 56%);
-      /* Narrower screens: the text column reaches into the portrait, so it steps back. */
-      opacity: 0.55;
-    }
-
-    @media (min-width: 72rem) {
-      .backdrop {
-        opacity: 1;
-      }
-    }
-
-    :global([data-theme='light']) .backdrop {
-      background-image: var(--backdrop-light);
-      mix-blend-mode: multiply;
+      inline-size: min(50%, 50rem);
+      aspect-ratio: auto;
+      margin: 0;
+      background-position: 60% 40%;
+      background-size: cover;
+      mask-image: linear-gradient(100deg, transparent 18%, #000 50%);
     }
   }
 
