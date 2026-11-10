@@ -1,6 +1,8 @@
 ---
 import ButtonLink from '@/components/ui/ButtonLink.astro';
 import Icon from '@/components/ui/Icon.astro';
+import backdropDark from '@/assets/portrait/farrukh-inomov-code-dark.svg?url';
+import backdropLight from '@/assets/portrait/farrukh-inomov-code-light.svg?url';
 import Portrait from '@/components/ui/Portrait.astro';
 import { cvPath } from '@/cv/paths';
 import { yearsSince } from '@/data/dates';
@@ -47,9 +49,14 @@ const titleWords = pageMeta('home', locale).title.split(' ');
 ---
 
 <section class="hero" aria-labelledby="hero-title">
+  <div
+    class="backdrop"
+    aria-hidden="true"
+    style={`--backdrop-dark: url(${backdropDark}); --backdrop-light: url(${backdropLight})`}
+  ></div>
   <div class="container hero-inner">
     <div class="portrait enter" style="--delay: 200ms">
-      <Portrait locale={locale} />
+      <Portrait locale={locale} phoneOnly />
     </div>
     <div class="copy">
       <p class="intro enter" style="--delay: 0ms">
@@ -170,9 +177,52 @@ const titleWords = pageMeta('home', locale).title.split(' ');
       grid-column: auto;
     }
 
+    .copy {
+      max-inline-size: 46rem;
+    }
+
+    /* The code portrait below takes the photo's place on wide screens. */
     .portrait {
-      grid-column: 2;
-      grid-row: 1;
+      display: none;
+    }
+  }
+
+  /*
+   * Wide screens: the portrait drawn from code glyphs fills the right of the hero, its soft
+   * diagonal edge fading in behind the text. Decorative (the photo stays on phones and About);
+   * the SVG animates itself and holds still under prefers-reduced-motion. A background image,
+   * so only the current theme's file is downloaded. Screen/multiply let the grid show through.
+   */
+  .backdrop {
+    display: none;
+  }
+
+  @media (min-width: 56rem) {
+    .backdrop {
+      display: block;
+      position: absolute;
+      z-index: -1;
+      inset-block: 0;
+      /* Hangs past the container's right edge, so the face stays clear of the text column. */
+      inset-inline-end: max(0px, (100% - var(--container)) / 2 - 12rem);
+      inline-size: min(52%, 50rem);
+      pointer-events: none;
+      background: var(--backdrop-dark) 60% 40% / cover no-repeat;
+      mix-blend-mode: screen;
+      mask-image: linear-gradient(100deg, transparent 24%, #000 56%);
+      /* Narrower screens: the text column reaches into the portrait, so it steps back. */
+      opacity: 0.55;
+    }
+
+    @media (min-width: 72rem) {
+      .backdrop {
+        opacity: 1;
+      }
+    }
+
+    :global([data-theme='light']) .backdrop {
+      background-image: var(--backdrop-light);
+      mix-blend-mode: multiply;
     }
   }
 

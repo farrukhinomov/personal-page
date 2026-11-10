@@ -6,10 +6,14 @@ import type { Locale } from '@/i18n/locales';
 
 interface Props {
   locale: Locale;
+  /** Only the phone circle is ever shown (the caller hides it from 56rem), so skip large widths. */
+  phoneOnly?: boolean;
 }
 
-const { locale } = Astro.props;
+const { locale, phoneOnly = false } = Astro.props;
 const alt = { de: `Porträt von ${profile.name}`, en: `Portrait of ${profile.name}` }[locale];
+const widths = phoneOnly ? [112, 168] : [144, 352, 528, 704];
+const sizes = phoneOnly ? '3.5rem' : '(min-width: 56rem) 22rem, 3.5rem';
 ---
 
 <!--
@@ -21,8 +25,8 @@ const alt = { de: `Porträt von ${profile.name}`, en: `Portrait of ${profile.nam
     src={portrait}
     alt={alt}
     formats={['avif', 'webp']}
-    widths={[144, 352, 528, 704]}
-    sizes="(min-width: 56rem) 22rem, 3.5rem"
+    widths={widths}
+    sizes={sizes}
     loading="eager"
     fetchpriority="high"
   />
