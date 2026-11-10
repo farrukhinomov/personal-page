@@ -34,40 +34,38 @@ const phoneFallback =
   a 4:5 portrait whose corner marks echo the engineering grid behind the hero.
 -->
 <div class:list={['portrait', { 'portrait--code': variant === 'code' }]}>
-  {
-    phoneFallback ? (
-      <picture>
-        <source media="(min-width: 56rem)" srcset={codePortrait} type="image/svg+xml" />
-        {phoneSources.map((image) => (
-          <source
-            srcset={image.srcSet.attribute}
-            sizes={PHONE_SIZES}
-            type={`image/${image.options.format}`}
-          />
-        ))}
-        {/* The photo's dimensions; CSS aspect-ratio sets the box for the photo and the SVG alike. */}
-        <img
-          src={phoneFallback.src}
-          alt={alt}
-          width="1280"
-          height="1600"
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
+  {phoneFallback ? (
+    <picture>
+      <source media="(min-width: 56rem)" srcset={codePortrait} type="image/svg+xml" />
+      {phoneSources.map((image) => (
+        <source
+          srcset={image.srcSet.attribute}
+          sizes={PHONE_SIZES}
+          type={`image/${image.options.format}`}
         />
-      </picture>
-    ) : (
-      <Picture
-        src={portrait}
+      ))}
+      {/* The photo's dimensions; CSS aspect-ratio sets the box for the photo and the SVG alike. */}
+      <img
+        src={phoneFallback.src}
         alt={alt}
-        formats={['avif', 'webp']}
-        widths={[144, 352, 528, 704]}
-        sizes="(min-width: 56rem) 22rem, 3.5rem"
+        width="1280"
+        height="1600"
         loading="eager"
         fetchpriority="high"
+        decoding="async"
       />
-    )
-  }
+    </picture>
+  ) : (
+    <Picture
+      src={portrait}
+      alt={alt}
+      formats={['avif', 'webp']}
+      widths={[144, 352, 528, 704]}
+      sizes="(min-width: 56rem) 22rem, 3.5rem"
+      loading="eager"
+      fetchpriority="high"
+    />
+  )}
 </div>
 
 <style>
