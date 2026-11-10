@@ -1,71 +1,35 @@
 ---
-import { getImage, Picture } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import portrait from '@/assets/portrait/farrukh-inomov.jpg';
-import codePortrait from '@/assets/portrait/farrukh-inomov-code.svg?url';
 import { profile } from '@/data/profile';
 import type { Locale } from '@/i18n/locales';
 
 interface Props {
   locale: Locale;
-  /** `code`: from 56rem the animated code portrait replaces the photo; phones keep the photo. */
-  variant?: 'photo' | 'code';
+  /** Only the phone circle is ever shown (the caller hides it from 56rem), so skip large widths. */
+  phoneOnly?: boolean;
 }
 
-const { locale, variant = 'photo' } = Astro.props;
+const { locale, phoneOnly = false } = Astro.props;
 const alt = { de: `Porträt von ${profile.name}`, en: `Portrait of ${profile.name}` }[locale];
-
-// The code variant shows the photo only as the 3.5rem phone circle, so 2x and 3x suffice.
-const PHONE_WIDTHS = [112, 168];
-const PHONE_SIZES = '3.5rem';
-const phoneSources =
-  variant === 'code'
-    ? await Promise.all(
-        (['avif', 'webp'] as const).map((format) =>
-          getImage({ src: portrait, format, widths: PHONE_WIDTHS, sizes: PHONE_SIZES }),
-        ),
-      )
-    : [];
-const phoneFallback =
-  variant === 'code' ? await getImage({ src: portrait, format: 'jpeg', width: 168 }) : undefined;
+const widths = phoneOnly ? [112, 168] : [144, 352, 528, 704];
+const sizes = phoneOnly ? '3.5rem' : '(min-width: 56rem) 22rem, 3.5rem';
 ---
 
 <!--
   A small circle beside the text on phones; from 56rem (the breakpoint of Hero and PageHeader)
   a 4:5 portrait whose corner marks echo the engineering grid behind the hero.
 -->
-<div class:list={['portrait', { 'portrait--code': variant === 'code' }]}>
-  {phoneFallback ? (
-    <picture>
-      <source media="(min-width: 56rem)" srcset={codePortrait} type="image/svg+xml" />
-      {phoneSources.map((image) => (
-        <source
-          srcset={image.srcSet.attribute}
-          sizes={PHONE_SIZES}
-          type={`image/${image.options.format}`}
-        />
-      ))}
-      {/* The photo's dimensions; CSS aspect-ratio sets the box for the photo and the SVG alike. */}
-      <img
-        src={phoneFallback.src}
-        alt={alt}
-        width="1280"
-        height="1600"
-        loading="eager"
-        fetchpriority="high"
-        decoding="async"
-      />
-    </picture>
-  ) : (
-    <Picture
-      src={portrait}
-      alt={alt}
-      formats={['avif', 'webp']}
-      widths={[144, 352, 528, 704]}
-      sizes="(min-width: 56rem) 22rem, 3.5rem"
-      loading="eager"
-      fetchpriority="high"
-    />
-  )}
+<div class="portrait">
+  <Picture
+    src={portrait}
+    alt={alt}
+    formats={['avif', 'webp']}
+    widths={widths}
+    sizes={sizes}
+    loading="eager"
+    fetchpriority="high"
+  />
 </div>
 
 <style>
@@ -97,12 +61,6 @@ const phoneFallback =
     .portrait :global(img) {
       aspect-ratio: 4 / 5;
       border-radius: var(--radius-panel);
-    }
-
-    /* The square SVG fills the 4:5 frame by height; its edges fade out, so the crop is soft. */
-    .portrait--code :global(img) {
-      object-position: 50% 50%;
-      background: var(--color-screen);
     }
 
     /* Four L-shaped corner marks, each drawn as two bars. */
