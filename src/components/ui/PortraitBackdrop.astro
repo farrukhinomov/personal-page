@@ -8,6 +8,22 @@ interface Props {
 }
 
 const { label } = Astro.props;
+
+/*
+ * First load: the portrait rains in column by column. Each column is hidden by a strip that
+ * falls away once, at its own pace, with a glowing head. Timings come from a seeded generator,
+ * so every build (and every visit) is the same.
+ */
+const RAIN_COLUMNS = 40;
+let seed = 77;
+const random = () => {
+  seed = (seed * 1664525 + 1013904223) % 4294967296;
+  return seed / 4294967296;
+};
+const rain = Array.from({ length: RAIN_COLUMNS }, () => ({
+  wait: (random() * 1.1).toFixed(2),
+  duration: (0.9 + random() * 0.8).toFixed(2),
+}));
 ---
 
 <!--
@@ -25,38 +41,119 @@ const { label } = Astro.props;
 <div
   class="backdrop"
   {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' })}
-  style={`--backdrop-dark: url(${portraitDark}); --backdrop-light: url(${portraitLight})`}
-></div>
+>
+  <div
+    class="image"
+    style={`--backdrop-dark: url(${portraitDark}); --backdrop-light: url(${portraitLight})`}
+  ></div>
+  <div class="rain" aria-hidden="true">
+    {rain.map(({ wait, duration }) => (
+      <span style={`--wait: ${wait}s; --duration: ${duration}s`} />
+    ))}
+  </div>
+</div>
 
 <style>
+  /*
+   * The wrapper only places the portrait. It must not form a stacking context (no z-index,
+   * mask or opacity here), or the image would blend with the empty wrapper instead of the page.
+   */
   .backdrop {
     --overlap: clamp(2.5rem, 12vw, 5rem);
+    position: relative;
     inline-size: min(100% - 2 * var(--gutter), 24rem);
     aspect-ratio: 1;
     margin: 0 auto calc(-1 * var(--overlap));
     pointer-events: none;
+  }
+
+  .image,
+  .rain {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+  }
+
+  .image {
     background: var(--backdrop-dark) center / contain no-repeat;
     mix-blend-mode: screen;
   }
 
-  :global([data-theme='light']) .backdrop {
+  :global([data-theme='light']) .image {
     background-image: var(--backdrop-light);
     mix-blend-mode: multiply;
+  }
+
+  /*
+   * First load: the portrait rains in. Each column is covered by a strip in the page colour that
+   * falls away once with a glowing head. Only transforms move, which the compositor animates off
+   * the main thread; inside the SVG the same effect cost phones over a second and did not even
+   * play in Chrome. Without motion the strips are never drawn.
+   */
+  .rain {
+    display: none;
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .rain {
+      display: flex;
+    }
+  }
+
+  .rain span {
+    position: relative;
+    flex: 1;
+    /* A hair wider, so neighbouring strips never leave a seam of portrait between them. */
+    margin-inline-end: -1px;
+    background: var(--color-bg);
+    animation: rain-fall var(--duration) cubic-bezier(0.35, 0, 0.75, 1) var(--wait) both;
+  }
+
+  /* The stream's head: a fading trail ending in a bright edge, just above the strip. */
+  .rain span::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 100%;
+    block-size: 30%;
+    background: linear-gradient(
+      transparent,
+      color-mix(in srgb, var(--color-signal) 45%, transparent) 85%,
+      var(--color-signal)
+    );
+  }
+
+  @keyframes rain-fall {
+    to {
+      transform: translateY(135%);
+      visibility: hidden;
+    }
   }
 
   @media (min-width: 72rem) {
     .backdrop {
       position: absolute;
-      z-index: -1;
       inset-block: 0;
       /* Hangs past the container's right edge on wide screens, away from the text column. */
       inset-inline-end: max(0px, (100% - var(--container)) / 2 - 12rem);
       inline-size: min(50%, 50rem);
       aspect-ratio: auto;
       margin: 0;
+    }
+
+    .image {
       background-position: 60% 40%;
       background-size: cover;
+    }
+
+    .image {
       mask-image: linear-gradient(100deg, transparent 18%, #000 50%);
+    }
+
+    /* Fully opaque from where the image starts to show, so no glyph peeks through a strip. */
+    .rain {
+      mask-image: linear-gradient(100deg, transparent 10%, #000 18%);
     }
   }
 </style>
