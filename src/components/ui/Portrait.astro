@@ -1,84 +1,43 @@
 ---
-import { Picture } from 'astro:assets';
-import portrait from '@/assets/portrait/farrukh-inomov.jpg';
+import portraitDark from '@/assets/portrait/farrukh-inomov-code-dark.svg?url';
+import portraitLight from '@/assets/portrait/farrukh-inomov-code-light.svg?url';
 import { profile } from '@/data/profile';
 import type { Locale } from '@/i18n/locales';
 
 interface Props {
   locale: Locale;
-  /** Only the phone circle is ever shown (the caller hides it from 56rem), so skip large widths. */
-  phoneOnly?: boolean;
 }
 
-const { locale, phoneOnly = false } = Astro.props;
-const alt = { de: `Porträt von ${profile.name}`, en: `Portrait of ${profile.name}` }[locale];
-const widths = phoneOnly ? [112, 168] : [144, 352, 528, 704];
-const sizes = phoneOnly ? '3.5rem' : '(min-width: 56rem) 22rem, 3.5rem';
+const { locale } = Astro.props;
+const label = { de: `Porträt von ${profile.name}`, en: `Portrait of ${profile.name}` }[locale];
 ---
 
 <!--
-  A small circle beside the text on phones; from 56rem (the breakpoint of Hero and PageHeader)
-  a 4:5 portrait whose corner marks echo the engineering grid behind the hero.
+  The portrait drawn from code glyphs, borderless, in the theme's own colours: glowing cyan on
+  dark, teal ink on light. A background image, so only the current theme's file is downloaded;
+  the SVG animates itself and holds still under prefers-reduced-motion.
 -->
-<div class="portrait">
-  <Picture
-    src={portrait}
-    alt={alt}
-    formats={['avif', 'webp']}
-    widths={widths}
-    sizes={sizes}
-    loading="eager"
-    fetchpriority="high"
-  />
-</div>
+<div
+  class="portrait"
+  role="img"
+  aria-label={label}
+  style={`--portrait-dark: url(${portraitDark}); --portrait-light: url(${portraitLight})`}
+></div>
 
 <style>
   .portrait {
-    --mark: 1rem;
-    --mark-width: 2px;
-    --mark-offset: 0.625rem;
-    position: relative;
-    inline-size: 3.5rem;
+    inline-size: clamp(10rem, 45vw, 14rem);
+    aspect-ratio: 1;
+    background: var(--portrait-dark) center / contain no-repeat;
   }
 
-  .portrait :global(img) {
-    display: block;
-    inline-size: 100%;
-    block-size: auto;
-    aspect-ratio: 1;
-    object-fit: cover;
-    object-position: 50% 35%;
-    border: 1px solid var(--color-line-strong);
-    border-radius: 50%;
-    background: var(--color-surface);
+  :global([data-theme='light']) .portrait {
+    background-image: var(--portrait-light);
   }
 
   @media (min-width: 56rem) {
     .portrait {
       inline-size: clamp(16rem, 6rem + 14vw, 22rem);
-    }
-
-    .portrait :global(img) {
-      aspect-ratio: 4 / 5;
-      border-radius: var(--radius-panel);
-    }
-
-    /* Four L-shaped corner marks, each drawn as two bars. */
-    .portrait::before {
-      content: '';
-      position: absolute;
-      inset: calc(-1 * var(--mark-offset));
-      pointer-events: none;
-      background:
-        linear-gradient(var(--color-signal) 0 0) left top / var(--mark) var(--mark-width),
-        linear-gradient(var(--color-signal) 0 0) left top / var(--mark-width) var(--mark),
-        linear-gradient(var(--color-signal) 0 0) right top / var(--mark) var(--mark-width),
-        linear-gradient(var(--color-signal) 0 0) right top / var(--mark-width) var(--mark),
-        linear-gradient(var(--color-signal) 0 0) left bottom / var(--mark) var(--mark-width),
-        linear-gradient(var(--color-signal) 0 0) left bottom / var(--mark-width) var(--mark),
-        linear-gradient(var(--color-signal) 0 0) right bottom / var(--mark) var(--mark-width),
-        linear-gradient(var(--color-signal) 0 0) right bottom / var(--mark-width) var(--mark);
-      background-repeat: no-repeat;
     }
   }
 </style>
