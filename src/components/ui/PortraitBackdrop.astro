@@ -1,0 +1,61 @@
+---
+import portraitDark from '@/assets/portrait/farrukh-inomov-code-dark.svg?url';
+import portraitLight from '@/assets/portrait/farrukh-inomov-code-light.svg?url';
+
+interface Props {
+  /** Read out as an image when given; without it the portrait is decoration and hidden. */
+  label?: string;
+}
+
+const { label } = Astro.props;
+---
+
+<!--
+  The portrait drawn from code glyphs, borderless, in the theme's own colours: glowing cyan on
+  dark, teal ink on light. Place it as the first child of a full-width, position: relative
+  section whose text column stays within 54% from 72rem.
+
+  It never sits under the face-height of the text: below 72rem it stands above the text in the
+  flow, its faded shoulders tucked under the first line; from 72rem it fills the right of the
+  section beside the text column, fading in along a diagonal. A background image, so only the
+  current theme's file loads; screen/multiply let the page texture show through. The SVG rains
+  in on first load, animates itself, and holds still under prefers-reduced-motion.
+-->
+<div
+  class="backdrop"
+  {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' })}
+  style={`--backdrop-dark: url(${portraitDark}); --backdrop-light: url(${portraitLight})`}
+></div>
+
+<style>
+  .backdrop {
+    --overlap: clamp(2.5rem, 12vw, 5rem);
+    inline-size: min(100% - 2 * var(--gutter), 24rem);
+    aspect-ratio: 1;
+    margin: 0 auto calc(-1 * var(--overlap));
+    pointer-events: none;
+    background: var(--backdrop-dark) center / contain no-repeat;
+    mix-blend-mode: screen;
+  }
+
+  :global([data-theme='light']) .backdrop {
+    background-image: var(--backdrop-light);
+    mix-blend-mode: multiply;
+  }
+
+  @media (min-width: 72rem) {
+    .backdrop {
+      position: absolute;
+      z-index: -1;
+      inset-block: 0;
+      /* Hangs past the container's right edge on wide screens, away from the text column. */
+      inset-inline-end: max(0px, (100% - var(--container)) / 2 - 12rem);
+      inline-size: min(50%, 50rem);
+      aspect-ratio: auto;
+      margin: 0;
+      background-position: 60% 40%;
+      background-size: cover;
+      mask-image: linear-gradient(100deg, transparent 18%, #000 50%);
+    }
+  }
+</style>

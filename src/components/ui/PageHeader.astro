@@ -10,14 +10,10 @@ const { title, suffix, lead } = Astro.props;
 const hasPortrait = Astro.slots.has('portrait');
 ---
 
-<header class="page-header">
-  <div class:list={['container', { 'with-portrait': hasPortrait }]}>
-    {hasPortrait && (
-      <div class="portrait">
-        <slot name="portrait" />
-      </div>
-    )}
-    <div>
+<header class:list={['page-header', { 'with-portrait': hasPortrait }]}>
+  <slot name="portrait" />
+  <div class="container">
+    <div class="text">
       <h1>
         {title}
         {suffix && ' '}
@@ -33,22 +29,25 @@ const hasPortrait = Astro.slots.has('portrait');
     padding-block: clamp(3rem, 2rem + 5vw, 6rem) var(--space-7);
   }
 
-  /* Phones: the portrait above the title. From 56rem (as in Portrait): beside it. */
+  /*
+   * The portrait slot takes a PortraitBackdrop: above the title on narrower screens, a large
+   * diagonal backdrop on the right from 72rem, tall enough there to show the whole face.
+   */
   .with-portrait {
-    display: grid;
-    gap: var(--space-5);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
   }
 
-  @media (min-width: 56rem) {
+  @media (min-width: 72rem) {
     .with-portrait {
-      grid-template-columns: minmax(0, 1fr) auto;
+      display: grid;
       align-items: center;
-      column-gap: var(--space-7);
+      min-block-size: 38rem;
     }
 
-    .portrait {
-      grid-column: 2;
-      grid-row: 1;
+    .with-portrait .text {
+      max-inline-size: min(46rem, 54%);
     }
   }
 

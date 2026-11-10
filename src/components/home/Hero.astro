@@ -1,8 +1,7 @@
 ---
 import ButtonLink from '@/components/ui/ButtonLink.astro';
 import Icon from '@/components/ui/Icon.astro';
-import backdropDark from '@/assets/portrait/farrukh-inomov-code-dark.svg?url';
-import backdropLight from '@/assets/portrait/farrukh-inomov-code-light.svg?url';
+import PortraitBackdrop from '@/components/ui/PortraitBackdrop.astro';
 import { cvPath } from '@/cv/paths';
 import { yearsSince } from '@/data/dates';
 import { profile } from '@/data/profile';
@@ -48,11 +47,7 @@ const titleWords = pageMeta('home', locale).title.split(' ');
 ---
 
 <section class="hero" aria-labelledby="hero-title">
-  <div
-    class="backdrop"
-    aria-hidden="true"
-    style={`--backdrop-dark: url(${backdropDark}); --backdrop-light: url(${backdropLight})`}
-  ></div>
+  <PortraitBackdrop />
   <div class="container hero-inner">
     <div class="copy">
       <p class="intro enter" style="--delay: 0ms">
@@ -142,50 +137,10 @@ const titleWords = pageMeta('home', locale).title.split(' ');
     color: var(--color-fg-muted);
   }
 
-  /*
-   * The portrait drawn from code glyphs (decorative here: the hero is about the text). It never
-   * sits under the face-height of the text: below 72rem it stands above the text in the flow,
-   * its faded shoulders tucked under the intro line; from 72rem it fills the right of the hero
-   * beside a narrower text column, fading in along a diagonal. A background image, so only the
-   * current theme's file loads; screen/multiply let the grid show through. The SVG rains in on
-   * first load, animates itself, and holds still under prefers-reduced-motion.
-   */
-  .backdrop {
-    --overlap: clamp(2.5rem, 12vw, 5rem);
-    inline-size: min(100% - 2 * var(--gutter), 24rem);
-    aspect-ratio: 1;
-    margin: 0 auto calc(-1 * var(--overlap));
-    pointer-events: none;
-    background: var(--backdrop-dark) center / contain no-repeat;
-    mix-blend-mode: screen;
-  }
-
-  :global([data-theme='light']) .backdrop {
-    background-image: var(--backdrop-light);
-    mix-blend-mode: multiply;
-  }
-
-  .hero-inner {
-    position: relative;
-  }
-
+  /* Beside the portrait backdrop, the text keeps to the left (see PortraitBackdrop). */
   @media (min-width: 72rem) {
     .copy {
       max-inline-size: min(46rem, 54%);
-    }
-
-    .backdrop {
-      position: absolute;
-      z-index: -1;
-      inset-block: 0;
-      /* Hangs past the container's right edge on wide screens, away from the text column. */
-      inset-inline-end: max(0px, (100% - var(--container)) / 2 - 12rem);
-      inline-size: min(50%, 50rem);
-      aspect-ratio: auto;
-      margin: 0;
-      background-position: 60% 40%;
-      background-size: cover;
-      mask-image: linear-gradient(100deg, transparent 18%, #000 50%);
     }
   }
 
