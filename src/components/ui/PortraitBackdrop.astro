@@ -18,8 +18,9 @@ const { label } = Astro.props;
   It never sits under the face-height of the text: below 72rem it stands above the text in the
   flow, its faded shoulders tucked under the first line; from 72rem it fills the right of the
   section beside the text column, fading in along a diagonal. A background image, so only the
-  current theme's file loads; screen/multiply let the page texture show through. The SVG rains
-  in on first load, animates itself, and holds still under prefers-reduced-motion.
+  current theme's file loads; screen/multiply let the page texture show through. The SVG is a
+  still frame: Chrome does not play animations nested in an image's masks, but repainted the
+  image on every frame of them (generator: _docs/avatar-svg/generate.py, still=True).
 -->
 <div
   class="backdrop"
