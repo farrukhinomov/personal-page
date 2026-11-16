@@ -29,14 +29,14 @@
     "verify": "pnpm lint && pnpm format:check && pnpm test && pnpm build"
   },
   "dependencies": {
-    "@astrojs/mdx": "^8.1.1",
+    "@astrojs/mdx": "^8.1.2",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
-    "@astrojs/vercel": "^11.0.16",
+    "@astrojs/vercel": "^11.0.17",
     "@modelcontextprotocol/server": "2.4.0",
     "@upstash/ratelimit": "2.2.0",
-    "@upstash/redis": "1.39.0",
-    "astro": "^7.4.2",
+    "@upstash/redis": "1.40.0",
+    "astro": "^7.4.4",
     "gsap": "^3.15.0"
   },
   "devDependencies": {
@@ -49,11 +49,11 @@
     "@playwright/test": "1.64.1",
     "@resvg/resvg-js": "^2.6.2",
     "@vitest/coverage-v8": "^5.0.5",
-    "docx": "9.14.0",
-    "eslint": "^10.13.0",
+    "docx": "9.15.1",
+    "eslint": "^10.14.0",
     "eslint-plugin-astro": "^3.2.1",
-    "geist": "1.8.2",
-    "globals": "^17.13.0",
+    "geist": "1.9.0",
+    "globals": "^17.14.0",
     "prettier": "^3.9.10",
     "prettier-plugin-astro": "^1.1.2",
     "satori": "^0.63.2",
@@ -61,7 +61,7 @@
     "sharp": "0.35.5",
     "tsx": "4.23.15",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.72.0",
+    "typescript-eslint": "^8.72.1",
     "vitest": "^5.0.5"
   }
 }
