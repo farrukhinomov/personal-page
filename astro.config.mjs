@@ -3,6 +3,40 @@ import { defineConfig, envField, fontProviders } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+
+/**
+ * Variable font files from the pinned @fontsource-variable packages, so the build needs no font
+ * CDN and every visitor gets the fonts from this site. One variant per subset, with the subset's
+ * unicode range from the same package.
+ *
+ * @param {string} id package id, e.g. `geist`
+ * @param {string} weight weight range of the variable font
+ */
+function localVariableFont(id, weight) {
+  const pkg = `@fontsource-variable/${id}`;
+  /** @type {Record<string, string | undefined>} */
+  const ranges = JSON.parse(readFileSync(require.resolve(`${pkg}/unicode.json`), 'utf8'));
+
+  /** @param {'latin' | 'latin-ext'} subset */
+  const variant = (subset) => {
+    const range = ranges[subset];
+    if (!range) throw new Error(`${pkg} has no unicode range for ${subset}`);
+    const [first = '', ...rest] = range.split(',');
+    return {
+      src: /** @type {[string]} */ ([`${pkg}/files/${id}-${subset}-wght-normal.woff2`]),
+      weight,
+      style: /** @type {const} */ ('normal'),
+      unicodeRange: /** @type {[string, ...string[]]} */ ([first, ...rest]),
+    };
+  };
+  /** @type {[ReturnType<typeof variant>, ReturnType<typeof variant>]} */
+  const variants = [variant('latin'), variant('latin-ext')];
+  return { variants };
+}
 
 export default defineConfig({
   site: 'https://inomov.online',
@@ -76,19 +110,15 @@ export default defineConfig({
     {
       name: 'Geist',
       cssVariable: '--font-sans',
-      provider: fontProviders.fontsource(),
-      weights: ['100 900'],
-      styles: ['normal'],
-      subsets: ['latin', 'latin-ext'],
+      provider: fontProviders.local(),
+      options: localVariableFont('geist', '100 900'),
       fallbacks: ['system-ui', 'sans-serif'],
     },
     {
       name: 'JetBrains Mono',
       cssVariable: '--font-mono',
-      provider: fontProviders.fontsource(),
-      weights: ['100 800'],
-      styles: ['normal'],
-      subsets: ['latin', 'latin-ext'],
+      provider: fontProviders.local(),
+      options: localVariableFont('jetbrains-mono', '100 800'),
       fallbacks: ['ui-monospace', 'monospace'],
     },
   ],
