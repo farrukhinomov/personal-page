@@ -104,7 +104,7 @@ export const KRITIS_ARCHITECTURE: ArchitectureDiagram = {
     {
       id: 'fastapi',
       label: { de: 'FastAPI', en: 'FastAPI' },
-      detail: { de: 'Risk Engine, zustandslos', en: 'Risk engine, stateless' },
+      detail: { de: 'Risk Engine', en: 'Risk engine' },
       status: 'skeleton',
       x: 630,
       y: 28,
@@ -136,6 +136,66 @@ export const KRITIS_ARCHITECTURE: ArchitectureDiagram = {
   ],
 };
 
+/**
+ * FlowPro as its compose file runs it: Caddy terminates TLS, serves the SPA and proxies /api
+ * to the API; API and worker share one PostgreSQL that isolates tenants with row-level
+ * security. Everything here runs today.
+ */
+export const FLOWPRO_ARCHITECTURE: ArchitectureDiagram = {
+  title: { de: 'Architektur von FlowPro', en: 'FlowPro architecture' },
+  width: 800,
+  height: 260,
+  nodes: [
+    {
+      id: 'browser',
+      label: { de: 'Browser', en: 'Browser' },
+      detail: { de: 'React-SPA, IndexedDB', en: 'React SPA, IndexedDB' },
+      status: 'live',
+      x: 20,
+      y: 78,
+    },
+    {
+      id: 'caddy',
+      label: { de: 'Caddy', en: 'Caddy' },
+      detail: { de: 'TLS, Reverse Proxy', en: 'TLS, reverse proxy' },
+      status: 'live',
+      x: 230,
+      y: 78,
+    },
+    {
+      id: 'api',
+      label: { de: 'ASP.NET-API', en: 'ASP.NET API' },
+      detail: { de: 'Modularer Monolith', en: 'Modular monolith' },
+      status: 'live',
+      x: 440,
+      y: 20,
+    },
+    {
+      id: 'worker',
+      label: { de: 'Worker', en: 'Worker' },
+      detail: { de: 'Outbox-Versand', en: 'Outbox dispatch' },
+      status: 'live',
+      x: 440,
+      y: 176,
+    },
+    {
+      id: 'postgres',
+      label: { de: 'PostgreSQL', en: 'PostgreSQL' },
+      detail: { de: 'Row-Level Security', en: 'Row-level security' },
+      status: 'live',
+      x: 630,
+      y: 98,
+    },
+  ],
+  edges: [
+    { from: 'browser', to: 'caddy', status: 'live', label: { de: 'HTTPS', en: 'HTTPS' } },
+    { from: 'caddy', to: 'api', status: 'live', label: { de: '/api', en: '/api' } },
+    { from: 'api', to: 'postgres', status: 'live' },
+    { from: 'worker', to: 'postgres', status: 'live' },
+  ],
+};
+
 export const DIAGRAMS: Readonly<Record<string, ArchitectureDiagram>> = {
   'kritis-grc': KRITIS_ARCHITECTURE,
+  flowpro: FLOWPRO_ARCHITECTURE,
 };

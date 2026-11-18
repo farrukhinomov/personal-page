@@ -43,6 +43,14 @@ const describe = (status: 'live' | 'planned') =>
   diagram.edges
     .filter((edge) => edge.status === status)
     .map((edge) => `${label(edge.from)} → ${label(edge.to)}`);
+
+// Only the statuses this diagram uses, so a system that fully runs shows no empty "Planned".
+const used = new Set([...diagram.nodes, ...diagram.edges].map((item) => item.status));
+const legend = (['live', 'skeleton', 'planned'] as const).filter((status) => used.has(status));
+const flows = [
+  { title: copy.liveFlow, items: describe('live') },
+  { title: copy.plannedFlow, items: describe('planned') },
+].filter((flow) => flow.items.length > 0);
 ---
 
 <figure class="diagram">
@@ -108,28 +116,20 @@ const describe = (status: 'live' | 'planned') =>
 
   <figcaption>
     <ul class="legend" aria-label={copy.legend}>
-      <li>
-        <span class="swatch swatch--live" aria-hidden="true"></span>
-        {copy.live}
-      </li>
-      <li>
-        <span class="swatch swatch--skeleton" aria-hidden="true"></span>
-        {copy.skeleton}
-      </li>
-      <li>
-        <span class="swatch swatch--planned" aria-hidden="true"></span>
-        {copy.planned}
-      </li>
+      {legend.map((status) => (
+        <li>
+          <span class={`swatch swatch--${status}`} aria-hidden="true" />
+          {copy[status]}
+        </li>
+      ))}
     </ul>
     <dl class="flows">
-      <div>
-        <dt>{copy.liveFlow}</dt>
-        <dd>{describe('live').join(', ')}</dd>
-      </div>
-      <div>
-        <dt>{copy.plannedFlow}</dt>
-        <dd>{describe('planned').join(', ')}</dd>
-      </div>
+      {flows.map((flow) => (
+        <div>
+          <dt>{flow.title}</dt>
+          <dd>{flow.items.join(', ')}</dd>
+        </div>
+      ))}
     </dl>
   </figcaption>
 </figure>

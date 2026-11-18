@@ -59,7 +59,9 @@ describe('portfolio data', () => {
 
   it('points project screenshots at files that exist', () => {
     const screenshots = projects.flatMap((project) =>
-      project.screenshot ? [project.screenshot.light, project.screenshot.dark] : [],
+      [...(project.screenshot ? [project.screenshot] : []), ...(project.gallery ?? [])].flatMap(
+        (shot) => [shot.light, shot.dark],
+      ),
     );
     expect(screenshots.length).toBeGreaterThan(0);
     for (const path of screenshots) {
@@ -67,8 +69,8 @@ describe('portfolio data', () => {
     }
   });
 
-  it('marks private repositories so they get no source link', () => {
-    expect(projects.find((project) => project.slug === 'flowpro')?.visibility).toBe('private');
+  it('marks FlowPro public, so its page links the source', () => {
+    expect(projects.find((project) => project.slug === 'flowpro')?.visibility).toBe('public');
   });
 });
 
