@@ -2,6 +2,7 @@
 import ArchitectureDiagram from '@/components/projects/diagrams/ArchitectureDiagram.astro';
 import { DIAGRAMS } from '@/components/projects/diagrams/architecture';
 import ProjectLinks from '@/components/projects/ProjectLinks.astro';
+import ProjectScreenshot from '@/components/projects/ProjectScreenshot.astro';
 import Icon from '@/components/ui/Icon.astro';
 import PageHeader from '@/components/ui/PageHeader.astro';
 import { formatDate } from '@/data/dates';
@@ -27,6 +28,7 @@ const copy = {
     updated: 'Stand',
     architecture: 'Systemüberblick',
     demo: 'Demo',
+    screenshots: 'Screenshots',
   },
   en: {
     back: 'All projects',
@@ -36,6 +38,7 @@ const copy = {
     updated: 'Last updated',
     architecture: 'System overview',
     demo: 'Demo',
+    screenshots: 'Screenshots',
   },
 }[locale];
 
@@ -91,6 +94,33 @@ const diagram = DIAGRAMS[project.slug];
     </dl>
   </div>
 
+  {project.screenshot && (
+    <section class="container block" aria-labelledby="screenshots-title">
+      <h2 id="screenshots-title" class="block-title">
+        {copy.screenshots}
+      </h2>
+      <ProjectScreenshot
+        locale={locale}
+        screenshot={project.screenshot}
+        sizes="(min-width: 80rem) 72rem, calc(100vw - 2rem)"
+      />
+      {project.gallery && (
+        <div class="gallery">
+          {project.gallery.map((shot) => (
+            <figure>
+              <ProjectScreenshot
+                locale={locale}
+                screenshot={shot}
+                sizes="(min-width: 80rem) 72rem, calc(100vw - 2rem)"
+              />
+              <figcaption>{shot.caption[locale]}</figcaption>
+            </figure>
+          ))}
+        </div>
+      )}
+    </section>
+  )}
+
   {project.sections && (
     <div class="container block">
       <div class="sections">
@@ -143,6 +173,19 @@ const diagram = DIAGRAMS[project.slug];
   .block-title {
     margin-block-end: var(--space-5);
     font-size: var(--step-2);
+  }
+
+  /* One column: at half width the interface text in a screenshot is too small to read. */
+  .gallery {
+    display: grid;
+    gap: var(--space-7);
+    margin-block-start: var(--space-7);
+  }
+
+  .gallery figcaption {
+    margin-block-start: var(--space-3);
+    color: var(--color-fg-muted);
+    font-size: var(--step--1);
   }
 
   .sections {

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { DIAGRAMS, edgeLine, exitPoint, KRITIS_ARCHITECTURE, NODE_SIZE } from './architecture';
+import {
+  DIAGRAMS,
+  edgeLine,
+  exitPoint,
+  FLOWPRO_ARCHITECTURE,
+  KRITIS_ARCHITECTURE,
+  NODE_SIZE,
+} from './architecture';
 
 const node = (x: number, y: number) => ({
   id: 'n',
@@ -62,5 +69,47 @@ describe('KRITIS GRC architecture', () => {
 
   it('is registered for the kritis-grc project', () => {
     expect(DIAGRAMS['kritis-grc']).toBe(KRITIS_ARCHITECTURE);
+  });
+});
+
+describe('FlowPro architecture', () => {
+  const { nodes, edges } = FLOWPRO_ARCHITECTURE;
+  const ids = new Set(nodes.map((n) => n.id));
+
+  it('only connects nodes that exist', () => {
+    for (const edge of edges) {
+      expect(ids.has(edge.from)).toBe(true);
+      expect(ids.has(edge.to)).toBe(true);
+    }
+  });
+
+  it('shows only what runs today', () => {
+    expect([...nodes, ...edges].every((item) => item.status === 'live')).toBe(true);
+  });
+
+  it('keeps every box inside the drawing', () => {
+    for (const n of nodes) {
+      expect(n.x + NODE_SIZE.width).toBeLessThanOrEqual(FLOWPRO_ARCHITECTURE.width);
+      expect(n.y + NODE_SIZE.height).toBeLessThanOrEqual(FLOWPRO_ARCHITECTURE.height);
+    }
+  });
+
+  it('is registered for the flowpro project', () => {
+    expect(DIAGRAMS.flowpro).toBe(FLOWPRO_ARCHITECTURE);
+  });
+});
+
+describe('every diagram', () => {
+  // About 6 px per character at the detail font size; the box leaves ~128 px for text.
+  const MAX_DETAIL_LENGTH = 21;
+
+  it('keeps node details short enough to stay inside their box', () => {
+    for (const diagram of Object.values(DIAGRAMS)) {
+      for (const node of diagram.nodes) {
+        for (const text of Object.values(node.detail)) {
+          expect(text.length, text).toBeLessThanOrEqual(MAX_DETAIL_LENGTH);
+        }
+      }
+    }
   });
 });

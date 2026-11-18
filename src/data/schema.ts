@@ -59,6 +59,9 @@ const projectSection = z.object({
 /** An image path from the repository root, e.g. `src/assets/projects/x/shot.png`. */
 const imageAsset = z.string().regex(/^src\/assets\/[\w/-]+\.(png|jpe?g|webp)$/);
 
+/** One screenshot per site theme, with alt text. */
+const themedScreenshot = z.object({ light: imageAsset, dark: imageAsset, alt: localized });
+
 export const projectSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
   name: text,
@@ -81,7 +84,12 @@ export const projectSchema = z.object({
   /** Self-hosted screen recording below `public/`, shown once the file exists. */
   demoVideo: z.object({ src: z.string().startsWith('/'), caption: localized }).optional(),
   /** Screenshots below `src/assets/`, one per site theme, optimized at build time. */
-  screenshot: z.object({ light: imageAsset, dark: imageAsset, alt: localized }).optional(),
+  screenshot: themedScreenshot.optional(),
+  /** Further screenshots for the Project page, each with a caption that says what it shows. */
+  gallery: z
+    .array(themedScreenshot.extend({ caption: localized }))
+    .min(1)
+    .optional(),
 });
 
 export const projectsSchema = z
