@@ -83,10 +83,10 @@ describe('buildResume', () => {
     expect(resume.work[0]).not.toHaveProperty('endDate');
   });
 
-  it('only links public repositories', () => {
+  it('links public repositories', () => {
     const flowpro = resume.projects.find((project) => project.name === 'FlowPro');
     const kritis = resume.projects.find((project) => project.name === 'KRITIS GRC');
-    expect(flowpro).not.toHaveProperty('repository');
+    expect(flowpro).toHaveProperty('repository', 'https://github.com/farrukhinomov/flow-pro');
     expect(kritis).toHaveProperty('repository', 'https://github.com/farrukhinomov/kritis-grc');
   });
 
@@ -125,10 +125,10 @@ describe('llms.txt', () => {
     expect(buildLlmsFullTxt([])).toContain('No posts yet.');
   });
 
-  it('includes full Experience, private-source notes and post bodies in llms-full.txt', () => {
+  it('includes full Experience, source links and post bodies in llms-full.txt', () => {
     const text = buildLlmsFullTxt([post]);
     expect(text).toContain('## Experience');
-    expect(text).toContain('Source: private, available on request');
+    expect(text).toContain('Source: https://github.com/farrukhinomov/flow-pro');
     expect(text).toContain('Body text.');
   });
 });
