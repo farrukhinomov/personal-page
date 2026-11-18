@@ -70,7 +70,8 @@ export function clientKey(ip: string): string {
 /**
  * Keys the counter by an HMAC of the client address, so Redis never holds an IP. Without the
  * secret the hashes cannot be reversed by trying every IPv4 address. They are still
- * pseudonymous personal data, so the keys expire with the one-day window.
+ * pseudonymous personal data, so the keys expire: Upstash's sliding window keeps a key for two
+ * windows, so at most two days (as the privacy policy says).
  */
 export async function hashClient(ip: string, secret: string): Promise<string> {
   const encoder = new TextEncoder();
