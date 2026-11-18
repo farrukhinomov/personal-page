@@ -59,3 +59,9 @@ pnpm build && pnpm test:lighthouse   # reports in .lighthouseci/
 ## Deploy
 
 Vercel builds every push. Pull requests get preview deployments; `master` goes to https://inomov.online.
+
+## License
+
+The source code is available under the [MIT License](LICENSE). The content is not: texts, blog
+posts, images (including the portrait), the CV and the project screenshots are © Farrukh Inomov,
+all rights reserved.

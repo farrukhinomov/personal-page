@@ -1,11 +1,12 @@
 ---
 title: Imprint
 description: Legal notice under § 5 DDG (German Digital Services Act) for inomov.online.
-updated: 2026-10-26
+updated: 2026-11-18
 ---
 
 import { profile } from '@/data/profile';
 import { legal } from '@/data/legal';
+import { pathFor } from '@/i18n/routes';
 
 This is a courtesy translation. The German text is legally binding.
 
@@ -25,6 +26,8 @@ This is a courtesy translation. The German text is legally binding.
 
 Email: <a href={`mailto:${profile.email}`}>{profile.email}</a>
 
+Contact form: <a href={pathFor('contact', 'en')}>inomov.online{pathFor('contact', 'en')}</a>
+
 ## Responsible for the content
 
 Responsible under § 18 (2) MStV: {profile.name}, address as above.
@@ -39,4 +42,4 @@ This website links to external websites of third parties. I have no influence on
 
 ## Copyright
 
-The texts, designs and source code of this website that I created are subject to German copyright law. Any reproduction, editing or distribution beyond the limits of copyright law requires my written consent. Third-party content is marked as such.
+The texts, images and designs of this website that I created, including the portrait and the CV, are subject to German copyright law. Any reproduction, editing or distribution beyond the limits of copyright law requires my written consent. The source code of the website is the exception: it is available under the MIT License in the [public repository on GitHub](https://github.com/farrukhinomov/personal-page). Third-party content is marked as such.

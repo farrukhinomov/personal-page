@@ -1,11 +1,12 @@
 ---
 title: Impressum
 description: Anbieterkennzeichnung nach § 5 DDG für inomov.online.
-updated: 2026-10-26
+updated: 2026-11-18
 ---
 
 import { profile } from '@/data/profile';
 import { legal } from '@/data/legal';
+import { pathFor } from '@/i18n/routes';
 
 ## Angaben gemäß § 5 DDG
 
@@ -23,6 +24,8 @@ import { legal } from '@/data/legal';
 
 E-Mail: <a href={`mailto:${profile.email}`}>{profile.email}</a>
 
+Kontaktformular: <a href={pathFor('contact', 'de')}>inomov.online{pathFor('contact', 'de')}</a>
+
 ## Verantwortlich für den Inhalt
 
 Verantwortlich im Sinne von § 18 Abs. 2 MStV: {profile.name}, Anschrift wie oben.
@@ -33,8 +36,8 @@ Die Inhalte dieser Website habe ich mit größtmöglicher Sorgfalt erstellt. Fü
 
 ## Haftung für Links
 
-Diese Website enthält Links zu externen Websites Dritter, auf deren Inhalte ich keinen Einfluss habe. Für diese fremden Inhalte kann ich keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter verantwortlich. Zum Zeitpunkt der Verlinkung waren keine Rechtsverstöße erkennbar; bei Bekanntwerden entfernte ich solche Links umgehend.
+Diese Website enthält Links zu externen Websites Dritter, auf deren Inhalte ich keinen Einfluss habe. Für diese fremden Inhalte kann ich keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter verantwortlich. Zum Zeitpunkt der Verlinkung waren keine Rechtsverstöße erkennbar; bei Bekanntwerden entferne ich solche Links umgehend.
 
 ## Urheberrecht
 
-Die von mir erstellten Texte, Gestaltungen und Quelltexte dieser Website unterliegen dem deutschen Urheberrecht. Eine Vervielfältigung, Bearbeitung oder Verbreitung außerhalb der Grenzen des Urheberrechts bedarf meiner schriftlichen Zustimmung. Inhalte Dritter sind als solche gekennzeichnet.
+Die von mir erstellten Texte, Bilder und Gestaltungen dieser Website, einschließlich Porträt und Lebenslauf, unterliegen dem deutschen Urheberrecht. Eine Vervielfältigung, Bearbeitung oder Verbreitung außerhalb der Grenzen des Urheberrechts bedarf meiner schriftlichen Zustimmung. Ausgenommen ist der Quelltext der Website: Er steht im [öffentlichen Repository auf GitHub](https://github.com/farrukhinomov/personal-page) unter der MIT-Lizenz. Inhalte Dritter sind als solche gekennzeichnet.
