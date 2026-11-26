@@ -26,6 +26,7 @@ async function fillValid(page: Page) {
   await page.locator('.message').getByLabel('Email', { exact: true }).fill('ada@example.com');
   await page.locator('.message').getByLabel('Topic', { exact: true }).selectOption('job');
   await page
+    .locator('.message')
     .getByLabel('Message', { exact: true })
     .fill('We would like to talk about a senior .NET role.');
   await page
