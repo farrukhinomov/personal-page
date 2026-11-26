@@ -1,2 +1,10 @@
 allowBuilds:
   esbuild: false
+
+# Security floors for transitive dependencies (Dependabot alerts).
+overrides:
+  next@>=16.0.0 <16.4.5: ^16.4.5
+  path-to-regexp@>=6.0.0 <6.3.0: ^6.3.0
+  minimatch@>=10.0.0 <11.0.1: ^11.0.1
+  basic-ftp@<6.2.4: ^6.2.6
+  fflate@>=0.7.0 <0.7.5: ~0.7.5
