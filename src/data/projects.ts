@@ -133,7 +133,6 @@ export const projects = projectsSchema.parse([
     name: 'FlowPro',
     repository: 'farrukhinomov/flow-pro',
     visibility: 'public',
-    homepage: 'https://flowpro.inomov.online',
     tagline: {
       de: 'Zeiterfassung, Abwesenheiten, Stundenzettel und Lohnvorbereitung für kleine und mittlere Unternehmen in Deutschland – mandantenfähig und quelloffen.',
       en: 'Time tracking, absences, timesheets and payroll preparation for small and mid-sized companies in Germany – multi-tenant and open source.',
